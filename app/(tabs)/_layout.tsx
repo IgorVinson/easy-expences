@@ -1,0 +1,50 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
+import { styles } from '../../styles';
+
+export default function TabsLayout() {
+  const { theme, isDarkMode } = useTheme();
+
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: [
+          {
+            backgroundColor: theme.cardBg,
+            borderTopWidth: 1,
+            borderTopColor: theme.border,
+            paddingBottom: 8,
+            paddingTop: 4,
+            height: 88,
+          },
+          !isDarkMode && styles.navShadow,
+        ],
+        tabBarActiveTintColor: theme.purple,
+        tabBarInactiveTintColor: theme.textTertiary,
+      }}>
+      <Tabs.Screen
+        name="overview"
+        options={{
+          title: 'Overview',
+          tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="budget"
+        options={{
+          title: 'Budget',
+          tabBarIcon: ({ color }) => <Ionicons name="calendar" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Setting',
+          tabBarIcon: ({ color }) => <Ionicons name="settings" size={24} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
