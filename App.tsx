@@ -1,28 +1,303 @@
-import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import './global.css';
 
+type Expense = {
+  id: string;
+  title: string;
+  category: string;
+  amount: number;
+  icon: string;
+  budgetLeft?: string;
+  colorLight: string;
+  colorDark: string;
+};
+
 export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Budget');
+
+  const todayExpenses: Expense[] = [
+    {
+      id: '1',
+      title: 'Lunch at Cafe',
+      category: 'Cafe',
+      amount: -15.5,
+      icon: '🍽️',
+      budgetLeft: '120$ left',
+      colorLight: '#FED7AA',
+      colorDark: '#FB923C',
+    },
+    {
+      id: '2',
+      title: 'Groceries',
+      category: 'Food',
+      amount: -85.2,
+      icon: '🛒',
+      colorLight: '#BBF7D0',
+      colorDark: '#4ADE80',
+    },
+  ];
+
+  const yesterdayExpenses: Expense[] = [
+    {
+      id: '3',
+      title: 'Uber Ride',
+      category: 'Transport',
+      amount: -22.0,
+      icon: '🚗',
+      budgetLeft: '95$ budget left',
+      colorLight: '#CBD5E1',
+      colorDark: '#64748B',
+    },
+    {
+      id: '4',
+      title: 'Coffee',
+      category: 'Cafe',
+      amount: -4.5,
+      icon: '☕',
+      colorLight: '#FDE68A',
+      colorDark: '#F59E0B',
+    },
+  ];
+
+  const theme = {
+    bg: isDarkMode ? '#020617' : '#F9FAFB',
+    cardBg: isDarkMode ? '#0F172A' : '#FFFFFF',
+    textPrimary: isDarkMode ? '#FFFFFF' : '#0F172A',
+    textSecondary: isDarkMode ? '#94A3B8' : '#475569',
+    textTertiary: isDarkMode ? '#64748B' : '#94A3B8',
+    border: isDarkMode ? '#1E293B' : '#E2E8F0',
+    iconBg: isDarkMode ? '#1E293B' : '#F1F5F9',
+    purple: isDarkMode ? '#7C3AED' : '#8B5CF6',
+    purpleCard: isDarkMode ? '#6D28D9' : '#7C3AED',
+  };
+
+  const ExpenseItem = ({ expense }: { expense: Expense }) => (
+    <View
+      style={[
+        styles.expenseItem,
+        { backgroundColor: theme.cardBg, borderColor: theme.border },
+        !isDarkMode && styles.expenseItemShadow,
+      ]}>
+      <View className="flex-1 flex-row items-center">
+        <View
+          className="h-12 w-12 items-center justify-center rounded-xl"
+          style={{
+            backgroundColor: isDarkMode ? expense.colorDark + '33' : expense.colorLight,
+          }}>
+          <Text className="text-2xl">{expense.icon}</Text>
+        </View>
+        <View className="ml-3 flex-1">
+          <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
+            {expense.title}
+          </Text>
+          <Text className="text-sm" style={{ color: theme.textTertiary }}>
+            {expense.category}
+          </Text>
+          {expense.budgetLeft && (
+            <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
+              {expense.budgetLeft}
+            </Text>
+          )}
+        </View>
+      </View>
+      <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
+        ${Math.abs(expense.amount).toFixed(2)}
+      </Text>
+    </View>
+  );
+
   return (
-    <View className="flex-1 items-center justify-center p-6">
-      {/* Card Container */}
-      <View className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
-        {/* Avatar Placeholder */}
-        <View className="mx-auto mb-4 h-20 w-20 items-center justify-center rounded-full bg-indigo-500">
-          <Text className="text-2xl font-bold text-white">IV</Text>
+    <View className="flex-1" style={{ backgroundColor: theme.bg }}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Header with Theme Toggle */}
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
+          <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
+            Budget
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              console.log('Theme toggled:', !isDarkMode);
+              setIsDarkMode(!isDarkMode);
+            }}
+            className="h-12 w-12 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.iconBg }}>
+            <Text className="text-xl">{isDarkMode ? '☀️' : '🌙'}</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Text Content */}
-        <Text className="text-center text-2xl font-bold text-slate-800">Igor Vinson</Text>
-        <Text className="mt-2 text-center text-slate-500">
-          React Native Developer exploring the power of NativeWind!
-        </Text>
+        {/* Voice Input */}
+        <View className="mb-6 px-6">
+          <TouchableOpacity
+            className="items-center rounded-3xl p-6"
+            style={[
+              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <View className="relative">
+              <View
+                className="h-20 w-20 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.purple }}>
+                <Text className="text-3xl">🎤</Text>
+              </View>
+              {/* Pulse Effect */}
+              <View
+                className="absolute inset-0 h-20 w-20 animate-pulse rounded-full"
+                style={{ backgroundColor: theme.purple + '33' }}
+              />
+            </View>
+            <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
+              Quick Add via Voice
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-        {/* Action Button */}
-        <TouchableOpacity className="mt-6 rounded-xl bg-indigo-600 py-4 active:bg-indigo-700">
-          <Text className="text-center font-semibold text-white">Edit Profile</Text>
-        </TouchableOpacity>
+        {/* Monthly Total Card */}
+        <View className="mb-6 px-6">
+          <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                This Month
+              </Text>
+              <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                September 2024 ▼
+              </Text>
+            </View>
+            <Text className="mb-4 text-5xl font-bold text-white">$1,812</Text>
+
+            {/* Budget Progress */}
+            <View
+              className="rounded-2xl p-4"
+              style={{
+                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
+                borderWidth: 1,
+                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+              }}>
+              <View className="mb-3 flex-row justify-between">
+                <View>
+                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    Left to spend
+                  </Text>
+                  <Text className="text-2xl font-bold text-white">$738</Text>
+                </View>
+                <View className="items-end">
+                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    Monthly budget
+                  </Text>
+                  <Text className="text-2xl font-bold text-white">$2,550</Text>
+                </View>
+              </View>
+              {/* Progress Bar */}
+              <View
+                className="h-2 overflow-hidden rounded-full"
+                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                <View
+                  className="h-full rounded-full"
+                  style={{ width: '71%', backgroundColor: '#C084FC' }}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Today Section */}
+        <View className="mb-4 px-6">
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
+              Today
+            </Text>
+            <Text className="text-sm" style={{ color: theme.textTertiary }}>
+              This month ∨
+            </Text>
+          </View>
+          {todayExpenses.map((expense) => (
+            <ExpenseItem key={expense.id} expense={expense} />
+          ))}
+        </View>
+
+        {/* Yesterday Section */}
+        <View className="mb-32 px-6">
+          <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
+            Yesterday
+          </Text>
+          {yesterdayExpenses.map((expense) => (
+            <ExpenseItem key={expense.id} expense={expense} />
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Bottom Navigation */}
+      <View
+        className="absolute bottom-0 left-0 right-0"
+        style={[
+          { backgroundColor: theme.cardBg, borderTopWidth: 1, borderTopColor: theme.border },
+          !isDarkMode && styles.navShadow,
+        ]}>
+        <View className="flex-row items-center justify-around px-6 py-4 pb-8">
+          {['Overview', 'This Month', 'Offers', 'Setting'].map((tab, index) => {
+            const icons = ['📊', '📅', '🎁', '⚙️'];
+            const isActive = tab === activeTab;
+
+            return (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => setActiveTab(tab)}
+                className="flex-1 items-center justify-center">
+                <View
+                  className="h-12 w-12 items-center justify-center rounded-2xl"
+                  style={{
+                    backgroundColor: isActive ? theme.purple : 'transparent',
+                  }}>
+                  <Text className="text-2xl">{icons[index]}</Text>
+                </View>
+                <Text
+                  className="mt-1 text-xs font-medium"
+                  style={{
+                    color: isActive ? theme.purple : theme.textTertiary,
+                  }}>
+                  {tab === 'This Month' ? 'Budget' : tab}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  expenseItem: {
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+  },
+  expenseItemShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  cardShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  navShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 20,
+  },
+});
