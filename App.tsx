@@ -1,22 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ExpenseItem } from './components/ExpenseItem';
 import './global.css';
-
-type Expense = {
-  id: string;
-  title: string;
-  category: string;
-  amount: number;
-  icon: keyof typeof Ionicons.glyphMap;
-  budgetLeft?: string;
-  colorLight: string;
-  colorDark: string;
-};
+import { styles } from './styles';
+import { Expense } from './types';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('Budget');
+
+  const theme = {
+    bg: isDarkMode ? '#020617' : '#F9FAFB',
+    cardBg: isDarkMode ? '#0F172A' : '#FFFFFF',
+    textPrimary: isDarkMode ? '#FFFFFF' : '#0F172A',
+    textSecondary: isDarkMode ? '#94A3B8' : '#475569',
+    textTertiary: isDarkMode ? '#64748B' : '#94A3B8',
+    border: isDarkMode ? '#1E293B' : '#E2E8F0',
+    iconBg: isDarkMode ? '#1E293B' : '#F1F5F9',
+    purple: isDarkMode ? '#7C3AED' : '#8B5CF6',
+    purpleCard: isDarkMode ? '#6D28D9' : '#7C3AED',
+    isDark: isDarkMode,
+    expenseIconBg: (colorLight: string, colorDark: string) =>
+      isDarkMode ? colorDark + '33' : colorLight,
+    expenseIconColor: (colorDark: string) => colorDark,
+  };
 
   const todayExpenses: Expense[] = [
     {
@@ -61,57 +69,6 @@ export default function App() {
       colorDark: '#F59E0B',
     },
   ];
-
-  const theme = {
-    bg: isDarkMode ? '#020617' : '#F9FAFB',
-    cardBg: isDarkMode ? '#0F172A' : '#FFFFFF',
-    textPrimary: isDarkMode ? '#FFFFFF' : '#0F172A',
-    textSecondary: isDarkMode ? '#94A3B8' : '#475569',
-    textTertiary: isDarkMode ? '#64748B' : '#94A3B8',
-    border: isDarkMode ? '#1E293B' : '#E2E8F0',
-    iconBg: isDarkMode ? '#1E293B' : '#F1F5F9',
-    purple: isDarkMode ? '#7C3AED' : '#8B5CF6',
-    purpleCard: isDarkMode ? '#6D28D9' : '#7C3AED',
-  };
-
-  const ExpenseItem = ({ expense }: { expense: Expense }) => (
-    <View
-      style={[
-        styles.expenseItem,
-        { backgroundColor: theme.cardBg, borderColor: theme.border },
-        !isDarkMode && styles.expenseItemShadow,
-      ]}>
-      <View className="flex-1 flex-row items-center">
-        <View
-          className="h-12 w-12 items-center justify-center rounded-xl"
-          style={{
-            backgroundColor: isDarkMode ? expense.colorDark + '33' : expense.colorLight,
-          }}>
-          <Ionicons
-            name={expense.icon}
-            size={24}
-            color={isDarkMode ? expense.colorDark : expense.colorDark.replace('33', '')}
-          />
-        </View>
-        <View className="ml-3 flex-1">
-          <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
-            {expense.title}
-          </Text>
-          <Text className="text-sm" style={{ color: theme.textTertiary }}>
-            {expense.category}
-          </Text>
-          {expense.budgetLeft && (
-            <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-              {expense.budgetLeft}
-            </Text>
-          )}
-        </View>
-      </View>
-      <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-        ${Math.abs(expense.amount).toFixed(2)}
-      </Text>
-    </View>
-  );
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
@@ -219,7 +176,7 @@ export default function App() {
             </Text>
           </View>
           {todayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
+            <ExpenseItem key={expense.id} expense={expense} theme={theme} />
           ))}
         </View>
 
@@ -229,7 +186,7 @@ export default function App() {
             Yesterday
           </Text>
           {yesterdayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
+            <ExpenseItem key={expense.id} expense={expense} theme={theme} />
           ))}
         </View>
       </ScrollView>
@@ -280,36 +237,3 @@ export default function App() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  expenseItem: {
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-  },
-  expenseItemShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  cardShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  navShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 20,
-  },
-});
