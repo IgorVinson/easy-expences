@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ScrollView, StatusBar, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import './global.css';
 
 type Expense = {
@@ -7,7 +8,7 @@ type Expense = {
   title: string;
   category: string;
   amount: number;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   budgetLeft?: string;
   colorLight: string;
   colorDark: string;
@@ -23,7 +24,7 @@ export default function App() {
       title: 'Lunch at Cafe',
       category: 'Cafe',
       amount: -15.5,
-      icon: '🍽️',
+      icon: 'restaurant',
       budgetLeft: '120$ left',
       colorLight: '#FED7AA',
       colorDark: '#FB923C',
@@ -33,7 +34,7 @@ export default function App() {
       title: 'Groceries',
       category: 'Food',
       amount: -85.2,
-      icon: '🛒',
+      icon: 'cart',
       colorLight: '#BBF7D0',
       colorDark: '#4ADE80',
     },
@@ -45,7 +46,7 @@ export default function App() {
       title: 'Uber Ride',
       category: 'Transport',
       amount: -22.0,
-      icon: '🚗',
+      icon: 'car',
       budgetLeft: '95$ budget left',
       colorLight: '#CBD5E1',
       colorDark: '#64748B',
@@ -55,7 +56,7 @@ export default function App() {
       title: 'Coffee',
       category: 'Cafe',
       amount: -4.5,
-      icon: '☕',
+      icon: 'cafe',
       colorLight: '#FDE68A',
       colorDark: '#F59E0B',
     },
@@ -86,7 +87,11 @@ export default function App() {
           style={{
             backgroundColor: isDarkMode ? expense.colorDark + '33' : expense.colorLight,
           }}>
-          <Text className="text-2xl">{expense.icon}</Text>
+          <Ionicons
+            name={expense.icon}
+            size={24}
+            color={isDarkMode ? expense.colorDark : expense.colorDark.replace('33', '')}
+          />
         </View>
         <View className="ml-3 flex-1">
           <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
@@ -125,7 +130,7 @@ export default function App() {
             }}
             className="h-12 w-12 items-center justify-center rounded-full"
             style={{ backgroundColor: theme.iconBg }}>
-            <Text className="text-xl">{isDarkMode ? '☀️' : '🌙'}</Text>
+            <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -141,7 +146,7 @@ export default function App() {
               <View
                 className="h-20 w-20 items-center justify-center rounded-full"
                 style={{ backgroundColor: theme.purple }}>
-                <Text className="text-3xl">🎤</Text>
+                <Ionicons name="mic" size={36} color="#FFFFFF" />
               </View>
               {/* Pulse Effect */}
               <View
@@ -237,28 +242,35 @@ export default function App() {
           !isDarkMode && styles.navShadow,
         ]}>
         <View className="flex-row items-center justify-around px-6 py-4 pb-8">
-          {['Overview', 'This Month', 'Offers', 'Setting'].map((tab, index) => {
-            const icons = ['📊', '📅', '🎁', '⚙️'];
-            const isActive = tab === activeTab;
+          {[
+            { name: 'Overview', icon: 'stats-chart' },
+            { name: 'This Month', icon: 'calendar' },
+            { name: 'Setting', icon: 'settings' },
+          ].map((tab) => {
+            const isActive = tab.name === activeTab;
 
             return (
               <TouchableOpacity
-                key={tab}
-                onPress={() => setActiveTab(tab)}
+                key={tab.name}
+                onPress={() => setActiveTab(tab.name)}
                 className="flex-1 items-center justify-center">
                 <View
                   className="h-12 w-12 items-center justify-center rounded-2xl"
                   style={{
                     backgroundColor: isActive ? theme.purple : 'transparent',
                   }}>
-                  <Text className="text-2xl">{icons[index]}</Text>
+                  <Ionicons
+                    name={tab.icon as keyof typeof Ionicons.glyphMap}
+                    size={24}
+                    color={isActive ? '#FFFFFF' : theme.textTertiary}
+                  />
                 </View>
                 <Text
                   className="mt-1 text-xs font-medium"
                   style={{
                     color: isActive ? theme.purple : theme.textTertiary,
                   }}>
-                  {tab === 'This Month' ? 'Budget' : tab}
+                  {tab.name === 'This Month' ? 'Budget' : tab.name}
                 </Text>
               </TouchableOpacity>
             );
