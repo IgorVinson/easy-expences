@@ -15,7 +15,7 @@ export default function App() {
         {/* Text Content */}
         <Text className="text-center text-2xl font-bold text-slate-800">Igor Vinson</Text>
         <Text className="mt-2 text-center text-slate-500">
-          React Native Developer exploring the power of NativeWind.
+          React Native Developer exploring the power of NativeWind!
         </Text>
 
         {/* Action Button */}
