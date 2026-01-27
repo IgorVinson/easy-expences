@@ -69,32 +69,6 @@ export default function OverviewScreen() {
             <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
           </TouchableOpacity>
         </View>
-
-        {/* Voice Input */}
-        <View className="mb-6 px-6">
-          <TouchableOpacity
-            className="items-center rounded-3xl p-6"
-            style={[
-              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow,
-            ]}>
-            <View className="relative">
-              <View
-                className="h-20 w-20 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.purple }}>
-                <Ionicons name="mic" size={36} color="#FFFFFF" />
-              </View>
-              <View
-                className="absolute inset-0 h-20 w-20 animate-pulse rounded-full"
-                style={{ backgroundColor: theme.purple + '33' }}
-              />
-            </View>
-            <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
-              Quick Add via Voice
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Monthly Total Card */}
         <View className="mb-6 px-6">
           <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
@@ -139,6 +113,30 @@ export default function OverviewScreen() {
               </View>
             </View>
           </View>
+        </View>
+        {/* Voice Input */}
+        <View className="mb-6 px-6">
+          <TouchableOpacity
+            className="items-center rounded-3xl p-6"
+            style={[
+              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <View className="relative">
+              <View
+                className="h-20 w-20 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.purple }}>
+                <Ionicons name="mic" size={36} color="#FFFFFF" />
+              </View>
+              <View
+                className="absolute inset-0 h-20 w-20 animate-pulse rounded-full"
+                style={{ backgroundColor: theme.purple + '33' }}
+              />
+            </View>
+            <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
+              Quick Add via Voice
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Today Section */}
