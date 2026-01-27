@@ -32,16 +32,18 @@ export const ExpenseItem = ({ expense }: { expense: Expense }) => {
           <Text className="text-sm" style={{ color: theme.textTertiary }}>
             {expense.category}
           </Text>
-          {expense.budgetLeft && (
-            <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-              {expense.budgetLeft}
-            </Text>
-          )}
         </View>
       </View>
-      <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-        ${Math.abs(expense.amount).toFixed(2)}
-      </Text>
+      <View className="flex-col items-center">
+        <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
+          ${Math.abs(expense.amount).toFixed(2)}
+        </Text>
+        {expense.budgetLeft && (
+          <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
+            {expense.budgetLeft}
+          </Text>
+        )}
+      </View>
     </View>
   );
 };

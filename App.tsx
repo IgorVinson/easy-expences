@@ -177,12 +177,9 @@ function AppContent() {
             <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
               Today
             </Text>
-            <Text className="text-sm" style={{ color: theme.textTertiary }}>
-              This month ∨
-            </Text>
           </View>
           {todayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} theme={theme} />
+            <ExpenseItem key={expense.id} expense={expense} />
           ))}
         </View>
 
@@ -192,7 +189,7 @@ function AppContent() {
             Yesterday
           </Text>
           {yesterdayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} theme={theme} />
+            <ExpenseItem key={expense.id} expense={expense} />
           ))}
         </View>
       </ScrollView>
