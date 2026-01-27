@@ -2,29 +2,38 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { ExpenseItem } from './components/ExpenseItem';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './global.css';
 import { styles } from './styles';
 import { Expense } from './types';
 
 export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+function AppContent() {
+  const { theme, isDarkMode, toggleTheme } = useTheme();
+  // const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('Budget');
 
-  const theme = {
-    bg: isDarkMode ? '#020617' : '#F9FAFB',
-    cardBg: isDarkMode ? '#0F172A' : '#FFFFFF',
-    textPrimary: isDarkMode ? '#FFFFFF' : '#0F172A',
-    textSecondary: isDarkMode ? '#94A3B8' : '#475569',
-    textTertiary: isDarkMode ? '#64748B' : '#94A3B8',
-    border: isDarkMode ? '#1E293B' : '#E2E8F0',
-    iconBg: isDarkMode ? '#1E293B' : '#F1F5F9',
-    purple: isDarkMode ? '#7C3AED' : '#8B5CF6',
-    purpleCard: isDarkMode ? '#6D28D9' : '#7C3AED',
-    isDark: isDarkMode,
-    expenseIconBg: (colorLight: string, colorDark: string) =>
-      isDarkMode ? colorDark + '33' : colorLight,
-    expenseIconColor: (colorDark: string) => colorDark,
-  };
+  // const theme = {
+  //   bg: isDarkMode ? '#020617' : '#F9FAFB',
+  //   cardBg: isDarkMode ? '#0F172A' : '#FFFFFF',
+  //   textPrimary: isDarkMode ? '#FFFFFF' : '#0F172A',
+  //   textSecondary: isDarkMode ? '#94A3B8' : '#475569',
+  //   textTertiary: isDarkMode ? '#64748B' : '#94A3B8',
+  //   border: isDarkMode ? '#1E293B' : '#E2E8F0',
+  //   iconBg: isDarkMode ? '#1E293B' : '#F1F5F9',
+  //   purple: isDarkMode ? '#7C3AED' : '#8B5CF6',
+  //   purpleCard: isDarkMode ? '#6D28D9' : '#7C3AED',
+  //   isDark: isDarkMode,
+  //   expenseIconBg: (colorLight: string, colorDark: string) =>
+  //     isDarkMode ? colorDark + '33' : colorLight,
+  //   expenseIconColor: (colorDark: string) => colorDark,
+  // };
 
   const todayExpenses: Expense[] = [
     {
@@ -81,10 +90,7 @@ export default function App() {
             Budget
           </Text>
           <TouchableOpacity
-            onPress={() => {
-              console.log('Theme toggled:', !isDarkMode);
-              setIsDarkMode(!isDarkMode);
-            }}
+            onPress={toggleTheme}
             className="h-12 w-12 items-center justify-center rounded-full"
             style={{ backgroundColor: theme.iconBg }}>
             <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
