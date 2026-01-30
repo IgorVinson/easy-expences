@@ -2,29 +2,53 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginScreen() {
+  const { login, googleSignIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log('Login:', email, password);
-    // Navigate to main app after successful login
-    // router.replace('/(tabs)');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login(email, password);
+      // Success is handled by the root layout's redirect logic
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('Google login');
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await googleSignIn();
+      // Success is handled by the root layout's redirect logic
+    } catch (error: any) {
+      Alert.alert('Google Login Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,9 +150,14 @@ export default function LoginScreen() {
             {/* Login Button */}
             <TouchableOpacity
               onPress={handleLogin}
+              disabled={loading}
               className="mb-6 items-center justify-center rounded-2xl py-4"
-              style={{ backgroundColor: '#3B82F6' }}>
-              <Text className="text-base font-semibold text-white">Login</Text>
+              style={{ backgroundColor: '#3B82F6', opacity: loading ? 0.7 : 1 }}>
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-base font-semibold text-white">Login</Text>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}
