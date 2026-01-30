@@ -2,31 +2,57 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
 export default function SignUpScreen() {
   const { theme, isDarkMode } = useTheme();
+  const { signup, googleSignIn } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = () => {
-    console.log('Sign up:', name, email, password);
+  const handleSignUp = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signup(email, password, name);
+      // Success is handled by the root layout's redirect logic
+    } catch (error: any) {
+      Alert.alert('Sign Up Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleSignUp = () => {
-    console.log('Google sign up');
+  const handleGoogleSignUp = async () => {
+    setLoading(true);
+    try {
+      await googleSignIn();
+      // Success is handled by the root layout's redirect logic
+    } catch (error: any) {
+      Alert.alert('Google Sign Up Failed', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -137,9 +163,17 @@ export default function SignUpScreen() {
             {/* Sign Up Button */}
             <TouchableOpacity
               onPress={handleSignUp}
+              disabled={loading}
               className="mb-6 items-center justify-center rounded-2xl py-4"
-              style={[{ backgroundColor: theme.purple }, !isDarkMode && styles.cardShadow]}>
-              <Text className="text-base font-bold text-white">Sign Up</Text>
+              style={[
+                { backgroundColor: theme.purple, opacity: loading ? 0.7 : 1 },
+                !isDarkMode && styles.cardShadow,
+              ]}>
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-base font-bold text-white">Sign Up</Text>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}
