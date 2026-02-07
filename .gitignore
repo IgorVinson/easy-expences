@@ -10,8 +10,7 @@ npm-debug.*
 *.orig.*
 web-build/
 
-
-
+DEVELOPMENT_PROTOCOL.MD
 
 ios
 android
