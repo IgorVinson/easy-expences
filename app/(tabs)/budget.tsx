@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { BudgetCategoryItem, BudgetCategory } from '../../components/BudgetCategoryItem';
+import { BudgetCategory, BudgetCategoryItem } from '../../components/BudgetCategoryItem';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function BudgetScreen() {
@@ -83,9 +83,7 @@ export default function BudgetScreen() {
               </Text>
             </View>
 
-            <Text className="mb-4 text-5xl font-bold text-white">
-              ${totalSpent.toFixed(0)}
-            </Text>
+            <Text className="mb-4 text-5xl font-bold text-white">${totalSpent.toLocaleString()}</Text>
 
             <View
               className="rounded-2xl p-4"
@@ -99,13 +97,13 @@ export default function BudgetScreen() {
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Left to spend
                   </Text>
-                  <Text className="text-2xl font-bold text-white">${totalRemaining.toFixed(0)}</Text>
+                  <Text className="text-2xl font-bold text-white">${totalRemaining.toLocaleString()}</Text>
                 </View>
                 <View className="items-end">
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Monthly budget
                   </Text>
-                  <Text className="text-2xl font-bold text-white">${totalBudget.toFixed(0)}</Text>
+                  <Text className="text-2xl font-bold text-white">${totalBudget.toLocaleString()}</Text>
                 </View>
               </View>
 
