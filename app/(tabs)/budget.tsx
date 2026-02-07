@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StatusBar, Text, View } from 'react-native';
+import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { BudgetCategoryItem, BudgetCategory } from '../../components/BudgetCategoryItem';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function BudgetScreen() {
-  const { theme, isDarkMode } = useTheme();
+  const { theme, isDarkMode, toggleTheme } = useTheme();
 
   // Sample budget categories matching the reference design
   const budgetCategories: BudgetCategory[] = [
@@ -56,11 +56,17 @@ export default function BudgetScreen() {
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-6 pb-4 pt-16">
+        {/* Header with Theme Toggle */}
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
             Monthly Budget
           </Text>
+          <TouchableOpacity
+            onPress={toggleTheme}
+            className="h-12 w-12 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.iconBg }}>
+            <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
+          </TouchableOpacity>
         </View>
 
         {/* Summary Card */}
