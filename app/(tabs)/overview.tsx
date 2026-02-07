@@ -1,22 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
 import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { ExpenseItem } from './components/ExpenseItem';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import './global.css';
-import { styles } from './styles';
-import { Expense } from './types';
+import { ExpenseItem } from '../../components/ExpenseItem';
+import { useTheme } from '../../contexts/ThemeContext';
+import { styles } from '../../styles';
+import { Expense } from '../../types';
 
-export default function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  );
-}
-function AppContent() {
+export default function OverviewScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState('Budget');
 
   const todayExpenses: Expense[] = [
     {
@@ -70,7 +60,7 @@ function AppContent() {
         {/* Header with Theme Toggle */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
-            Budget
+            Overview
           </Text>
           <TouchableOpacity
             onPress={toggleTheme}
@@ -79,33 +69,6 @@ function AppContent() {
             <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
           </TouchableOpacity>
         </View>
-
-        {/* Voice Input */}
-        <View className="mb-6 px-6">
-          <TouchableOpacity
-            className="items-center rounded-3xl p-6"
-            style={[
-              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow,
-            ]}>
-            <View className="relative">
-              <View
-                className="h-20 w-20 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.purple }}>
-                <Ionicons name="mic" size={36} color="#FFFFFF" />
-              </View>
-              {/* Pulse Effect */}
-              <View
-                className="absolute inset-0 h-20 w-20 animate-pulse rounded-full"
-                style={{ backgroundColor: theme.purple + '33' }}
-              />
-            </View>
-            <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
-              Quick Add via Voice
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Monthly Total Card */}
         <View className="mb-6 px-6">
           <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
@@ -119,7 +82,6 @@ function AppContent() {
             </View>
             <Text className="mb-4 text-5xl font-bold text-white">$1,812</Text>
 
-            {/* Budget Progress */}
             <View
               className="rounded-2xl p-4"
               style={{
@@ -141,7 +103,6 @@ function AppContent() {
                   <Text className="text-2xl font-bold text-white">$2,550</Text>
                 </View>
               </View>
-              {/* Progress Bar */}
               <View
                 className="h-2 overflow-hidden rounded-full"
                 style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -152,6 +113,30 @@ function AppContent() {
               </View>
             </View>
           </View>
+        </View>
+        {/* Voice Input */}
+        <View className="mb-6 px-6">
+          <TouchableOpacity
+            className="items-center rounded-3xl p-6"
+            style={[
+              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <View className="relative">
+              <View
+                className="h-20 w-20 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.purple }}>
+                <Ionicons name="mic" size={36} color="#FFFFFF" />
+              </View>
+              <View
+                className="absolute inset-0 h-20 w-20 animate-pulse rounded-full"
+                style={{ backgroundColor: theme.purple + '33' }}
+              />
+            </View>
+            <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
+              Quick Add via Voice
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Today Section */}
@@ -176,50 +161,6 @@ function AppContent() {
           ))}
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View
-        className="absolute bottom-0 left-0 right-0"
-        style={[
-          { backgroundColor: theme.cardBg, borderTopWidth: 1, borderTopColor: theme.border },
-          !isDarkMode && styles.navShadow,
-        ]}>
-        <View className="flex-row items-center justify-around px-6 py-4 pb-8">
-          {[
-            { name: 'Overview', icon: 'stats-chart' },
-            { name: 'This Month', icon: 'calendar' },
-            { name: 'Setting', icon: 'settings' },
-          ].map((tab) => {
-            const isActive = tab.name === activeTab;
-
-            return (
-              <TouchableOpacity
-                key={tab.name}
-                onPress={() => setActiveTab(tab.name)}
-                className="flex-1 items-center justify-center">
-                <View
-                  className="h-12 w-12 items-center justify-center rounded-2xl"
-                  style={{
-                    backgroundColor: isActive ? theme.purple : 'transparent',
-                  }}>
-                  <Ionicons
-                    name={tab.icon as keyof typeof Ionicons.glyphMap}
-                    size={24}
-                    color={isActive ? '#FFFFFF' : theme.textTertiary}
-                  />
-                </View>
-                <Text
-                  className="mt-1 text-xs font-medium"
-                  style={{
-                    color: isActive ? theme.purple : theme.textTertiary,
-                  }}>
-                  {tab.name === 'This Month' ? 'Budget' : tab.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
     </View>
   );
 }
