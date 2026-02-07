@@ -27,15 +27,18 @@ export const BudgetCategoryItem = ({ category }: BudgetCategoryItemProps) => {
     <View
       style={[
         styles.expenseItem,
-        { backgroundColor: theme.cardBg, borderColor: theme.border },
+        {
+          backgroundColor: theme.cardBg,
+          borderColor: theme.border,
+          flexDirection: 'column',
+          alignItems: 'stretch',
+        },
         !theme.isDark && styles.expenseItemShadow,
       ]}>
-      {/* Header: Icon, Name, Budget Amount */}
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center flex-1">
-          {/* Icon */}
+      <View className="mb-3 flex-row items-center justify-between">
+        <View className="flex-1 flex-row items-center">
           <View
-            className="h-12 w-12 items-center justify-center rounded-2xl"
+            className="h-12 w-12 items-center justify-center rounded-xl"
             style={{
               backgroundColor: theme.isDark ? category.colorDark + '33' : category.colorLight,
             }}>
@@ -45,39 +48,36 @@ export const BudgetCategoryItem = ({ category }: BudgetCategoryItemProps) => {
               color={theme.isDark ? category.colorDark : category.colorDark.replace('33', '')}
             />
           </View>
-          {/* Category Name */}
-          <Text
-            className="ml-3 text-base font-semibold flex-1"
-            style={{ color: theme.textPrimary }}>
-            {category.name}
+          <View className="ml-3 flex-1">
+            <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
+              {category.name}
+            </Text>
+            <Text className="text-sm" style={{ color: theme.textTertiary }}>
+              Budget: ${category.budget.toLocaleString()}
+            </Text>
+          </View>
+        </View>
+
+        <View className="items-end">
+          <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
+            ${category.spent.toLocaleString()}
+          </Text>
+          <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
+            ${remaining.toLocaleString()} left
           </Text>
         </View>
-        {/* Budget Amount */}
-        <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-          - ${category.budget.toFixed(2)}
-        </Text>
       </View>
 
-      {/* Progress Bar */}
-      <View className="mb-2">
+      <View
+        className="h-2 overflow-hidden rounded-full"
+        style={{ backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
         <View
-          className="h-2 overflow-hidden rounded-full"
-          style={{ backgroundColor: theme.isDark ? '#1E293B' : '#E2E8F0' }}>
-          <View
-            className="h-full rounded-full"
-            style={{
-              width: `${percentage}%`,
-              backgroundColor: theme.isDark ? category.colorDark : category.colorDark.replace('33', ''),
-            }}
-          />
-        </View>
-      </View>
-
-      {/* Spent Amount */}
-      <View className="flex-row justify-end">
-        <Text className="text-sm" style={{ color: theme.textTertiary }}>
-          ${category.spent.toFixed(0)} spent
-        </Text>
+          className="h-full rounded-full"
+          style={{
+            width: `${percentage}%`,
+            backgroundColor: theme.isDark ? category.colorDark : category.colorDark.replace('33', ''),
+          }}
+        />
       </View>
     </View>
   );
