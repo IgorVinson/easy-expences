@@ -1,8 +1,44 @@
 # 🏗️ Easy Expenses Development Protocol
 
 **Repo:** `/Users/ihorvinson/.openclaw/workspace/easy-expences`  
-**Stack:** React Native + Expo + NativeWind (Tailwind)  
+**Stack:** React Native + Expo + NativeWind (Tailwind) + Firebase  
 **Project Management:** Notion — EasyBudget Project
+
+---
+
+## 📁 Current Project Structure
+
+```
+📁 easy-expences/
+├── 📁 app/                          # Expo Router (file-based routing)
+│   ├── 📁 (auth)/                   # Auth route group (no tabs)
+│   │   ├── _layout.tsx              # Auth stack layout
+│   │   ├── login.tsx                # Email + Google login
+│   │   ├── signup.tsx               # Registration screen
+│   │   └── forgot-password.tsx      # Password reset
+│   ├── 📁 (tabs)/                   # Main app tabs
+│   │   ├── _layout.tsx              # Tab navigator config
+│   │   ├── overview.tsx             # Dashboard with expenses
+│   │   ├── budget.tsx               # Budget screen (placeholder)
+│   │   └── settings.tsx             # Settings + logout
+│   ├── _layout.tsx                  # Root layout with auth redirect
+│   └── index.tsx                    # App entry redirect
+├── 📁 components/                   # Reusable UI components
+│   ├── Container.tsx
+│   ├── EditScreenInfo.tsx
+│   ├── ExpenseItem.tsx              # Expense list item
+│   └── ScreenContent.tsx
+├── 📁 contexts/                     # React Context providers
+│   ├── AuthContext.tsx              # Firebase auth state
+│   └── ThemeContext.tsx             # Dark/light theme
+├── 📁 assets/                       # Images, icons, splash
+├── 📄 firebaseConfig.js             # Firebase initialization
+├── 📄 styles.ts                     # Shared StyleSheet styles
+├── 📄 types.ts                      # TypeScript types
+├── 📄 global.css                    # Tailwind/global styles
+├── 📄 tailwind.config.js            # Tailwind configuration
+└── 📄 package.json                  # Dependencies
+```
 
 ---
 
@@ -16,58 +52,63 @@
 
 ### Atlas Task Workflow:
 
-| Step | Action | Notion Status |
-|------|--------|---------------|
-| **1. Initialize** | Create/update task in Notion with estimate (hours, tokens, cost) | `Backlog Next 7 days` |
-| **2. Start Work** | Move task to In progress when beginning | `In progress` |
-| **3. Progress** | Add daily notes to task as blocks | Stays `In progress` |
-| **4. Complete** | Write completion overview, mention @Vinson for review | `In progress` (awaiting review) |
-| **5. Done** | — | **Mr. Vinson moves to `Done`** |
+| Step              | Action                                                                   | Notion Status                   |
+| ----------------- | ------------------------------------------------------------------------ | ------------------------------- |
+| **1. Initialize** | Create/update task in Notion with estimate (hours, tokens, cost)         | `Backlog Next 7 days`           |
+| **2. Start Work** | Move task to In progress when beginning create plan and add it into task | `In progress`                   |
+| **3. Progress**   | Add daily notes to task as blocks                                        | Stays `In progress`             |
+| **4. Complete**   | Write completion overview, mention @Vinson for review                    | `In progress` (awaiting review) |
+| **5. Done**       | —                                                                        | **Mr. Vinson moves to `Done`**  |
 
 ### Estimates I Add to Every Task:
+
 - **Plan, hour:** Estimated dev hours
 - **Tokens:** ~2M tokens per hour (input + output)
 - **Cost:** `(tokens / 1M) × $0.50` (kimi-coding/k2p5 rate)
 
 ---
 
----
-
 ## 🔀 Git Workflow (Atlas + Mr. Vinson)
 
 ### Branch Naming Convention:
+
 **Format:** `short-title-oc` (oc = OpenClaw)
 
 Examples:
+
 - `architecture-oc`
 - `auth-setup-oc`
 - `add-expense-screen-oc`
 - `budget-analytics-oc`
 
 ### Branch Rules:
-| Branch | Purpose | Who Merges |
-|--------|---------|------------|
-| `main` | Production code | Mr. Vinson only (via PR) |
+
+| Branch           | Purpose                    | Who Merges               |
+| ---------------- | -------------------------- | ------------------------ |
+| `main`           | Production code            | Mr. Vinson only (via PR) |
+| `dev`            | Development code           | Mr. Vinson only (via PR) |
 | `[task-name]-oc` | One branch per Notion task | Mr. Vinson via PR review |
 
 ### Workflow:
-1. **Notion task created** → I create branch `[short-title]-oc`
+
+1. **Notion task created** → I create branch FROM `dev`: `git checkout -b [short-title]-oc`
 2. **All work on that task** → commits to that branch
-3. **Task complete** → I create PR for Mr. Vinson to review
-4. **Mr. Vinson reviews** → approves & merges or requests changes
+3. **Task complete** → I create PR TO `dev` branch for Mr. Vinson to review
+4. **Mr. Vinson reviews** → approves & merges into `dev` or requests changes
 
 ### What Goes in a Task Branch (All via PR):
-- ✅ Architecture changes
+
 - ✅ New screens/pages (UI)
 - ✅ Major design changes
-- ✅ Database changes
+- ✅ Database/Firestore changes
 - ✅ Small components (multiple commits OK, still one PR at end)
 - ✅ Tests, docs, refactoring related to the task
 
 ### PR Template:
+
 ```
 ## Task: [Notion Task Name]
-Branch: `[branch-name]`
+Branch: `[branch-name]` → Target: `dev`
 
 ### What Changed:
 - [List of changes]
@@ -81,167 +122,175 @@ Branch: `[branch-name]`
 @Vinson — Ready for review
 ```
 
-### No Direct Commits to:
-- ❌ `main` (ever)
-- ❌ `atlas-dev` (deprecated — use task branches only)
+---
+
+## 🛠️ Current Stack Details
+
+| Technology        | Version | Purpose                     |
+| ----------------- | ------- | --------------------------- |
+| React Native      | 0.81.5  | Core mobile framework       |
+| Expo SDK          | ^54.0.0 | Development platform        |
+| Expo Router       | ~6.0.22 | File-based navigation       |
+| React             | 19.1.0  | UI library                  |
+| NativeWind        | latest  | Tailwind CSS for RN         |
+| Firebase          | ^12.8.0 | Auth + Firestore            |
+| TypeScript        | ~5.9.2  | Type safety                 |
+| Zod (recommended) | —       | Runtime validation (future) |
+
+### Current State ✅
+
+**Implemented:**
+
+- ✅ Expo Router with auth-protected routes
+- ✅ Firebase Auth (email/password + Google)
+- ✅ Dark/light theme system
+- ✅ Tab navigation (Overview, Budget, Settings)
+- ✅ Login/Signup screens
+- ✅ Overview screen with expense list UI
+- ✅ Settings screen with logout
+
+**Still Needed:**
+
+- 🔄 Firestore data layer (stores, sync)
+- 🔄 Add expense functionality
+- 🔄 Budget management
 
 ---
 
-## Current Architecture Overview
+## 🧩 Key Architectural Patterns
 
-```
-📁 easy-expences/
-├── 📁 components/           # Reusable UI components
-│   ├── Container.tsx        # SafeArea wrapper
-│   ├── EditScreenInfo.tsx   # Dev info component
-│   └── ScreenContent.tsx    # Screen layout template
-├── 📁 assets/               # Images, fonts
-├── App.tsx                  # Root component (entry point)
-├── app.json                 # Expo configuration
-├── global.css               # Tailwind imports
-├── tailwind.config.js       # Tailwind + NativeWind config
-├── metro.config.js          # Metro bundler config
-└── babel.config.js          # Babel configuration
+### Navigation (Expo Router)
+
+```tsx
+// File structure = Route structure
+app/
+  ├── (auth)/           # Group: no tab bar
+  │   └── login.tsx     # Route: /login
+  ├── (tabs)/           # Group: with tab bar
+  │   └── overview.tsx  # Route: /overview
 ```
 
-### Current Stack Details
-- **React Native:** 0.81.5
-- **Expo SDK:** ^54.0.0
-- **React:** 19.1.0
-- **NativeWind:** Latest (Tailwind for RN)
-- **Navigation:** Not set up yet (needs React Navigation)
-- **State Management:** Not set up yet (needs Zustand/Context)
-- **Storage:** Not set up yet (needs AsyncStorage/WatermelonDB)
+### Auth Protection
 
-### Current State
-**Just a starter template** with:
-- Profile card UI placeholder
-- NativeWind/Tailwind styling configured
-- Basic component structure
+```tsx
+// Root layout handles redirects
+// - No user → redirect to /login
+// - User in auth group → redirect to /overview
+```
+
+### Theming
+
+```tsx
+// Use theme context for colors
+const { theme, isDarkMode, toggleTheme } = useTheme();
+
+// Tailwind for layout, theme for colors
+<View className="flex-1 p-4" style={{ backgroundColor: theme.bg }}>
+```
+
+### Components
+
+```tsx
+// Reusable components go in /components
+import { ExpenseItem } from '../../components/ExpenseItem';
+
+// Screen-specific logic stays in screen files
+```
 
 ---
 
 ## 🛑 STOP — Request Review Before Coding
 
-| Decision Type | Examples | What I Send You |
-|--------------|----------|-----------------|
-| **Architecture** | Navigation structure (React Navigation vs Expo Router), state management choice, folder organization | Markdown doc with rationale |
-| **Data Layer** | Storage solution (AsyncStorage vs SQLite vs WatermelonDB), data model design | Schema + sync strategy |
-| **UI Framework** | Component library (React Native Paper vs native + Tailwind), theming system | Component examples + comparison |
-| **Major Dependencies** | Navigation, charts, auth, backend integration | List with size + justification |
-| **Build/Deploy** | EAS Build config, app store setup, CI/CD | Config files for review |
-| **Feature Scope** | What MVP includes vs v1.0 vs later | Feature list with priorities |
+| Decision Type          | Examples                                                           | What I Send You                 |
+| ---------------------- | ------------------------------------------------------------------ | ------------------------------- |
+| **Architecture**       | Navigation changes, state management choice, folder reorganization | Markdown doc with rationale     |
+| **Data Layer**         | Firestore schema, data model design, sync strategy                 | Schema + sync strategy          |
+| **UI Framework**       | Component library changes, major theming updates                   | Component examples + comparison |
+| **Major Dependencies** | Charts, maps, payment integration, backend changes                 | List with size + justification  |
+| **Build/Deploy**       | EAS Build config, app store setup, CI/CD                           | Config files for review         |
+| **Feature Scope**      | What MVP includes vs v1.0 vs later                                 | Feature list with priorities    |
 
 ---
 
 ## ✅ GO — I Proceed Without Review
 
-| Task Type | Examples |
-|-----------|----------|
-| **Boilerplate Setup** | Installing navigation, setting up folder structure following agreed pattern |
-| **UI Components** | Building screens following established design system |
-| **Screen Implementation** | Individual screens after navigation is set up |
-| **Refactoring** | Code organization, renaming, extracting components |
-| **Styling Tweaks** | Tailwind class adjustments, spacing, colors |
-| **Bug Fixes** | Logic errors, type fixes within existing patterns |
+| Task Type                 | Examples                                           |
+| ------------------------- | -------------------------------------------------- |
+| **New Screens**           | Building screens following established patterns    |
+| **UI Components**         | New components following existing design system    |
+| **Firestore Integration** | Adding CRUD operations after schema is approved    |
+| **Refactoring**           | Code organization, renaming, extracting components |
+| **Styling Tweaks**        | Tailwind class adjustments, spacing, colors        |
+| **Bug Fixes**             | Logic errors, type fixes within existing patterns  |
 
 ---
 
-## 📋 Checkpoint Workflow
+## 📋 Development Checklist
 
-### 1. Architecture Phase (NOW)
-Before any feature code, I present:
-- Navigation approach (Expo Router vs React Navigation)
-- Folder structure (features vs screens vs components)
-- State management + storage strategy
-- UI component strategy (build vs library)
+### Before Starting Work:
 
-→ **You approve the blueprint, then I build**
+- [ ] Check Notion for assigned tasks
+- [ ] Ensure you're on `dev` branch: `git checkout dev`
+- [ ] Pull latest: `git pull origin dev`
+- [ ] Create new branch FROM `dev`: `git checkout -b [task-name]-oc`
+- [ ] Update task status to "In progress"
 
-### 2. Foundation Checkpoint
-After setup:
-- Navigation working with placeholder screens
-- Theme/colors configured
-- Storage layer working
+### While Working:
 
-→ **Quick review, then features**
+- [ ] Use theme context for all colors
+- [ ] Follow existing file naming conventions
+- [ ] Add TypeScript types for new data structures
+- [ ] Test on both light and dark mode
 
-### 3. Feature Development
-Each major feature:
-- I build the UI + logic
-- You review the UX/behavior
-- Iterate if needed
+### Before Submitting PR:
+
+- [ ] Test the feature works end-to-end
+- [ ] Check no console errors
+- [ ] Verify TypeScript compiles: `npx tsc --noEmit`
+- [ ] Run lint: `npm run lint`
+- [ ] Write PR description with screenshots if UI changed
+- [ ] Mention @Vinson for review
 
 ---
 
-## 🎯 First Decision Needed: Architecture Blueprint
+## 📦 Data Models (Current)
 
-### Navigation Options:
-| Option | Pros | Cons |
-|--------|------|------|
-| **Expo Router** (file-based) | Expo official, automatic deep linking, simpler | Newer, smaller community |
-| **React Navigation** | Mature, flexible, well-documented | More boilerplate |
+### Expense (UI Model)
 
-**My Recommendation:** Expo Router — cleaner code, Expo-native
-
-### State + Storage Options:
-| Layer | Options |
-|-------|---------|
-| **Global State** | Zustand (lightweight) or Context |
-| **Persistent Storage** | AsyncStorage (simple) or WatermelonDB (complex queries) |
-
-**My Recommendation:** Zustand + AsyncStorage for MVP
-
-### Data Model (MVP):
 ```typescript
-// Budget Period (monthly)
+export type Expense = {
+  id: string;
+  title: string;
+  category: string;
+  amount: number;
+  icon: keyof typeof Ionicons.glyphMap;
+  budgetLeft?: string;
+  colorLight: string;
+  colorDark: string;
+};
+```
+
+### Firestore Schema (Planned)
+
+```typescript
+// users/{userId}/budgets/{budgetId}
 interface Budget {
   id: string;
   month: string; // "2026-02"
   totalBudget: number;
   categories: Category[];
+  createdAt: Timestamp;
 }
 
-// Category with planned vs actual
-interface Category {
-  id: string;
-  name: string;
-  plannedAmount: number;
-  actualAmount: number;
-  color: string;
-}
-
-// Individual expense transaction
+// users/{userId}/transactions/{transactionId}
 interface Transaction {
   id: string;
   categoryId: string;
   amount: number;
   note?: string;
-  date: Date;
+  date: Timestamp;
+  createdAt: Timestamp;
 }
-```
-
-### Suggested Folder Structure:
-```
-📁 app/                      # Expo Router screens
-│   ├── (tabs)/              # Tab navigation group
-│   │   ├── index.tsx        # Dashboard/home
-│   │   ├── budget.tsx       # Budget setup/view
-│   │   ├── expenses.tsx     # Add/view expenses
-│   │   └── settings.tsx     # App settings
-│   └── _layout.tsx          # Root layout
-📁 components/               # Shared UI components
-│   ├── ui/                  # Primitive components (Button, Card, Input)
-│   ├── budget/              # Budget-specific components
-│   └── expenses/            # Expense-specific components
-📁 store/                    # Zustand stores
-│   ├── budgetStore.ts
-│   └── expenseStore.ts
-📁 lib/                      # Utilities, constants
-│   ├── storage.ts
-│   └── utils.ts
-📁 types/                    # TypeScript types
-│   └── index.ts
 ```
 
 ---
@@ -249,6 +298,7 @@ interface Transaction {
 ## 📝 Communication Format
 
 When I need review:
+
 ```
 🛑 REVIEW REQUIRED: [Topic]
 
@@ -262,6 +312,7 @@ Recommendation: [My pick + why]
 ```
 
 When proceeding:
+
 ```
 ✅ ON IT: [Task]
 [Progress updates]
@@ -269,15 +320,12 @@ When proceeding:
 
 ---
 
-## 🚀 Next Steps (Need Your Go)
+## 🚀 Next Development Priorities
 
-1. **Approve architecture** (Expo Router + Zustand + AsyncStorage)
-2. **Set up navigation** with placeholder screens
-3. **Build data layer** (stores + storage)
-4. **Implement screens** one by one
-
-**Which should we start with?**
+1. **Firestore Data Layer** — Connect expense data to Firebase
+2. **Add Expense Screen** — Modal/screen for adding new expenses
+3. **Budget Management** — CRUD for budget categories
 
 ---
 
-**Last Updated:** 2026-02-06 by Atlas 🌍
+**Last Updated:** 2026-02-07 by Atlas 🌍
