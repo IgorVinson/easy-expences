@@ -52,15 +52,13 @@ export const BudgetCategoryItem = ({ category }: BudgetCategoryItemProps) => {
             <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
               {category.name}
             </Text>
-            <Text className="text-sm" style={{ color: theme.textTertiary }}>
-              Budget: ${category.budget.toLocaleString()}
-            </Text>
+
           </View>
         </View>
 
         <View className="items-end">
           <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-            ${category.spent.toLocaleString()}
+            ${category.budget.toLocaleString()}
           </Text>
           <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
             ${remaining.toLocaleString()} left
