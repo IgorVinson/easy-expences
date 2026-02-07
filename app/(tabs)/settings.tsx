@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Alert, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -29,30 +30,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const SettingItem = ({ icon, title, value, onPress, color, isLast = false }: any) => (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`flex-row items-center justify-between p-4 ${!isLast ? 'border-b' : ''}`}
-      style={{ borderBottomColor: theme.border }}
-    >
-      <div className="flex-row items-center">
-        <View 
-          className="h-10 w-10 items-center justify-center rounded-xl mr-4"
-          style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
-        >
-          <Ionicons name={icon} size={22} color={color || theme.textPrimary} />
-        </View>
-        <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>{title}</Text>
-      </div>
-      <View className="flex-row items-center">
-        {value && (
-          <Text className="mr-2 text-sm" style={{ color: theme.textSecondary }}>{value}</Text>
-        )}
-        <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -65,28 +42,52 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
-        {/* Profile Card */}
+        {/* Account Group */}
         <View className="mb-6 px-6">
+          <Text className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
+            Account
+          </Text>
           <View 
-            className="rounded-3xl p-6 flex-row items-center" 
+            className="overflow-hidden rounded-3xl" 
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
               !isDarkMode && styles.cardShadow
             ]}
           >
-            <View className="h-16 w-16 items-center justify-center rounded-full bg-purple-500 mr-4">
-              <Text className="text-2xl font-bold text-white">
-                {user?.email?.charAt(0).toUpperCase() || 'U'}
-              </Text>
-            </View>
-            <View className="flex-1">
-              <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-                My Account
-              </Text>
-              <Text className="text-sm" style={{ color: theme.textSecondary }}>
-                {user?.email || 'Not logged in'}
-              </Text>
-            </View>
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/profile')}
+              className="flex-row items-center justify-between p-4 border-b"
+              style={{ borderBottomColor: theme.border }}
+            >
+              <View className="flex-row items-center">
+                <View 
+                  className="h-10 w-10 items-center justify-center rounded-xl mr-4"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
+                >
+                  <Ionicons name="person-outline" size={22} color="#3B82F6" />
+                </View>
+                <View>
+                  <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>My Profile</Text>
+                  <Text className="text-sm" style={{ color: theme.textSecondary }}>{user?.email}</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center justify-between p-4"
+            >
+              <View className="flex-row items-center">
+                <View 
+                  className="h-10 w-10 items-center justify-center rounded-xl mr-4"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
+                >
+                  <Ionicons name="notifications-outline" size={22} color="#F59E0B" />
+                </View>
+                <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>Notifications</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -126,7 +127,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Account Group */}
+        {/* Preferences Group */}
         <View className="mb-6 px-6">
           <Text className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
             Preferences
@@ -138,9 +139,39 @@ export default function SettingsScreen() {
               !isDarkMode && styles.cardShadow
             ]}
           >
-            <SettingItem icon="notifications-outline" title="Notifications" color="#3B82F6" />
-            <SettingItem icon="wallet-outline" title="Default Currency" value="USD ($)" color="#10B981" />
-            <SettingItem icon="lock-closed-outline" title="Security" isLast color="#F59E0B" />
+            <TouchableOpacity
+              className="flex-row items-center justify-between p-4 border-b"
+              style={{ borderBottomColor: theme.border }}
+            >
+              <View className="flex-row items-center">
+                <View 
+                  className="h-10 w-10 items-center justify-center rounded-xl mr-4"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
+                >
+                  <Ionicons name="wallet-outline" size={22} color="#10B981" />
+                </View>
+                <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>Default Currency</Text>
+              </View>
+              <View className="flex-row items-center">
+                <Text className="mr-2 text-sm" style={{ color: theme.textSecondary }}>USD ($)</Text>
+                <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center justify-between p-4"
+            >
+              <View className="flex-row items-center">
+                <View 
+                  className="h-10 w-10 items-center justify-center rounded-xl mr-4"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
+                >
+                  <Ionicons name="lock-closed-outline" size={22} color="#EF4444" />
+                </View>
+                <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>Security</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+            </TouchableOpacity>
           </View>
         </View>
 

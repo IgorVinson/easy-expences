@@ -124,7 +124,43 @@ Branch: `[branch-name]` → Target: `dev`
 
 ---
 
-## 🛠️ Current Stack Details
+## 🖥️ Running the Dev Server
+
+### Atlas MUST Do:
+
+**Always try to start the server before claiming it won't work:**
+
+```bash
+cd /Users/ihorvinson/.openclaw/workspace/easy-expences
+npm start
+```
+
+**If it starts successfully:**
+- ✅ Report: "Dev server running on http://localhost:8081"
+- ✅ Mr. Vinson can view on his device/simulator
+- ✅ Continue with development work
+
+**If it fails:**
+- ❌ Capture the exact error message
+- ❌ Try common fixes (see below)
+- ❌ Report the specific error to Mr. Vinson
+
+### Common Issues & Fixes:
+
+| Issue | Fix |
+|-------|-----|
+| Port already in use | Kill existing process or use different port |
+| Missing node_modules | Run `pnpm install` |
+| Metro bundler error | Clear cache: `npx expo start --clear` |
+| TypeScript errors | Run `npx tsc --noEmit` to check |
+
+### What NOT to Do:
+
+- ❌ Don't assume the server won't work without trying
+- ❌ Don't create web mockups instead of running the actual app
+- ❌ Don't tell Mr. Vinson to "run it locally" without attempting first
+
+---
 
 | Technology        | Version | Purpose                     |
 | ----------------- | ------- | --------------------------- |
@@ -234,6 +270,7 @@ import { ExpenseItem } from '../../components/ExpenseItem';
 - [ ] Pull latest: `git pull origin dev`
 - [ ] Create new branch FROM `dev`: `git checkout -b [task-name]-oc`
 - [ ] Update task status to "In progress"
+- [ ] **Start the dev server:** Run `npm start` and verify it starts without errors
 
 ### While Working:
 
@@ -328,4 +365,4 @@ When proceeding:
 
 ---
 
-**Last Updated:** 2026-02-07 by Atlas 🌍
+**Last Updated:** 2026-02-07 by Atlas 🌍 (Added: Dev server startup protocol)
