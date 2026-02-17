@@ -118,28 +118,50 @@ export default function SettingsScreen() {
               !isDarkMode && styles.cardShadow,
             ]}>
             {/* Avatar */}
-            <View className="relative mb-4">
+            <View style={{ width: 96, height: 96, marginBottom: 16 }}>
               <View
-                className="h-24 w-24 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.purple }}>
-                <Text className="text-4xl font-bold text-white">{initial}</Text>
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 48,
+                  backgroundColor: theme.purple,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Text
+                  style={{ fontSize: 36, fontWeight: 'bold', color: '#FFFFFF' }}>
+                  {initial}
+                </Text>
               </View>
               <TouchableOpacity
-                className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full"
                 style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
                   backgroundColor: theme.purpleCard,
                   borderWidth: 2,
                   borderColor: theme.cardBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}>
                 <Ionicons name="camera" size={14} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
             {/* Name */}
-            <Text className="mb-1 text-xl font-bold" style={{ color: theme.textPrimary }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: theme.textPrimary,
+                marginBottom: 4,
+              }}>
               {displayName}
             </Text>
-            <Text className="text-sm" style={{ color: theme.textSecondary }}>
+            <Text style={{ fontSize: 14, color: theme.textSecondary }}>
               {email}
             </Text>
           </View>
