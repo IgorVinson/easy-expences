@@ -8,163 +8,232 @@ export default function SettingsScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
 
+  const displayName = user?.displayName || 'User';
+  const email = user?.email || 'Not logged in';
+  const initial = displayName.charAt(0).toUpperCase();
+
   const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Logout", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error: any) {
-              Alert.alert('Logout Failed', error.message);
-            }
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error: any) {
+            Alert.alert('Logout Failed', error.message);
           }
-        }
-      ]
-    );
+        },
+      },
+    ]);
   };
 
-  const SettingItem = ({ icon, title, value, onPress, color, isLast = false }: any) => (
+  const InfoRow = ({
+    label,
+    value,
+    isLast = false,
+  }: {
+    label: string;
+    value: string;
+    isLast?: boolean;
+  }) => (
+    <View
+      className={`flex-row items-center justify-between px-4 py-3.5 ${!isLast ? 'border-b' : ''}`}
+      style={{ borderBottomColor: theme.border }}>
+      <Text className="text-sm" style={{ color: theme.textSecondary }}>
+        {label}
+      </Text>
+      <Text className="text-sm font-medium" style={{ color: theme.textPrimary }}>
+        {value}
+      </Text>
+    </View>
+  );
+
+  const MenuItem = ({
+    icon,
+    title,
+    color,
+    colorLight,
+    onPress,
+    isLast = false,
+    isDestructive = false,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    title: string;
+    color: string;
+    colorLight: string;
+    onPress?: () => void;
+    isLast?: boolean;
+    isDestructive?: boolean;
+  }) => (
     <TouchableOpacity
       onPress={onPress}
       className={`flex-row items-center justify-between p-4 ${!isLast ? 'border-b' : ''}`}
-      style={{ borderBottomColor: theme.border }}
-    >
-      <div className="flex-row items-center">
-        <View 
-          className="h-10 w-10 items-center justify-center rounded-xl mr-4"
-          style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
-        >
-          <Ionicons name={icon} size={22} color={color || theme.textPrimary} />
-        </View>
-        <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>{title}</Text>
-      </div>
+      style={{ borderBottomColor: theme.border }}>
       <View className="flex-row items-center">
-        {value && (
-          <Text className="mr-2 text-sm" style={{ color: theme.textSecondary }}>{value}</Text>
-        )}
-        <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+        <View
+          className="mr-3 h-10 w-10 items-center justify-center rounded-xl"
+          style={{
+            backgroundColor: isDarkMode ? color + '33' : colorLight,
+          }}>
+          <Ionicons name={icon} size={22} color={color} />
+        </View>
+        <Text
+          className="text-base font-medium"
+          style={{ color: isDestructive ? '#EF4444' : theme.textPrimary }}>
+          {title}
+        </Text>
       </View>
+      {!isDestructive && (
+        <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
+      )}
     </TouchableOpacity>
   );
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      
+
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="px-6 pb-6 pt-16">
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
-            Settings
+            My Profile
           </Text>
+          <TouchableOpacity
+            onPress={toggleTheme}
+            className="h-12 w-12 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.iconBg }}>
+            <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
+          </TouchableOpacity>
         </View>
 
-        {/* Profile Card */}
+        {/* Profile Card with Avatar */}
         <View className="mb-6 px-6">
-          <View 
-            className="rounded-3xl p-6 flex-row items-center" 
+          <View
+            className="items-center rounded-3xl p-6"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow
-            ]}
-          >
-            <View className="h-16 w-16 items-center justify-center rounded-full bg-purple-500 mr-4">
-              <Text className="text-2xl font-bold text-white">
-                {user?.email?.charAt(0).toUpperCase() || 'U'}
-              </Text>
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            {/* Avatar */}
+            <View className="relative mb-4">
+              <View
+                className="h-24 w-24 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.purple }}>
+                <Text className="text-4xl font-bold text-white">{initial}</Text>
+              </View>
+              <TouchableOpacity
+                className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: theme.purpleCard,
+                  borderWidth: 2,
+                  borderColor: theme.cardBg,
+                }}>
+                <Ionicons name="camera" size={14} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
-            <View className="flex-1">
-              <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-                My Account
-              </Text>
-              <Text className="text-sm" style={{ color: theme.textSecondary }}>
-                {user?.email || 'Not logged in'}
-              </Text>
-            </View>
+
+            {/* Name */}
+            <Text className="mb-1 text-xl font-bold" style={{ color: theme.textPrimary }}>
+              {displayName}
+            </Text>
+            <Text className="text-sm" style={{ color: theme.textSecondary }}>
+              {email}
+            </Text>
           </View>
         </View>
 
-        {/* Appearance Group */}
+        {/* Personal Info */}
         <View className="mb-6 px-6">
-          <Text className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
-            Appearance
+          <Text
+            className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest"
+            style={{ color: theme.textSecondary }}>
+            Personal Info
           </Text>
-          <View 
-            className="overflow-hidden rounded-3xl" 
+          <View
+            className="overflow-hidden rounded-3xl"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow
-            ]}
-          >
-            <TouchableOpacity
-              onPress={toggleTheme}
-              className="flex-row items-center justify-between p-4"
-            >
-              <View className="flex-row items-center">
-                <View 
-                  className="h-10 w-10 items-center justify-center rounded-xl mr-4"
-                  style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
-                >
-                  <Ionicons name={isDarkMode ? 'moon' : 'sunny'} size={22} color="#A855F7" />
-                </View>
-                <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>Dark Mode</Text>
-              </View>
-              <View 
-                className={`h-6 w-11 rounded-full p-1 ${isDarkMode ? 'bg-purple-500' : 'bg-gray-300'}`}
-              >
-                <View 
-                  className={`h-4 w-4 rounded-full bg-white shadow-sm ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`}
-                />
-              </View>
-            </TouchableOpacity>
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <InfoRow label="Name" value={displayName} />
+            <InfoRow label="Email" value={email} />
+            <InfoRow label="Date of Birth" value="Not set" />
+            <InfoRow label="Country" value="Not set" isLast />
           </View>
         </View>
 
-        {/* Account Group */}
+        {/* Preferences */}
         <View className="mb-6 px-6">
-          <Text className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
+          <Text
+            className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest"
+            style={{ color: theme.textSecondary }}>
             Preferences
           </Text>
-          <View 
-            className="overflow-hidden rounded-3xl" 
+          <View
+            className="overflow-hidden rounded-3xl"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow
-            ]}
-          >
-            <SettingItem icon="notifications-outline" title="Notifications" color="#3B82F6" />
-            <SettingItem icon="wallet-outline" title="Default Currency" value="USD ($)" color="#10B981" />
-            <SettingItem icon="lock-closed-outline" title="Security" isLast color="#F59E0B" />
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <MenuItem
+              icon="notifications-outline"
+              title="Notifications"
+              color="#3B82F6"
+              colorLight="#DBEAFE"
+            />
+            <MenuItem
+              icon="wallet-outline"
+              title="Currency"
+              color="#10B981"
+              colorLight="#D1FAE5"
+            />
+            <MenuItem
+              icon="lock-closed-outline"
+              title="Security"
+              color="#F59E0B"
+              colorLight="#FEF3C7"
+            />
+            <MenuItem
+              icon="shield-checkmark-outline"
+              title="Privacy"
+              color="#8B5CF6"
+              colorLight="#EDE9FE"
+              isLast
+            />
           </View>
         </View>
 
-        {/* Danger Zone */}
+        {/* Account Actions */}
         <View className="mb-32 px-6">
-          <Text className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
-            Account Actions
+          <Text
+            className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest"
+            style={{ color: theme.textSecondary }}>
+            Account
           </Text>
-          <View 
-            className="overflow-hidden rounded-3xl" 
+          <View
+            className="overflow-hidden rounded-3xl"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow
-            ]}
-          >
-            <TouchableOpacity
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <MenuItem
+              icon="help-circle-outline"
+              title="Help & Support"
+              color="#6366F1"
+              colorLight="#E0E7FF"
+            />
+            <MenuItem
+              icon="log-out-outline"
+              title="Logout"
+              color="#EF4444"
+              colorLight="#FEE2E2"
               onPress={handleLogout}
-              className="flex-row items-center p-4"
-            >
-              <View className="h-10 w-10 items-center justify-center rounded-xl bg-red-50 mr-4">
-                <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-              </View>
-              <Text className="text-base font-medium text-red-500">Logout</Text>
-            </TouchableOpacity>
+              isDestructive
+              isLast
+            />
           </View>
         </View>
       </ScrollView>
