@@ -9,13 +9,9 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { auth } from '../firebaseConfig';
-
-WebBrowser.maybeCompleteAuthSession();
 
 const GOOGLE_WEB_CLIENT_ID =
   '953973293469-qrdrdbvj2h1012pamjim51e6lpvgcetc.apps.googleusercontent.com';
@@ -35,28 +31,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [_request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    scopes: ['profile', 'email'],
-  });
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
       setLoading(false);
     });
-
     return unsubscribe;
   }, []);
-
-  // Handle native Google auth response
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential);
-    }
-  }, [response]);
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
@@ -71,16 +52,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signOut(auth);
   };
 
-  const googleSignIn = async () => {
+  const googleSignIn = useCallback(async () => {
     if (Platform.OS === 'web') {
-      // Web: use popup
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } else {
-      // Native: use expo-auth-session
-      await promptAsync();
+      // Lazy-load expo modules only on native to avoid render errors
+      const WebBrowser = await import('expo-web-browser');
+      const AuthSession = await import('expo-auth-session');
+
+      WebBrowser.maybeCompleteAuthSession();
+
+      const discovery = {
+        authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+        tokenEndpoint: 'https://oauth2.googleapis.com/token',
+        revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
+      };
+
+      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'easy-expenses' });
+
+      const request = new AuthSession.AuthRequest({
+        clientId: GOOGLE_WEB_CLIENT_ID,
+        scopes: ['openid', 'profile', 'email'],
+        redirectUri,
+        responseType: AuthSession.ResponseType.IdToken,
+        extraParams: {
+          nonce: Math.random().toString(36).substring(2),
+        },
+      });
+
+      const result = await request.promptAsync(discovery);
+
+      if (result.type === 'success' && result.params?.id_token) {
+        const credential = GoogleAuthProvider.credential(result.params.id_token);
+        await signInWithCredential(auth, credential);
+      }
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, signup, logout, googleSignIn }}>
