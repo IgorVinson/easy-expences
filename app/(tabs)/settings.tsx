@@ -29,34 +29,6 @@ export default function SettingsScreen() {
     ]);
   };
 
-  const InfoRow = ({
-    label,
-    value,
-    isLast = false,
-  }: {
-    label: string;
-    value: string;
-    isLast?: boolean;
-  }) => (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: theme.border,
-      }}>
-      <Text style={{ fontSize: 14, color: theme.textSecondary }}>
-        {label}
-      </Text>
-      <Text style={{ fontSize: 14, fontWeight: '500', color: theme.textPrimary }}>
-        {value}
-      </Text>
-    </View>
-  );
-
   const MenuItem = ({
     icon,
     title,
@@ -76,19 +48,33 @@ export default function SettingsScreen() {
   }) => (
     <TouchableOpacity
       onPress={onPress}
-      className={`flex-row items-center justify-between p-4 ${!isLast ? 'border-b' : ''}`}
-      style={{ borderBottomColor: theme.border }}>
-      <View className="flex-row items-center">
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: theme.border,
+      }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View
-          className="mr-3 h-10 w-10 items-center justify-center rounded-xl"
           style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            marginRight: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
             backgroundColor: isDarkMode ? color + '33' : colorLight,
           }}>
           <Ionicons name={icon} size={22} color={color} />
         </View>
         <Text
-          className="text-base font-medium"
-          style={{ color: isDestructive ? '#EF4444' : theme.textPrimary }}>
+          style={{
+            fontSize: 16,
+            fontWeight: '500',
+            color: isDestructive ? '#EF4444' : theme.textPrimary,
+          }}>
           {title}
         </Text>
       </View>
@@ -135,8 +121,7 @@ export default function SettingsScreen() {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                <Text
-                  style={{ fontSize: 36, fontWeight: 'bold', color: '#FFFFFF' }}>
+                <Text style={{ fontSize: 36, fontWeight: 'bold', color: '#FFFFFF' }}>
                   {initial}
                 </Text>
               </View>
@@ -168,18 +153,16 @@ export default function SettingsScreen() {
               }}>
               {displayName}
             </Text>
-            <Text style={{ fontSize: 14, color: theme.textSecondary }}>
-              {email}
-            </Text>
+            <Text style={{ fontSize: 14, color: theme.textSecondary }}>{email}</Text>
           </View>
         </View>
 
-        {/* Personal Info */}
+        {/* My Plan */}
         <View className="mb-6 px-6">
           <Text
             className="mb-3 ml-2 text-xs font-bold uppercase tracking-widest"
             style={{ color: theme.textSecondary }}>
-            Personal Info
+            My Plan
           </Text>
           <View
             className="overflow-hidden rounded-3xl"
@@ -187,10 +170,61 @@ export default function SettingsScreen() {
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
               !isDarkMode && styles.cardShadow,
             ]}>
-            <InfoRow label="Name" value={displayName} />
-            <InfoRow label="Email" value={email} />
-            <InfoRow label="Date of Birth" value="Not set" />
-            <InfoRow label="Country" value="Not set" isLast />
+            <View style={{ padding: 20 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: isDarkMode ? theme.purple + '33' : '#EDE9FE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}>
+                  <Ionicons name="diamond" size={22} color={theme.purple} />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: theme.textPrimary }}>
+                    Premium Plan
+                  </Text>
+                  <Text style={{ fontSize: 13, color: theme.textSecondary, marginTop: 2 }}>
+                    Unlimited budgets & exports
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  marginBottom: 16,
+                }}>
+                <Text style={{ fontSize: 28, fontWeight: 'bold', color: theme.textPrimary }}>
+                  $9.99
+                </Text>
+                <Text style={{ fontSize: 14, color: theme.textSecondary, marginLeft: 4 }}>
+                  /month
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: theme.purple,
+                  borderRadius: 16,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: '#FFFFFF' }}>
+                  Change plan
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
