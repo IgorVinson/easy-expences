@@ -39,12 +39,19 @@ export default function SettingsScreen() {
     isLast?: boolean;
   }) => (
     <View
-      className={`flex-row items-center justify-between px-4 py-3.5 ${!isLast ? 'border-b' : ''}`}
-      style={{ borderBottomColor: theme.border }}>
-      <Text className="text-sm" style={{ color: theme.textSecondary }}>
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: theme.border,
+      }}>
+      <Text style={{ fontSize: 14, color: theme.textSecondary }}>
         {label}
       </Text>
-      <Text className="text-sm font-medium" style={{ color: theme.textPrimary }}>
+      <Text style={{ fontSize: 14, fontWeight: '500', color: theme.textPrimary }}>
         {value}
       </Text>
     </View>
