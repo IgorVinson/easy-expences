@@ -15,34 +15,35 @@ export default function TabsLayout() {
             backgroundColor: theme.cardBg,
             borderTopWidth: 1,
             borderTopColor: theme.border,
-            paddingBottom: 8,
-            paddingTop: 4,
-            height: 88,
+            paddingBottom: 0,
+            paddingTop: 14,
+            height: 72,
           },
           !isDarkMode && styles.navShadow,
         ],
         tabBarActiveTintColor: theme.purple,
         tabBarInactiveTintColor: theme.textTertiary,
+        tabBarShowLabel: false,
       }}>
       <Tabs.Screen
         name="overview"
         options={{
           title: 'Overview',
-          tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={38} color={color} />,
         }}
       />
       <Tabs.Screen
         name="budget"
         options={{
           title: 'Budget',
-          tabBarIcon: ({ color }) => <Ionicons name="calendar" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="calendar" size={38} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={38} color={color} />,
         }}
       />
     </Tabs>
