@@ -133,7 +133,7 @@ export default function ProfileScreen() {
             Settings
           </Text>
           <View 
-            className="overflow-hidden rounded-2xl"
+            className="p-4 overflow-hidden rounded-2xl"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
               !isDarkMode && styles.cardShadow
@@ -141,7 +141,7 @@ export default function ProfileScreen() {
           >
             {/* Notifications */}
             <TouchableOpacity
-              className="flex-row items-center justify-between border-b px-4 py-4"
+              className="flex-row items-center justify-between border-b  py-4"
               style={{ borderBottomColor: theme.border }}
             >
               <View className="flex-row items-center">
@@ -151,7 +151,7 @@ export default function ProfileScreen() {
                 >
                   <Ionicons name="notifications-outline" size={20} color="#3B82F6" />
                 </View>
-                <Text className="ml-3 text-base font-medium" style={{ color: theme.textPrimary }}>
+                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
                   Notifications
                 </Text>
               </View>
@@ -160,7 +160,7 @@ export default function ProfileScreen() {
 
             {/* Currency */}
             <TouchableOpacity
-              className="flex-row items-center justify-between border-b px-4 py-4"
+              className="flex-row items-center justify-between border-b py-4"
               style={{ borderBottomColor: theme.border }}
             >
               <View className="flex-row items-center">
@@ -170,7 +170,7 @@ export default function ProfileScreen() {
                 >
                   <Ionicons name="globe-outline" size={20} color="#10B981" />
                 </View>
-                <Text className="ml-3 text-base font-medium" style={{ color: theme.textPrimary }}>
+                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
                   Currency
                 </Text>
               </View>
@@ -182,7 +182,7 @@ export default function ProfileScreen() {
 
             {/* Help & Support */}
             <TouchableOpacity
-              className="flex-row items-center justify-between border-b px-4 py-4"
+              className="flex-row items-center justify-between border-b py-4"
               style={{ borderBottomColor: theme.border }}
             >
               <View className="flex-row items-center">
@@ -192,7 +192,7 @@ export default function ProfileScreen() {
                 >
                   <Ionicons name="help-circle-outline" size={20} color="#F59E0B" />
                 </View>
-                <Text className="ml-3 text-base font-medium" style={{ color: theme.textPrimary }}>
+                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
                   Help & Support
                 </Text>
               </View>
@@ -202,7 +202,7 @@ export default function ProfileScreen() {
             {/* Log Out */}
             <TouchableOpacity
               onPress={handleLogout}
-              className="flex-row items-center justify-between px-4 py-4"
+              className="flex-row items-center justify-between py-4"
             >
               <View className="flex-row items-center">
                 <View 
@@ -211,7 +211,7 @@ export default function ProfileScreen() {
                 >
                   <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                 </View>
-                <Text className="ml-3 text-base font-medium" style={{ color: '#EF4444' }}>
+                <Text className="ml-4 text-base font-medium" style={{ color: '#EF4444' }}>
                   Log Out
                 </Text>
               </View>
