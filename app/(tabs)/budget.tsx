@@ -50,6 +50,7 @@ export default function BudgetScreen() {
     await deleteCategory(id);
   }
 
+
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -159,7 +160,7 @@ export default function BudgetScreen() {
                 No categories yet
               </Text>
               <Text className="mt-1 text-sm text-center" style={{ color: theme.textTertiary }}>
-                Tap "Add" to create your first budget category.
+                {'Tap "Add" to create your first budget category.'}
               </Text>
             </View>
           ) : (
@@ -167,8 +168,7 @@ export default function BudgetScreen() {
               <BudgetCategoryItem
                 key={category.id}
                 category={category}
-                onEdit={openEdit}
-                onDelete={handleDelete}
+                onPress={openEdit}
               />
             ))
           )}
@@ -184,6 +184,7 @@ export default function BudgetScreen() {
         onClose={handleClose}
         category={editingCategory}
         onSave={handleSave}
+        onDelete={handleDelete}
       />
     </View>
   );

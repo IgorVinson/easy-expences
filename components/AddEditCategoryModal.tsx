@@ -64,6 +64,7 @@ interface AddEditCategoryModalProps {
   /** If provided the modal is in edit mode */
   category?: BudgetCategory | null;
   onSave: (data: NewBudgetCategory) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.88;
@@ -75,9 +76,11 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   onClose,
   category,
   onSave,
+  onDelete,
 }) => {
   const { theme, isDarkMode } = useTheme();
   const isEdit = Boolean(category);
+  const [deleting, setDeleting] = useState(false);
 
   // ─── Form state ───────────────────────────────────────────────────────────
   const [name, setName] = useState('');
@@ -138,6 +141,33 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleDeletePress() {
+    if (!category) return;
+    Alert.alert(
+      'Delete Category',
+      `Are you sure you want to delete "${category.name}"? This won't delete existing expenses.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeleting(true);
+              await onDelete?.(category.id);
+              resetForm();
+              onClose();
+            } catch (e: any) {
+              Alert.alert('Error', e.message ?? 'Failed to delete category.');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
   }
 
   const inputStyle = {
@@ -349,7 +379,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 </View>
               </ScrollView>
 
-              {/* Save button */}
+              {/* Save + Delete buttons */}
               <View
                 style={{
                   paddingHorizontal: 24,
@@ -358,16 +388,17 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                   borderTopWidth: 1,
                   borderTopColor: theme.border,
                   backgroundColor: theme.bg,
+                  gap: 10,
                 }}>
                 <TouchableOpacity
                   onPress={handleSave}
-                  disabled={saving}
+                  disabled={saving || deleting}
                   style={{
                     backgroundColor: theme.purple,
                     borderRadius: 16,
                     paddingVertical: 16,
                     alignItems: 'center',
-                    opacity: saving ? 0.7 : 1,
+                    opacity: saving || deleting ? 0.7 : 1,
                   }}>
                   {saving ? (
                     <ActivityIndicator color="#fff" />
@@ -377,6 +408,29 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                     </Text>
                   )}
                 </TouchableOpacity>
+
+                {/* Delete button — edit mode only */}
+                {isEdit && onDelete && (
+                  <TouchableOpacity
+                    onPress={handleDeletePress}
+                    disabled={saving || deleting}
+                    style={{
+                      borderRadius: 16,
+                      paddingVertical: 16,
+                      alignItems: 'center',
+                      borderWidth: 1.5,
+                      borderColor: '#F87171',
+                      opacity: saving || deleting ? 0.5 : 1,
+                    }}>
+                    {deleting ? (
+                      <ActivityIndicator color="#F87171" />
+                    ) : (
+                      <Text style={{ color: '#F87171', fontSize: 16, fontWeight: 'bold' }}>
+                        Delete Category
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </TouchableWithoutFeedback>
