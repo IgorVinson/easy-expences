@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    KeyboardAvoidingView,
+    Dimensions,
     Modal,
     Platform,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
@@ -17,15 +18,13 @@ import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
 import { BudgetCategory } from '../types';
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
 interface AddExpenseModalProps {
   visible: boolean;
   onClose: () => void;
   userId: string;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+const SHEET_HEIGHT = Dimensions.get('window').height * 0.85;
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, userId }) => {
   const { theme, isDarkMode } = useTheme();
@@ -74,7 +73,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
         colorDark: selectedCategory.colorDark,
         date: new Date().toISOString(),
       });
-      // Keep budget spent in sync
       await updateCategorySpent(selectedCategory.name, parsedAmount);
       resetForm();
       onClose();
@@ -89,128 +87,189 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
     backgroundColor: theme.cardBg,
     borderColor: theme.border,
     color: theme.textPrimary,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={handleClose}>
-      {/* Dimmed backdrop — tap to dismiss */}
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-        }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      statusBarTranslucent={Platform.OS === 'android'}
+      onRequestClose={handleClose}>
+      {/* Backdrop — tap closes */}
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View
           style={{
-            backgroundColor: theme.bg,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: '92%',
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.55)',
+            justifyContent: 'flex-end',
           }}>
-        {/* Handle bar */}
-        <View className="items-center py-3">
-          <View className="h-1 w-10 rounded-full" style={{ backgroundColor: theme.border }} />
-        </View>
+          {/* Stop taps on the sheet from reaching the backdrop */}
+          <TouchableWithoutFeedback>
+            <View
+              style={{
+                height: SHEET_HEIGHT,
+                backgroundColor: theme.bg,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                overflow: 'hidden',
+              }}>
+              {/* Handle */}
+              <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: theme.border,
+                  }}
+                />
+              </View>
 
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-6 pb-4 pt-2">
-          <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-            Add Expense
-          </Text>
-          <TouchableOpacity
-            onPress={handleClose}
-            className="h-10 w-10 items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.iconBg }}>
-            <Ionicons name="close" size={20} color={theme.textPrimary} />
-          </TouchableOpacity>
-        </View>
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingHorizontal: 24,
+                  paddingVertical: 12,
+                }}>
+                <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: 'bold' }}>
+                  Add Expense
+                </Text>
+                <TouchableOpacity
+                  onPress={handleClose}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 20,
+                    backgroundColor: theme.iconBg,
+                  }}>
+                  <Ionicons name="close" size={20} color={theme.textPrimary} />
+                </TouchableOpacity>
+              </View>
 
-        <ScrollView className="flex-1 px-6" keyboardShouldPersistTaps="handled">
-          {/* Title */}
-          <Text className="mb-2 text-sm font-semibold" style={{ color: theme.textSecondary }}>
-            Title
-          </Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="e.g. Lunch at Café"
-            placeholderTextColor={theme.textTertiary}
-            className="mb-5 rounded-2xl px-4 py-4 text-base"
-            style={[inputStyle, { borderWidth: 1 }]}
-          />
+              {/* Scrollable form */}
+              <ScrollView
+                style={{ flex: 1, paddingHorizontal: 24 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
+                {/* Title */}
+                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
+                  Title
+                </Text>
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder="e.g. Lunch at Café"
+                  placeholderTextColor={theme.textTertiary}
+                  style={[inputStyle, { marginBottom: 20 }]}
+                />
 
-          {/* Amount */}
-          <Text className="mb-2 text-sm font-semibold" style={{ color: theme.textSecondary }}>
-            Amount ($)
-          </Text>
-          <TextInput
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="0.00"
-            placeholderTextColor={theme.textTertiary}
-            keyboardType="decimal-pad"
-            className="mb-5 rounded-2xl px-4 py-4 text-base"
-            style={[inputStyle, { borderWidth: 1 }]}
-          />
+                {/* Amount */}
+                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
+                  Amount ($)
+                </Text>
+                <TextInput
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="0.00"
+                  placeholderTextColor={theme.textTertiary}
+                  keyboardType="decimal-pad"
+                  style={[inputStyle, { marginBottom: 20 }]}
+                />
 
-          {/* Category */}
-          <Text className="mb-3 text-sm font-semibold" style={{ color: theme.textSecondary }}>
-            Category
-          </Text>
-          {categories.length === 0 ? (
-            <Text className="mb-5 text-sm" style={{ color: theme.textTertiary }}>
-              No categories yet. Add one in the Budget tab.
-            </Text>
-          ) : (
-            <View className="mb-6 flex-row flex-wrap gap-2">
-              {categories.map((cat) => {
-                const isSelected = selectedCategory?.id === cat.id;
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    onPress={() => setSelectedCategory(cat)}
-                    className="flex-row items-center rounded-2xl px-4 py-3"
-                    style={{
-                      backgroundColor: isSelected
-                        ? (isDarkMode ? cat.colorDark + '33' : cat.colorLight)
-                        : theme.cardBg,
-                      borderWidth: isSelected ? 2 : 1,
-                      borderColor: isSelected ? cat.colorDark : theme.border,
-                    }}>
-                    <Ionicons
-                      name={cat.icon as any}
-                      size={16}
-                      color={isSelected ? cat.colorDark : theme.textTertiary}
-                    />
-                    <Text
-                      className="ml-2 text-sm font-medium"
-                      style={{ color: isSelected ? cat.colorDark : theme.textSecondary }}>
-                      {cat.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+                {/* Category */}
+                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
+                  Category
+                </Text>
+                {categories.length === 0 ? (
+                  <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                    No categories yet. Check the Budget tab.
+                  </Text>
+                ) : (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                    {categories.map((cat) => {
+                      const isSelected = selectedCategory?.id === cat.id;
+                      return (
+                        <TouchableOpacity
+                          key={cat.id}
+                          onPress={() => setSelectedCategory(cat)}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 14,
+                            paddingVertical: 10,
+                            borderRadius: 16,
+                            backgroundColor: isSelected
+                              ? isDarkMode ? cat.colorDark + '33' : cat.colorLight
+                              : theme.cardBg,
+                            borderWidth: isSelected ? 2 : 1,
+                            borderColor: isSelected ? cat.colorDark : theme.border,
+                          }}>
+                          <Ionicons
+                            name={cat.icon as any}
+                            size={15}
+                            color={isSelected ? cat.colorDark : theme.textTertiary}
+                          />
+                          <Text
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 13,
+                              fontWeight: '500',
+                              color: isSelected ? cat.colorDark : theme.textSecondary,
+                            }}>
+                            {cat.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+
+                {/* Extra bottom padding so Save button doesn't overlap content */}
+                <View style={{ height: 100 }} />
+              </ScrollView>
+
+              {/* Save button — pinned to bottom */}
+              <View
+                style={{
+                  paddingHorizontal: 24,
+                  paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+                  paddingTop: 12,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
+                  backgroundColor: theme.bg,
+                }}>
+                <TouchableOpacity
+                  onPress={handleSave}
+                  disabled={saving}
+                  style={{
+                    backgroundColor: theme.purple,
+                    borderRadius: 16,
+                    paddingVertical: 16,
+                    alignItems: 'center',
+                    opacity: saving ? 0.7 : 1,
+                  }}>
+                  {saving ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Save Expense</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
-        </ScrollView>
-
-        {/* Save button */}
-        <View className="px-6 pb-10 pt-4">
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={saving}
-            className="items-center rounded-2xl py-4"
-            style={{ backgroundColor: theme.purple, opacity: saving ? 0.7 : 1 }}>
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-bold text-white">Save Expense</Text>
-            )}
-          </TouchableOpacity>
+          </TouchableWithoutFeedback>
         </View>
-        </KeyboardAvoidingView>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
