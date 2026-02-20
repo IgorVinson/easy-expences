@@ -1,68 +1,37 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { BudgetCategoryItem } from '../components/BudgetCategoryItem';
 import { useTheme } from '../contexts/ThemeContext';
+import { useBudget } from '../hooks/useBudget';
+import { styles } from '../styles';
 
-export const BudgetScreen = () => {
+type Props = {
+  userId: string | null;
+};
+
+export const BudgetScreen = ({ userId }: Props) => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { categories, totalBudget, totalSpent, loading, error } = useBudget(userId);
 
-  const categories = [
-    {
-      id: '1',
-      title: 'Food & Dining',
-      limit: 500.0,
-      spent: 420.0,
-      icon: 'restaurant' as const,
-      colorLight: '#FED7AA',
-      colorDark: '#FB923C',
-    },
-    {
-      id: '2',
-      title: 'Transportation',
-      limit: 300.0,
-      spent: 180.0,
-      icon: 'car' as const,
-      colorLight: '#E2E8F0',
-      colorDark: '#94A3B8',
-    },
-    {
-      id: '3',
-      title: 'Utilities',
-      limit: 250.0,
-      spent: 200.0,
-      icon: 'bulb' as const,
-      colorLight: '#FEF08A',
-      colorDark: '#FACC15',
-    },
-    {
-      id: '4',
-      title: 'Entertainment',
-      limit: 200.0,
-      spent: 150.0,
-      icon: 'ticket' as const,
-      colorLight: '#FECACA',
-      colorDark: '#F87171',
-    },
-    // Add dummy items to see scroll
-    {
-      id: '5',
-      title: 'Shopping',
-      limit: 400.0,
-      spent: 350.0,
-      icon: 'cart' as const,
-      colorLight: '#BFDBFE',
-      colorDark: '#60A5FA',
-    },
-  ];
+  const overallPercentage = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
+  const remaining = totalBudget - totalSpent;
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+
         {/* Header with Theme Toggle */}
-        <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
+        <View className="flex-row items-center justify-between px-6 pb-4 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
             Monthly Budget
           </Text>
@@ -74,21 +43,87 @@ export const BudgetScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Categories List */}
-        <View className="mb-32 px-6">
-          {categories.map((item) => (
-            <View key={item.id} className="mb-4">
-              <BudgetCategoryItem
-                title={item.title}
-                limit={item.limit}
-                spent={item.spent}
-                icon={item.icon}
-                colorLight={item.colorLight}
-                colorDark={item.colorDark}
+        {/* Overall Summary Card */}
+        <View className="mb-6 px-6">
+          <View
+            className="rounded-3xl p-5"
+            style={[
+              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            <View className="mb-3 flex-row justify-between">
+              <View>
+                <Text className="mb-1 text-xs" style={{ color: theme.textTertiary }}>
+                  Total Spent
+                </Text>
+                {loading ? (
+                  <ActivityIndicator color={theme.purple} />
+                ) : (
+                  <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
+                    ${totalSpent.toFixed(2)}
+                  </Text>
+                )}
+              </View>
+              <View className="items-end">
+                <Text className="mb-1 text-xs" style={{ color: theme.textTertiary }}>
+                  Total Budget
+                </Text>
+                {loading ? (
+                  <ActivityIndicator color={theme.purple} />
+                ) : (
+                  <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
+                    ${totalBudget.toFixed(2)}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Overall Progress Bar */}
+            <View
+              className="h-3 overflow-hidden rounded-full"
+              style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+              <View
+                className="h-full rounded-full"
+                style={{
+                  width: `${overallPercentage}%`,
+                  backgroundColor:
+                    overallPercentage > 90 ? '#F87171' : overallPercentage > 70 ? '#FACC15' : theme.purple,
+                }}
               />
             </View>
-          ))}
+
+            <Text className="mt-2 text-xs" style={{ color: theme.textTertiary }}>
+              ${remaining.toFixed(2)} remaining ({(100 - overallPercentage).toFixed(0)}%)
+            </Text>
+          </View>
         </View>
+
+        {/* Error State */}
+        {error && (
+          <View className="mb-4 px-6">
+            <Text style={{ color: '#F87171', textAlign: 'center' }}>
+              ⚠ Could not load budget: {error}
+            </Text>
+          </View>
+        )}
+
+        {/* Categories List */}
+        <View className="mb-32 px-6">
+          {loading ? (
+            <ActivityIndicator size="large" color={theme.purple} style={{ marginTop: 32 }} />
+          ) : categories.length === 0 ? (
+            <Text style={{ color: theme.textTertiary, textAlign: 'center', paddingVertical: 24 }}>
+              No budget categories yet
+            </Text>
+          ) : (
+            categories.map((item) => (
+              <View key={item.id} className="mb-4">
+                <BudgetCategoryItem category={item} />
+              </View>
+            ))
+          )}
+        </View>
+
       </ScrollView>
     </View>
   );

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './global.css';
 import { BudgetScreen } from './screens/BudgetScreen';
@@ -10,17 +11,26 @@ import { styles } from './styles';
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
 
 function AppContent() {
   const { theme, isDarkMode } = useTheme();
-  // Set default to 'Budget' since that's what we tested/implemented as requested, 
-  // or 'Overview' if we want to show existing first. 
-  // User asked for Budget page build, might want to see it immediately.
-  const [activeTab, setActiveTab] = useState('Budget'); 
+  const { user, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState('Overview');
+
+  // Show a spinner while Firebase resolves auth state on startup
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg }}>
+        <ActivityIndicator size="large" color={theme.purple} />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
@@ -28,8 +38,8 @@ function AppContent() {
 
       {/* Screen Content */}
       <View className="flex-1">
-        {activeTab === 'Overview' && <OverviewScreen />}
-        {activeTab === 'Budget' && <BudgetScreen />}
+        {activeTab === 'Overview' && <OverviewScreen userId={user?.uid ?? null} />}
+        {activeTab === 'Budget' && <BudgetScreen userId={user?.uid ?? null} />}
         {activeTab === 'Setting' && (
           <View className="flex-1 items-center justify-center">
             <Text style={{ color: theme.textPrimary }}>Settings (Placeholder)</Text>
@@ -47,14 +57,10 @@ function AppContent() {
         <View className="flex-row items-center justify-around px-6 py-4 pb-8">
           {[
             { name: 'Overview', icon: 'stats-chart' },
-            { name: 'Budget', icon: 'pie-chart' }, // Changed icon to match typical budget icon, or keep calendar? Original was 'calendar'. Screenshot shows a pie chart icon for 'Budget'.
+            { name: 'Budget', icon: 'pie-chart' },
             { name: 'Setting', icon: 'settings' },
           ].map((tab) => {
             const isActive = tab.name === activeTab;
-            // The screenshot shows 'Budget' with a chart/pie icon. 
-            // 'stats-chart' is used for Overview. 
-            // Let's use 'pie-chart' for Budget if available, or 'wallet', 'cash'. Ionicons has 'pie-chart'.
-
             return (
               <TouchableOpacity
                 key={tab.name}

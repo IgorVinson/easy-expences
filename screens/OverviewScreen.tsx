@@ -1,63 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ExpenseItem } from '../components/ExpenseItem';
 import { useTheme } from '../contexts/ThemeContext';
+import { useExpenses } from '../hooks/useExpenses';
 import { styles } from '../styles';
-import { Expense } from '../types';
 
-export const OverviewScreen = () => {
+type Props = {
+  userId: string | null;
+};
+
+export const OverviewScreen = ({ userId }: Props) => {
   const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { todayExpenses, yesterdayExpenses, monthlyTotal, loading, error } =
+    useExpenses(userId);
 
-  const todayExpenses: Expense[] = [
-    {
-      id: '1',
-      title: 'Lunch at Cafe',
-      category: 'Cafe',
-      amount: -15.5,
-      icon: 'restaurant',
-      budgetLeft: '120$ left',
-      colorLight: '#FED7AA',
-      colorDark: '#FB923C',
-    },
-    {
-      id: '2',
-      title: 'Groceries',
-      category: 'Food',
-      amount: -85.2,
-      icon: 'cart',
-      colorLight: '#BBF7D0',
-      colorDark: '#4ADE80',
-    },
-  ];
-
-  const yesterdayExpenses: Expense[] = [
-    {
-      id: '3',
-      title: 'Uber Ride',
-      category: 'Transport',
-      amount: -22.0,
-      icon: 'car',
-      budgetLeft: '95$ budget left',
-      colorLight: '#CBD5E1',
-      colorDark: '#64748B',
-    },
-    {
-      id: '4',
-      title: 'Coffee',
-      category: 'Cafe',
-      amount: -4.5,
-      icon: 'cafe',
-      colorLight: '#FDE68A',
-      colorDark: '#F59E0B',
-    },
-  ];
+  // ─── Month label ────────────────────────────────────────────────────────
+  const monthLabel = new Date().toLocaleString('default', {
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+
         {/* Header with Theme Toggle */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
@@ -105,43 +81,61 @@ export const OverviewScreen = () => {
                 This Month
               </Text>
               <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                September 2024 ▼
+                {monthLabel}
               </Text>
             </View>
-            <Text className="mb-4 text-5xl font-bold text-white">$1,812</Text>
 
-            {/* Budget Progress */}
-            <View
-              className="rounded-2xl p-4"
-              style={{
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
-                borderWidth: 1,
-                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-              }}>
-              <View className="mb-3 flex-row justify-between">
-                <View>
-                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Left to spend
-                  </Text>
-                  <Text className="text-2xl font-bold text-white">$738</Text>
-                </View>
-                <View className="items-end">
-                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Monthly budget
-                  </Text>
-                  <Text className="text-2xl font-bold text-white">$2,550</Text>
-                </View>
-              </View>
-              {/* Progress Bar */}
+            {loading ? (
+              <ActivityIndicator color="#fff" style={{ marginVertical: 16 }} />
+            ) : (
+              <Text className="mb-4 text-5xl font-bold text-white">
+                ${monthlyTotal.toFixed(2)}
+              </Text>
+            )}
+
+            {error ? (
+              <Text style={{ color: 'rgba(255,100,100,0.9)', fontSize: 12 }}>
+                ⚠ Could not load data: {error}
+              </Text>
+            ) : (
+              /* Budget Progress — kept as visual placeholder until useBudget is wired for total */
               <View
-                className="h-2 overflow-hidden rounded-full"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                className="rounded-2xl p-4"
+                style={{
+                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                }}>
+                <View className="mb-3 flex-row justify-between">
+                  <View>
+                    <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                      Spent so far
+                    </Text>
+                    <Text className="text-2xl font-bold text-white">
+                      ${monthlyTotal.toFixed(2)}
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                      Monthly budget
+                    </Text>
+                    <Text className="text-2xl font-bold text-white">$2,550</Text>
+                  </View>
+                </View>
+                {/* Progress Bar */}
                 <View
-                  className="h-full rounded-full"
-                  style={{ width: '71%', backgroundColor: '#C084FC' }}
-                />
+                  className="h-2 overflow-hidden rounded-full"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                  <View
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.min((monthlyTotal / 2550) * 100, 100)}%`,
+                      backgroundColor: '#C084FC',
+                    }}
+                  />
+                </View>
               </View>
-            </View>
+            )}
           </View>
         </View>
 
@@ -152,9 +146,18 @@ export const OverviewScreen = () => {
               Today
             </Text>
           </View>
-          {todayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
-          ))}
+
+          {loading ? (
+            <ActivityIndicator color={theme.purple} />
+          ) : todayExpenses.length === 0 ? (
+            <Text style={{ color: theme.textTertiary, textAlign: 'center', paddingVertical: 12 }}>
+              No expenses today 🎉
+            </Text>
+          ) : (
+            todayExpenses.map((expense) => (
+              <ExpenseItem key={expense.id} expense={expense} />
+            ))
+          )}
         </View>
 
         {/* Yesterday Section */}
@@ -162,10 +165,20 @@ export const OverviewScreen = () => {
           <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
             Yesterday
           </Text>
-          {yesterdayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
-          ))}
+
+          {loading ? (
+            <ActivityIndicator color={theme.purple} />
+          ) : yesterdayExpenses.length === 0 ? (
+            <Text style={{ color: theme.textTertiary, textAlign: 'center', paddingVertical: 12 }}>
+              No expenses yesterday
+            </Text>
+          ) : (
+            yesterdayExpenses.map((expense) => (
+              <ExpenseItem key={expense.id} expense={expense} />
+            ))
+          )}
         </View>
+
       </ScrollView>
     </View>
   );

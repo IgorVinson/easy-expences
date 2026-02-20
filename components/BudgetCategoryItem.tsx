@@ -2,16 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { styles } from '../styles';
-
-export type BudgetCategory = {
-  id: string;
-  name: string;
-  budget: number;
-  spent: number;
-  icon: keyof typeof Ionicons.glyphMap;
-  colorLight: string;
-  colorDark: string;
-};
+import { BudgetCategory } from '../types';
 
 type BudgetCategoryItemProps = {
   category: BudgetCategory;
