@@ -158,15 +158,17 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
 
-      {/* Backdrop */}
-      <TouchableWithoutFeedback onPress={handleClose}>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}>
+      {/* Backdrop wrapper */}
+      <View className="flex-1 justify-end">
+        {/* Absolute touch area for backdrop */}
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
+        </TouchableWithoutFeedback>
 
-          {/* Sheet */}
-          <TouchableWithoutFeedback>
-            <View
-              className="overflow-hidden rounded-t-3xl"
-              style={{ height: SHEET_HEIGHT, backgroundColor: theme.bg }}>
+        {/* Sheet */}
+        <View
+          className="overflow-hidden rounded-t-3xl"
+          style={{ height: SHEET_HEIGHT, backgroundColor: theme.bg }}>
 
               {/* Drag handle */}
               <View className="items-center pb-1 pt-3">
@@ -369,9 +371,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               </View>
 
             </View>
-          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
     </Modal>
   );
 };

@@ -101,24 +101,26 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
-      {/* Backdrop — tap closes */}
-      <TouchableWithoutFeedback onPress={handleClose}>
+      {/* Backdrop wrapper */}
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'flex-end',
+        }}>
+        {/* Absolute touch area for backdrop */}
+        <TouchableWithoutFeedback onPress={handleClose}>
+          <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
+        </TouchableWithoutFeedback>
+
+        {/* Sheet */}
         <View
           style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            justifyContent: 'flex-end',
+            height: SHEET_HEIGHT,
+            backgroundColor: theme.bg,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            overflow: 'hidden',
           }}>
-          {/* Stop taps on the sheet from reaching the backdrop */}
-          <TouchableWithoutFeedback>
-            <View
-              style={{
-                height: SHEET_HEIGHT,
-                backgroundColor: theme.bg,
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                overflow: 'hidden',
-              }}>
               {/* Handle */}
               <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
                 <View
@@ -267,9 +269,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
     </Modal>
   );
 };
