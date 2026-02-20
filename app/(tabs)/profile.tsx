@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Alert, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
@@ -8,25 +8,34 @@ export default function ProfileScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
 
-  const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Logout", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error: any) {
-              Alert.alert('Logout Failed', error.message);
-            }
-          }
-        }
-      ]
-    );
+  const handleLogout = () => {
+    console.log('Logout button pressed');
+
+    const doLogout = async () => {
+      console.log('Logout confirmed, calling logout()...');
+      try {
+        await logout();
+        console.log('Logout successful');
+      } catch (error: any) {
+        console.error('Logout failed:', error);
+        Alert.alert('Logout Failed', error.message);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to logout?')) {
+        doLogout();
+      }
+    } else {
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Logout', style: 'destructive', onPress: doLogout },
+        ]
+      );
+    }
   };
 
   return (
