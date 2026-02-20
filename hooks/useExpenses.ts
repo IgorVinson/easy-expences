@@ -1,14 +1,13 @@
 import {
-    Timestamp,
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    onSnapshot,
-    orderBy,
-    query,
-    updateDoc,
-    where,
+  Timestamp,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig';
@@ -54,14 +53,17 @@ export function useExpenses(userId: string | null | undefined) {
 
     const q = query(
       collection(db, 'expenses'),
-      where('userId', '==', userId),
-      orderBy('date', 'desc')
+      where('userId', '==', userId)
+      // Note: sorted client-side below to avoid needing a composite Firestore index
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const docs = snapshot.docs.map((d) => docToExpense(d.id, d.data()));
+        const docs = snapshot.docs
+          .map((d) => docToExpense(d.id, d.data()))
+          // Sort newest-first client-side
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setExpenses(docs);
         setLoading(false);
         setError(null);
