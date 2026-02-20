@@ -1,79 +1,81 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
 import { Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { styles } from '../styles';
 
-type BudgetCategoryItemProps = {
-  title: string;
-  limit: number;
+export type BudgetCategory = {
+  id: string;
+  name: string;
+  budget: number;
   spent: number;
+  icon: keyof typeof Ionicons.glyphMap;
   colorLight: string;
   colorDark: string;
-  icon: keyof typeof Ionicons.glyphMap;
 };
 
-export const BudgetCategoryItem = ({
-  title,
-  limit,
-  spent,
-  colorLight,
-  colorDark,
-  icon,
-}: BudgetCategoryItemProps) => {
-  const { theme, isDarkMode } = useTheme();
-  const progress = Math.min(spent / limit, 1);
-  const remaining = limit - spent;
+type BudgetCategoryItemProps = {
+  category: BudgetCategory;
+};
+
+export const BudgetCategoryItem = ({ category }: BudgetCategoryItemProps) => {
+  const { theme } = useTheme();
+
+  const percentage = Math.min((category.spent / category.budget) * 100, 100);
+  const remaining = category.budget - category.spent;
 
   return (
     <View
       style={[
         styles.expenseItem,
-        { backgroundColor: theme.cardBg, borderColor: theme.border },
-        !isDarkMode && styles.expenseItemShadow,
-        { flexDirection: 'column', alignItems: 'stretch' },
+        {
+          backgroundColor: theme.cardBg,
+          borderColor: theme.border,
+          flexDirection: 'column',
+          alignItems: 'stretch',
+        },
+        !theme.isDark && styles.expenseItemShadow,
       ]}>
-      {/* Header: Icon, Title, Limit */}
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
+      <View className="mb-3 flex-row items-center justify-between">
+        <View className="flex-1 flex-row items-center">
           <View
-            className="h-10 w-10 items-center justify-center rounded-xl mr-3"
+            className="h-12 w-12 items-center justify-center rounded-xl"
             style={{
-              backgroundColor: isDarkMode ? colorDark + '33' : colorLight,
+              backgroundColor: theme.isDark ? category.colorDark + '33' : category.colorLight,
             }}>
             <Ionicons
-              name={icon}
-              size={20}
-              color={isDarkMode ? colorDark : colorDark.replace('33', '')}
+              name={category.icon}
+              size={24}
+              color={theme.isDark ? category.colorDark : category.colorDark.replace('33', '')}
             />
           </View>
-          <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
-            {title}
+          <View className="ml-3 flex-1">
+            <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
+              {category.name}
+            </Text>
+
+          </View>
+        </View>
+
+        <View className="items-end">
+          <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
+            ${category.budget.toLocaleString()}
+          </Text>
+          <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
+            ${remaining.toLocaleString()} left
           </Text>
         </View>
-        <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-          - ${limit.toFixed(2)}
-        </Text>
       </View>
 
-      {/* Progress Bar */}
       <View
-        className="h-2 overflow-hidden rounded-full mb-2"
-        style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
+        className="h-2 overflow-hidden rounded-full"
+        style={{ backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
         <View
           className="h-full rounded-full"
           style={{
-            width: `${progress * 100}%`,
-            backgroundColor: isDarkMode ? '#64748B' : '#475569', // Dark slate color for progress
+            width: `${percentage}%`,
+            backgroundColor: theme.isDark ? category.colorDark : category.colorDark.replace('33', ''),
           }}
         />
-      </View>
-
-      {/* Footer: Spent Amount */}
-      <View className="flex-row justify-end">
-        <Text className="text-xs" style={{ color: theme.textTertiary }}>
-          ${spent.toFixed(0)} spent
-        </Text>
       </View>
     </View>
   );

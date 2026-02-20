@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase/firestore';
 // Your web app's Firebase configuration
 // TODO: Replace with your actual Firebase config from Firebase Console
 const firebaseConfig = {
-  apiKey: 'your-firebase-api-key',
+  apiKey: 'AIzaSyBqZpgR4bAvF6bRzsGxFEVVLDGTUu5zcHM',
   authDomain: 'easybudget-9da69.firebaseapp.com',
   projectId: 'easybudget-9da69',
   storageBucket: 'easybudget-9da69.firebasestorage.app',

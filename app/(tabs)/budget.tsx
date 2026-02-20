@@ -1,55 +1,55 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { BudgetCategory, BudgetCategoryCard } from '../../components/BudgetCategoryCard';
+import { BudgetCategory, BudgetCategoryItem } from '../../components/BudgetCategoryItem';
 import { useTheme } from '../../contexts/ThemeContext';
-import { styles } from '../../styles';
 
 export default function BudgetScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
 
-  const categories: BudgetCategory[] = [
+  // Sample budget categories matching the reference design
+  const budgetCategories: BudgetCategory[] = [
     {
       id: '1',
       name: 'Food & Dining',
-      icon: 'fast-food',
-      budgeted: 500,
-      spent: 420,
+      budget: 500.0,
+      spent: 420.0,
+      icon: 'restaurant',
       colorLight: '#FED7AA',
       colorDark: '#FB923C',
     },
     {
       id: '2',
       name: 'Transportation',
+      budget: 300.0,
+      spent: 180.0,
       icon: 'car',
-      budgeted: 300,
-      spent: 150,
-      colorLight: '#BFDBFE',
-      colorDark: '#3B82F6',
+      colorLight: '#CBD5E1',
+      colorDark: '#64748B',
     },
     {
       id: '3',
       name: 'Utilities',
-      icon: 'flash',
-      budgeted: 200,
-      spent: 180,
+      budget: 250.0,
+      spent: 200.0,
+      icon: 'bulb',
       colorLight: '#FEF08A',
-      colorDark: '#FACC15',
+      colorDark: '#EAB308',
     },
     {
       id: '4',
       name: 'Entertainment',
+      budget: 200.0,
+      spent: 150.0,
       icon: 'film',
-      budgeted: 150,
-      spent: 90,
-      colorLight: '#FBCFE8',
-      colorDark: '#EC4899',
+      colorLight: '#FECACA',
+      colorDark: '#EF4444',
     },
   ];
 
-  const totalBudget = categories.reduce((sum, c) => sum + c.budgeted, 0);
-  const totalSpent = categories.reduce((sum, c) => sum + c.spent, 0);
+  const totalBudget = budgetCategories.reduce((sum, cat) => sum + cat.budget, 0);
+  const totalSpent = budgetCategories.reduce((sum, cat) => sum + cat.spent, 0);
   const totalRemaining = totalBudget - totalSpent;
-  const spentPercent = Math.min((totalSpent / totalBudget) * 100, 100);
+  const overallPercentage = Math.min((totalSpent / totalBudget) * 100, 100);
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
@@ -69,20 +69,21 @@ export default function BudgetScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Summary Card — same style as overview purple card */}
+        {/* Summary Card */}
         <View className="mb-6 px-6">
-          <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
+          <View
+            className="rounded-3xl p-6"
+            style={{ backgroundColor: theme.purpleCard }}>
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                Total Budget
+                This Month
               </Text>
               <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                October 2024 ▼
+                February 2026 ▼
               </Text>
             </View>
-            <Text className="mb-4 text-5xl font-bold text-white">
-              ${totalBudget.toLocaleString()}
-            </Text>
+
+            <Text className="mb-4 text-5xl font-bold text-white">${totalSpent.toLocaleString()}</Text>
 
             <View
               className="rounded-2xl p-4"
@@ -96,45 +97,43 @@ export default function BudgetScreen() {
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Left to spend
                   </Text>
-                  <Text className="text-2xl font-bold text-white">${totalRemaining}</Text>
+                  <Text className="text-2xl font-bold text-white">${totalRemaining.toLocaleString()}</Text>
                 </View>
                 <View className="items-end">
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Total spent
+                    Monthly budget
                   </Text>
-                  <Text className="text-2xl font-bold text-white">${totalSpent}</Text>
+                  <Text className="text-2xl font-bold text-white">${totalBudget.toLocaleString()}</Text>
                 </View>
               </View>
+
               <View
                 className="h-2 overflow-hidden rounded-full"
                 style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
                 <View
                   className="h-full rounded-full"
-                  style={{ width: `${spentPercent}%`, backgroundColor: '#C084FC' }}
+                  style={{ width: `${overallPercentage}%`, backgroundColor: '#C084FC' }}
                 />
               </View>
             </View>
           </View>
         </View>
 
-        {/* Categories Header */}
-        <View className="mb-2 flex-row items-center justify-between px-6">
-          <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
-            Categories
-          </Text>
-          <TouchableOpacity>
-            <Text className="text-sm font-semibold" style={{ color: theme.purple }}>
-              Edit
+        {/* Budget Categories */}
+        <View className="mb-8 px-6">
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
+              Categories
             </Text>
-          </TouchableOpacity>
-        </View>
+          </View>
 
-        {/* Category Cards */}
-        <View className="mb-32 px-6">
-          {categories.map((category) => (
-            <BudgetCategoryCard key={category.id} category={category} />
+          {budgetCategories.map((category) => (
+            <BudgetCategoryItem key={category.id} category={category} />
           ))}
         </View>
+
+        {/* Bottom padding for tab bar */}
+        <View className="h-24" />
       </ScrollView>
     </View>
   );
