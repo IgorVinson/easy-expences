@@ -1,20 +1,54 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { AddEditCategoryModal } from '../../components/AddEditCategoryModal';
 import { BudgetCategoryItem } from '../../components/BudgetCategoryItem';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
+import { BudgetCategory, NewBudgetCategory } from '../../types';
 
 export default function BudgetScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { categories, totalBudget, totalSpent, loading } = useBudget(user?.uid);
+  const { categories, totalBudget, totalSpent, loading, addCategory, updateCategory, deleteCategory } =
+    useBudget(user?.uid);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<BudgetCategory | null>(null);
 
   const totalRemaining = Math.max(0, totalBudget - totalSpent);
   const overallPercentage = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
 
   const now = new Date();
   const monthLabel = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  function openAdd() {
+    setEditingCategory(null);
+    setModalVisible(true);
+  }
+
+  function openEdit(category: BudgetCategory) {
+    setEditingCategory(category);
+    setModalVisible(true);
+  }
+
+  function handleClose() {
+    setModalVisible(false);
+    setEditingCategory(null);
+  }
+
+  async function handleSave(data: NewBudgetCategory) {
+    if (editingCategory) {
+      await updateCategory(editingCategory.id, data);
+    } else {
+      await addCategory(data);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    await deleteCategory(id);
+  }
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
@@ -94,6 +128,21 @@ export default function BudgetScreen() {
             <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
               Categories
             </Text>
+            {/* Add category button */}
+            <TouchableOpacity
+              onPress={openAdd}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 12,
+                backgroundColor: theme.purple,
+                gap: 6,
+              }}>
+              <Ionicons name="add" size={18} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Add</Text>
+            </TouchableOpacity>
           </View>
 
           {loading ? (
@@ -103,9 +152,24 @@ export default function BudgetScreen() {
                 Loading categories…
               </Text>
             </View>
+          ) : categories.length === 0 ? (
+            <View className="items-center py-10">
+              <Ionicons name="wallet-outline" size={48} color={theme.textTertiary} />
+              <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
+                No categories yet
+              </Text>
+              <Text className="mt-1 text-sm text-center" style={{ color: theme.textTertiary }}>
+                Tap "Add" to create your first budget category.
+              </Text>
+            </View>
           ) : (
             categories.map((category) => (
-              <BudgetCategoryItem key={category.id} category={category} />
+              <BudgetCategoryItem
+                key={category.id}
+                category={category}
+                onEdit={openEdit}
+                onDelete={handleDelete}
+              />
             ))
           )}
         </View>
@@ -113,6 +177,14 @@ export default function BudgetScreen() {
         {/* Bottom padding for tab bar */}
         <View className="h-24" />
       </ScrollView>
+
+      {/* Add / Edit modal */}
+      <AddEditCategoryModal
+        visible={modalVisible}
+        onClose={handleClose}
+        category={editingCategory}
+        onSave={handleSave}
+      />
     </View>
   );
 }
