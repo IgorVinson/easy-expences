@@ -1,62 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { BudgetCategory, BudgetCategoryItem } from '../../components/BudgetCategoryItem';
+import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { BudgetCategoryItem } from '../../components/BudgetCategoryItem';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBudget } from '../../hooks/useBudget';
 
 export default function BudgetScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const { categories, totalBudget, totalSpent, loading } = useBudget(user?.uid);
 
-  // Sample budget categories matching the reference design
-  const budgetCategories: BudgetCategory[] = [
-    {
-      id: '1',
-      name: 'Food & Dining',
-      budget: 500.0,
-      spent: 420.0,
-      icon: 'restaurant',
-      colorLight: '#FED7AA',
-      colorDark: '#FB923C',
-    },
-    {
-      id: '2',
-      name: 'Transportation',
-      budget: 300.0,
-      spent: 180.0,
-      icon: 'car',
-      colorLight: '#CBD5E1',
-      colorDark: '#64748B',
-    },
-    {
-      id: '3',
-      name: 'Utilities',
-      budget: 250.0,
-      spent: 200.0,
-      icon: 'bulb',
-      colorLight: '#FEF08A',
-      colorDark: '#EAB308',
-    },
-    {
-      id: '4',
-      name: 'Entertainment',
-      budget: 200.0,
-      spent: 150.0,
-      icon: 'film',
-      colorLight: '#FECACA',
-      colorDark: '#EF4444',
-    },
-  ];
+  const totalRemaining = Math.max(0, totalBudget - totalSpent);
+  const overallPercentage = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
 
-  const totalBudget = budgetCategories.reduce((sum, cat) => sum + cat.budget, 0);
-  const totalSpent = budgetCategories.reduce((sum, cat) => sum + cat.spent, 0);
-  const totalRemaining = totalBudget - totalSpent;
-  const overallPercentage = Math.min((totalSpent / totalBudget) * 100, 100);
+  const now = new Date();
+  const monthLabel = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header with Theme Toggle */}
+        {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
             Monthly Budget
@@ -71,19 +36,19 @@ export default function BudgetScreen() {
 
         {/* Summary Card */}
         <View className="mb-6 px-6">
-          <View
-            className="rounded-3xl p-6"
-            style={{ backgroundColor: theme.purpleCard }}>
+          <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
                 This Month
               </Text>
               <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                February 2026 ▼
+                {monthLabel} ▼
               </Text>
             </View>
 
-            <Text className="mb-4 text-5xl font-bold text-white">${totalSpent.toLocaleString()}</Text>
+            <Text className="mb-4 text-5xl font-bold text-white">
+              ${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
 
             <View
               className="rounded-2xl p-4"
@@ -97,13 +62,17 @@ export default function BudgetScreen() {
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Left to spend
                   </Text>
-                  <Text className="text-2xl font-bold text-white">${totalRemaining.toLocaleString()}</Text>
+                  <Text className="text-2xl font-bold text-white">
+                    ${totalRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
                 </View>
                 <View className="items-end">
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Monthly budget
                   </Text>
-                  <Text className="text-2xl font-bold text-white">${totalBudget.toLocaleString()}</Text>
+                  <Text className="text-2xl font-bold text-white">
+                    ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
                 </View>
               </View>
 
@@ -127,9 +96,18 @@ export default function BudgetScreen() {
             </Text>
           </View>
 
-          {budgetCategories.map((category) => (
-            <BudgetCategoryItem key={category.id} category={category} />
-          ))}
+          {loading ? (
+            <View className="items-center py-10">
+              <ActivityIndicator size="large" color={theme.purple} />
+              <Text className="mt-3 text-sm" style={{ color: theme.textTertiary }}>
+                Loading categories…
+              </Text>
+            </View>
+          ) : (
+            categories.map((category) => (
+              <BudgetCategoryItem key={category.id} category={category} />
+            ))
+          )}
         </View>
 
         {/* Bottom padding for tab bar */}

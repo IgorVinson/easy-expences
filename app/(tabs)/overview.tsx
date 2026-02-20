@@ -1,63 +1,36 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { AddExpenseModal } from '../../components/AddExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useBudget } from '../../hooks/useBudget';
+import { useExpenses } from '../../hooks/useExpenses';
 import { styles } from '../../styles';
-import { Expense } from '../../types';
 
 export default function OverviewScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const { expenses, todayExpenses, yesterdayExpenses, monthlyTotal, loading: expensesLoading } =
+    useExpenses(user?.uid);
+  const { totalBudget, totalSpent, loading: budgetLoading } = useBudget(user?.uid);
 
-  const todayExpenses: Expense[] = [
-    {
-      id: '1',
-      title: 'Lunch at Cafe',
-      category: 'Cafe',
-      amount: -15.5,
-      icon: 'restaurant',
-      budgetLeft: '120$ left',
-      colorLight: '#FED7AA',
-      colorDark: '#FB923C',
-    },
-    {
-      id: '2',
-      title: 'Groceries',
-      category: 'Food',
-      amount: -85.2,
-      icon: 'cart',
-      colorLight: '#BBF7D0',
-      colorDark: '#4ADE80',
-    },
-  ];
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const yesterdayExpenses: Expense[] = [
-    {
-      id: '3',
-      title: 'Uber Ride',
-      category: 'Transport',
-      amount: -22.0,
-      icon: 'car',
-      budgetLeft: '95$ budget left',
-      colorLight: '#CBD5E1',
-      colorDark: '#64748B',
-    },
-    {
-      id: '4',
-      title: 'Coffee',
-      category: 'Cafe',
-      amount: -4.5,
-      icon: 'cafe',
-      colorLight: '#FDE68A',
-      colorDark: '#F59E0B',
-    },
-  ];
+  const loading = expensesLoading || budgetLoading;
+  const leftToSpend = Math.max(0, totalBudget - totalSpent);
+  const spendPercent = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
+
+  const now = new Date();
+  const monthLabel = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header with Theme Toggle */}
+        {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
             Overview
@@ -69,6 +42,7 @@ export default function OverviewScreen() {
             <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
           </TouchableOpacity>
         </View>
+
         {/* Monthly Total Card */}
         <View className="mb-6 px-6">
           <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
@@ -77,10 +51,12 @@ export default function OverviewScreen() {
                 This Month
               </Text>
               <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                September 2024 ▼
+                {monthLabel} ▼
               </Text>
             </View>
-            <Text className="mb-4 text-5xl font-bold text-white">$1,812</Text>
+            <Text className="mb-4 text-5xl font-bold text-white">
+              ${monthlyTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
 
             <View
               className="rounded-2xl p-4"
@@ -94,13 +70,17 @@ export default function OverviewScreen() {
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Left to spend
                   </Text>
-                  <Text className="text-2xl font-bold text-white">$738</Text>
+                  <Text className="text-2xl font-bold text-white">
+                    ${leftToSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
                 </View>
                 <View className="items-end">
                   <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
                     Monthly budget
                   </Text>
-                  <Text className="text-2xl font-bold text-white">$2,550</Text>
+                  <Text className="text-2xl font-bold text-white">
+                    ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
                 </View>
               </View>
               <View
@@ -108,15 +88,17 @@ export default function OverviewScreen() {
                 style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
                 <View
                   className="h-full rounded-full"
-                  style={{ width: '71%', backgroundColor: '#C084FC' }}
+                  style={{ width: `${spendPercent}%`, backgroundColor: '#C084FC' }}
                 />
               </View>
             </View>
           </View>
         </View>
-        {/* Voice Input */}
+
+        {/* Quick Add Button */}
         <View className="mb-6 px-6">
           <TouchableOpacity
+            onPress={() => setModalVisible(true)}
             className="items-center rounded-3xl p-6"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
@@ -126,41 +108,67 @@ export default function OverviewScreen() {
               <View
                 className="h-20 w-20 items-center justify-center rounded-full"
                 style={{ backgroundColor: theme.purple }}>
-                <Ionicons name="mic" size={36} color="#FFFFFF" />
+                <Ionicons name="add" size={36} color="#FFFFFF" />
               </View>
-              <View
-                className="absolute inset-0 h-20 w-20 animate-pulse rounded-full"
-                style={{ backgroundColor: theme.purple + '33' }}
-              />
             </View>
             <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
-              Quick Add via Voice
+              Add New Expense
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Today Section */}
-        <View className="mb-4 px-6">
-          <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
-              Today
+        {/* Loading state */}
+        {loading && (
+          <View className="items-center py-10">
+            <ActivityIndicator size="large" color={theme.purple} />
+            <Text className="mt-3 text-sm" style={{ color: theme.textTertiary }}>
+              Loading expenses…
             </Text>
           </View>
-          {todayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
-          ))}
-        </View>
+        )}
+
+        {/* Today Section */}
+        {!loading && (
+          <View className="mb-4 px-6">
+            <View className="mb-3 flex-row items-center justify-between">
+              <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
+                Today
+              </Text>
+            </View>
+            {todayExpenses.length === 0 ? (
+              <Text className="py-4 text-center text-sm" style={{ color: theme.textTertiary }}>
+                No expenses today yet
+              </Text>
+            ) : (
+              todayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} />)
+            )}
+          </View>
+        )}
 
         {/* Yesterday Section */}
-        <View className="mb-32 px-6">
-          <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
-            Yesterday
-          </Text>
-          {yesterdayExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
-          ))}
-        </View>
+        {!loading && yesterdayExpenses.length > 0 && (
+          <View className="mb-32 px-6">
+            <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
+              Yesterday
+            </Text>
+            {yesterdayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} />)}
+          </View>
+        )}
+
+        {/* Older expenses peek */}
+        {!loading && (
+          <View className="h-24" />
+        )}
       </ScrollView>
+
+      {/* Add Expense Modal */}
+      {user && (
+        <AddExpenseModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          userId={user.uid}
+        />
+      )}
     </View>
   );
 }
