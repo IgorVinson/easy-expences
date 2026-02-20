@@ -19,26 +19,10 @@ import { BudgetCategory, NewBudgetCategory } from '../types';
 // ─── Icon picker options ──────────────────────────────────────────────────────
 
 const ICON_OPTIONS: (keyof typeof Ionicons.glyphMap)[] = [
-  'restaurant',
-  'car',
-  'bulb',
-  'ticket',
-  'cart',
-  'home',
-  'medkit',
-  'school',
-  'airplane',
-  'fitness',
-  'paw',
-  'game-controller',
-  'musical-notes',
-  'book',
-  'wallet',
-  'gift',
-  'heart',
-  'briefcase',
-  'cash',
-  'phone-portrait',
+  'restaurant', 'car', 'bulb', 'ticket', 'cart',
+  'home', 'medkit', 'school', 'airplane', 'fitness',
+  'paw', 'game-controller', 'musical-notes', 'book', 'wallet',
+  'gift', 'heart', 'briefcase', 'cash', 'phone-portrait',
 ];
 
 // ─── Color options ────────────────────────────────────────────────────────────
@@ -61,7 +45,6 @@ const COLOR_OPTIONS: { light: string; dark: string; label: string }[] = [
 interface AddEditCategoryModalProps {
   visible: boolean;
   onClose: () => void;
-  /** If provided the modal is in edit mode */
   category?: BudgetCategory | null;
   onSave: (data: NewBudgetCategory) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
@@ -82,14 +65,12 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   const isEdit = Boolean(category);
   const [deleting, setDeleting] = useState(false);
 
-  // ─── Form state ───────────────────────────────────────────────────────────
   const [name, setName] = useState('');
   const [budget, setBudget] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof Ionicons.glyphMap>('cash');
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
   const [saving, setSaving] = useState(false);
 
-  // Populate when editing
   useEffect(() => {
     if (category) {
       setName(category.name);
@@ -124,7 +105,6 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
       Alert.alert('Invalid budget', 'Please enter a valid positive budget amount.');
       return;
     }
-
     try {
       setSaving(true);
       await onSave({
@@ -170,24 +150,6 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
     );
   }
 
-  const inputStyle = {
-    backgroundColor: theme.cardBg,
-    borderColor: theme.border,
-    color: theme.textPrimary,
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-  };
-
-  const labelStyle = {
-    color: theme.textSecondary,
-    fontSize: 13,
-    fontWeight: '600' as const,
-    marginBottom: 10,
-  };
-
   return (
     <Modal
       visible={visible}
@@ -195,108 +157,96 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
+
       {/* Backdrop */}
       <TouchableWithoutFeedback onPress={handleClose}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            justifyContent: 'flex-end',
-          }}>
+        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}>
+
           {/* Sheet */}
           <TouchableWithoutFeedback>
             <View
-              style={{
-                height: SHEET_HEIGHT,
-                backgroundColor: theme.bg,
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                overflow: 'hidden',
-              }}>
+              className="overflow-hidden rounded-t-3xl"
+              style={{ height: SHEET_HEIGHT, backgroundColor: theme.bg }}>
+
               {/* Drag handle */}
-              <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+              <View className="items-center pb-1 pt-3">
                 <View
-                  style={{
-                    width: 40,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: theme.border,
-                  }}
+                  className="h-1 w-10 rounded-full"
+                  style={{ backgroundColor: theme.border }}
                 />
               </View>
 
               {/* Header */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 12,
-                }}>
-                <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: 'bold' }}>
+              <View className="flex-row items-center justify-between px-6 py-3">
+                <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
                   {isEdit ? 'Edit Category' : 'Add Category'}
                 </Text>
                 <TouchableOpacity
                   onPress={handleClose}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 20,
-                    backgroundColor: theme.iconBg,
-                  }}>
+                  className="h-10 w-10 items-center justify-center rounded-full"
+                  style={{ backgroundColor: theme.iconBg }}>
                   <Ionicons name="close" size={20} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
 
               {/* Scrollable form */}
               <ScrollView
-                style={{ flex: 1, paddingHorizontal: 24 }}
+                className="flex-1 px-6"
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}>
 
                 {/* Name */}
-                <Text style={labelStyle}>Category Name</Text>
+                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                  Category Name
+                </Text>
                 <TextInput
                   value={name}
                   onChangeText={setName}
                   placeholder="e.g. Food & Dining"
                   placeholderTextColor={theme.textTertiary}
-                  style={[inputStyle, { marginBottom: 20 }]}
+                  className="mb-5 rounded-2xl px-4 py-3.5 text-base"
+                  style={{
+                    backgroundColor: theme.cardBg,
+                    borderColor: theme.border,
+                    borderWidth: 1,
+                    color: theme.textPrimary,
+                  }}
                 />
 
                 {/* Budget */}
-                <Text style={labelStyle}>Monthly Budget ($)</Text>
+                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                  Monthly Budget ($)
+                </Text>
                 <TextInput
                   value={budget}
                   onChangeText={setBudget}
                   placeholder="0.00"
                   placeholderTextColor={theme.textTertiary}
                   keyboardType="decimal-pad"
-                  style={[inputStyle, { marginBottom: 20 }]}
+                  className="mb-5 rounded-2xl px-4 py-3.5 text-base"
+                  style={{
+                    backgroundColor: theme.cardBg,
+                    borderColor: theme.border,
+                    borderWidth: 1,
+                    color: theme.textPrimary,
+                  }}
                 />
 
                 {/* Icon picker */}
-                <Text style={labelStyle}>Icon</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                  Icon
+                </Text>
+                <View className="mb-5 flex-row flex-wrap gap-2.5">
                   {ICON_OPTIONS.map((icon) => {
                     const isSelected = selectedIcon === icon;
                     return (
                       <TouchableOpacity
                         key={icon}
                         onPress={() => setSelectedIcon(icon)}
+                        className="h-12 w-12 items-center justify-center rounded-xl"
                         style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 12,
-                          alignItems: 'center',
-                          justifyContent: 'center',
                           backgroundColor: isSelected
-                            ? isDarkMode
-                              ? selectedColor.dark + '33'
-                              : selectedColor.light
+                            ? isDarkMode ? selectedColor.dark + '33' : selectedColor.light
                             : theme.cardBg,
                           borderWidth: isSelected ? 2 : 1,
                           borderColor: isSelected ? selectedColor.dark : theme.border,
@@ -312,126 +262,112 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 </View>
 
                 {/* Color picker */}
-                <Text style={labelStyle}>Color</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
+                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                  Color
+                </Text>
+                <View className="mb-6 flex-row flex-wrap gap-2.5">
                   {COLOR_OPTIONS.map((color) => {
                     const isSelected = selectedColor.dark === color.dark;
                     return (
                       <TouchableOpacity
                         key={color.dark}
                         onPress={() => setSelectedColor(color)}
+                        className="h-10 w-10 items-center justify-center rounded-full"
                         style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 20,
                           backgroundColor: color.dark,
-                          alignItems: 'center',
-                          justifyContent: 'center',
                           borderWidth: isSelected ? 3 : 0,
                           borderColor: theme.bg,
-                          // White ring effect
                           shadowColor: color.dark,
                           shadowOpacity: isSelected ? 0.6 : 0,
                           shadowRadius: isSelected ? 4 : 0,
                           shadowOffset: { width: 0, height: 0 },
                           elevation: isSelected ? 4 : 0,
                         }}>
-                        {isSelected && (
-                          <Ionicons name="checkmark" size={18} color="#fff" />
-                        )}
+                        {isSelected && <Ionicons name="checkmark" size={18} color="#fff" />}
                       </TouchableOpacity>
                     );
                   })}
                 </View>
 
                 {/* Preview */}
-                <Text style={labelStyle}>Preview</Text>
+                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                  Preview
+                </Text>
                 <View
+                  className="mb-4 flex-row items-center rounded-2xl p-4"
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 16,
-                    borderRadius: 16,
                     backgroundColor: theme.cardBg,
                     borderWidth: 1,
                     borderColor: theme.border,
-                    marginBottom: 100,
                   }}>
                   <View
+                    className="h-12 w-12 items-center justify-center rounded-xl"
                     style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      alignItems: 'center',
-                      justifyContent: 'center',
                       backgroundColor: isDarkMode ? selectedColor.dark + '33' : selectedColor.light,
                     }}>
                     <Ionicons name={selectedIcon} size={24} color={selectedColor.dark} />
                   </View>
-                  <View style={{ marginLeft: 14, flex: 1 }}>
-                    <Text style={{ color: theme.textPrimary, fontSize: 16, fontWeight: '600' }}>
+                  <View className="ml-3.5 flex-1">
+                    <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
                       {name || 'Category Name'}
                     </Text>
-                    <Text style={{ color: theme.textTertiary, fontSize: 13, marginTop: 2 }}>
+                    <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
                       ${budget || '0'} / month
                     </Text>
                   </View>
                 </View>
+
+                {/* Delete button — inside body, edit mode only */}
+                {isEdit && onDelete && (
+                  <TouchableOpacity
+                    onPress={handleDeletePress}
+                    disabled={saving || deleting}
+                    className="mb-4 flex-row items-center justify-center self-center gap-1.5 rounded-xl border px-4 py-2"
+                    style={{
+                      borderColor: '#F87171',
+                      opacity: saving || deleting ? 0.5 : 1,
+                    }}>
+                    {deleting ? (
+                      <ActivityIndicator color="#F87171" size="small" />
+                    ) : (
+                      <>
+                        <Ionicons name="trash-outline" size={15} color="#F87171" />
+                        <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
+                          Delete Category
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
               </ScrollView>
 
-              {/* Save + Delete buttons */}
+              {/* Save button — pinned footer */}
               <View
+                className="px-6 pt-3"
                 style={{
-                  paddingHorizontal: 24,
                   paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-                  paddingTop: 12,
                   borderTopWidth: 1,
                   borderTopColor: theme.border,
                   backgroundColor: theme.bg,
-                  gap: 10,
                 }}>
                 <TouchableOpacity
                   onPress={handleSave}
                   disabled={saving || deleting}
+                  className="items-center rounded-2xl py-4"
                   style={{
                     backgroundColor: theme.purple,
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    alignItems: 'center',
                     opacity: saving || deleting ? 0.7 : 1,
                   }}>
                   {saving ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                    <Text className="text-base font-bold text-white">
                       {isEdit ? 'Save Changes' : 'Add Category'}
                     </Text>
                   )}
                 </TouchableOpacity>
-
-                {/* Delete button — edit mode only */}
-                {isEdit && onDelete && (
-                  <TouchableOpacity
-                    onPress={handleDeletePress}
-                    disabled={saving || deleting}
-                    style={{
-                      borderRadius: 16,
-                      paddingVertical: 16,
-                      alignItems: 'center',
-                      borderWidth: 1.5,
-                      borderColor: '#F87171',
-                      opacity: saving || deleting ? 0.5 : 1,
-                    }}>
-                    {deleting ? (
-                      <ActivityIndicator color="#F87171" />
-                    ) : (
-                      <Text style={{ color: '#F87171', fontSize: 16, fontWeight: 'bold' }}>
-                        Delete Category
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                )}
               </View>
+
             </View>
           </TouchableWithoutFeedback>
         </View>
