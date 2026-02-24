@@ -22,6 +22,7 @@ function docToExpense(id: string, data: Record<string, any>): Expense {
     title: data.title ?? '',
     category: data.category ?? '',
     amount: data.amount ?? 0,
+    budgetLeft: data.budgetLeft ?? 0,
     icon: data.icon ?? 'cash',
     colorLight: data.colorLight ?? '#E2E8F0',
     colorDark: data.colorDark ?? '#94A3B8',

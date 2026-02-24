@@ -1,17 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Modal,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
@@ -35,6 +35,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
+
+
 
   function resetForm() {
     setTitle('');
@@ -67,6 +69,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
       await addExpense({
         title: title.trim(),
         amount: parsedAmount,
+        budgetLeft: selectedCategory.budget - selectedCategory.spent - parsedAmount,
         category: selectedCategory.name,
         icon: selectedCategory.icon,
         colorLight: selectedCategory.colorLight,

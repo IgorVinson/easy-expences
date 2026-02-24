@@ -40,7 +40,7 @@ export const ExpenseItem = ({ expense }: { expense: Expense }) => {
         </Text>
         {expense.budgetLeft && (
           <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-            {expense.budgetLeft}
+            ${expense.budgetLeft} left
           </Text>
         )}
       </View>

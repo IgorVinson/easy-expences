@@ -7,16 +7,16 @@ export type Expense = {
   title: string;
   category: string;
   amount: number; // always positive (we treat all as spending)
+  budgetLeft: number;
   icon: keyof typeof Ionicons.glyphMap;
   colorLight: string;
   colorDark: string;
   date: string; // ISO string, e.g. "2024-09-15T10:30:00.000Z"
-  budgetLeft?: string; // optional computed display string
   userId?: string; // set by hooks, not required on creation
 };
 
 // Omit generated fields when the user creates a new expense
-export type NewExpense = Omit<Expense, 'id' | 'userId' | 'budgetLeft'>;
+export type NewExpense = Omit<Expense, 'id' | 'userId'>;
 
 // ─── Budget Category ──────────────────────────────────────────────────────────
 
