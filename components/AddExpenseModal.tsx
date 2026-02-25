@@ -17,7 +17,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
 import { BudgetCategory } from '../types';
-import ListeningIndicator from './ListeningIndicator';
 
 interface AddExpenseModalProps {
   visible: boolean;
@@ -136,7 +135,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
                   }}
                 />
               </View>
-
               {/* Header */}
               <View
                 style={{
@@ -162,7 +160,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
                   <Ionicons name="close" size={20} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
-                  <ListeningIndicator />
               {/* Scrollable form */}
               <ScrollView
                 style={{ flex: 1, paddingHorizontal: 24 }}

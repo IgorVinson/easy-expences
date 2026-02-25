@@ -17,7 +17,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { BudgetCategory } from '../types';
 import ListeningIndicator from './ListeningIndicator';
 
-interface ExpenceRecordingModalProps {
+interface RecordingModalProps {
   visible: boolean;
   onClose: () => void;
   userId: string;
@@ -25,7 +25,7 @@ interface ExpenceRecordingModalProps {
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.85;
 
-export const ExpenceRecordingModal: React.FC<ExpenceRecordingModalProps> = ({ visible, onClose, userId }) => {
+export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose, userId }) => {
   const { theme, isDarkMode } = useTheme();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);

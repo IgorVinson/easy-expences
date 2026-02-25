@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { AddExpenseModal } from '../../components/AddExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
+import { RecordingModal } from '../../components/RecordingModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
@@ -16,6 +17,7 @@ export default function OverviewScreen() {
   const { totalBudget, totalSpent, loading: budgetLoading } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [recModalVisible, setRecModalVisible] = useState(false);
 
   const loading = expensesLoading || budgetLoading;
   const leftToSpend = Math.max(0, totalBudget - totalSpent);
@@ -153,11 +155,34 @@ export default function OverviewScreen() {
         <Ionicons name="add" size={32} color="#FFFFFF" />
       </TouchableOpacity>
 
+      {/* Quick Mic Button */}
+      <TouchableOpacity
+        onPress={() => setRecModalVisible(true)}
+        className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
+        style={{ 
+          backgroundColor: theme.purple,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}>
+        <Ionicons name="mic" size={32} color="#FFFFFF" />
+      </TouchableOpacity>
+
       {/* Add Expense Modal */}
       {user && (
         <AddExpenseModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
+          userId={user.uid}
+        />
+      )}
+
+      {user && (
+        <RecordingModal
+          visible={recModalVisible}
+          onClose={() => setRecModalVisible(false)}
           userId={user.uid}
         />
       )}
