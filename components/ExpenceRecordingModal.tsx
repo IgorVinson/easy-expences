@@ -6,12 +6,10 @@ import {
   Dimensions,
   Modal,
   Platform,
-  ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
@@ -19,7 +17,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { BudgetCategory } from '../types';
 import ListeningIndicator from './ListeningIndicator';
 
-interface AddExpenseModalProps {
+interface ExpenceRecordingModalProps {
   visible: boolean;
   onClose: () => void;
   userId: string;
@@ -27,7 +25,7 @@ interface AddExpenseModalProps {
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.85;
 
-export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, userId }) => {
+export const ExpenceRecordingModal: React.FC<ExpenceRecordingModalProps> = ({ visible, onClose, userId }) => {
   const { theme, isDarkMode } = useTheme();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
@@ -164,86 +162,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
               </View>
                   <ListeningIndicator />
               {/* Scrollable form */}
-              <ScrollView
-                style={{ flex: 1, paddingHorizontal: 24 }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
-                {/* Title */}
-                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
-                  Title
-                </Text>
-                <TextInput
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder="e.g. Lunch at Café"
-                  placeholderTextColor={theme.textTertiary}
-                  style={[inputStyle, { marginBottom: 20 }]}
-                />
-
-                {/* Amount */}
-                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
-                  Amount ($)
-                </Text>
-                <TextInput
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholder="0.00"
-                  placeholderTextColor={theme.textTertiary}
-                  keyboardType="decimal-pad"
-                  style={[inputStyle, { marginBottom: 20 }]}
-                />
-
-                {/* Category */}
-                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
-                  Category
-                </Text>
-                {categories.length === 0 ? (
-                  <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
-                    No categories yet. Check the Budget tab.
-                  </Text>
-                ) : (
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                    {categories.map((cat) => {
-                      const isSelected = selectedCategory?.id === cat.id;
-                      return (
-                        <TouchableOpacity
-                          key={cat.id}
-                          onPress={() => setSelectedCategory(cat)}
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingHorizontal: 14,
-                            paddingVertical: 10,
-                            borderRadius: 16,
-                            backgroundColor: isSelected
-                              ? isDarkMode ? cat.colorDark + '33' : cat.colorLight
-                              : theme.cardBg,
-                            borderWidth: isSelected ? 2 : 1,
-                            borderColor: isSelected ? cat.colorDark : theme.border,
-                          }}>
-                          <Ionicons
-                            name={cat.icon as any}
-                            size={15}
-                            color={isSelected ? cat.colorDark : theme.textTertiary}
-                          />
-                          <Text
-                            style={{
-                              marginLeft: 6,
-                              fontSize: 13,
-                              fontWeight: '500',
-                              color: isSelected ? cat.colorDark : theme.textSecondary,
-                            }}>
-                            {cat.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-
-                {/* Extra bottom padding so Save button doesn't overlap content */}
-                <View style={{ height: 100 }} />
-              </ScrollView>
 
               {/* Save button — pinned to bottom */}
               <View
