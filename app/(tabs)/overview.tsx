@@ -7,7 +7,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
 import { useExpenses } from '../../hooks/useExpenses';
-import { styles } from '../../styles';
 
 export default function OverviewScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
@@ -44,7 +43,7 @@ export default function OverviewScreen() {
         </View>
 
         {/* Monthly Total Card */}
-        <View className="mb-6 px-6">
+        {/* <View className="mb-6 px-6">
           <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
@@ -93,29 +92,7 @@ export default function OverviewScreen() {
               </View>
             </View>
           </View>
-        </View>
-
-        {/* Quick Add Button */}
-        <View className="mb-6 px-6">
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            className="items-center rounded-3xl p-6"
-            style={[
-              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow,
-            ]}>
-            <View className="relative">
-              <View
-                className="h-20 w-20 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.purple }}>
-                <Ionicons name="add" size={36} color="#FFFFFF" />
-              </View>
-            </View>
-            <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
-              Add New Expense
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Loading state */}
         {loading && (
@@ -160,6 +137,21 @@ export default function OverviewScreen() {
           <View className="h-24" />
         )}
       </ScrollView>
+
+      {/* Quick Add Button */}
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
+        style={{ 
+          backgroundColor: theme.purple,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}>
+        <Ionicons name="add" size={32} color="#FFFFFF" />
+      </TouchableOpacity>
 
       {/* Add Expense Modal */}
       {user && (
