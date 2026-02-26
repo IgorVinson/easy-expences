@@ -173,11 +173,6 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
     backgroundColor: theme.cardBg,
     borderColor: theme.border,
     color: theme.textPrimary,
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
   };
 
   return (
@@ -187,62 +182,39 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-        }}>
+      <View className="flex-1 justify-end">
         <TouchableWithoutFeedback onPress={handleClose}>
           <View
+            className="absolute inset-0"
             style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
               backgroundColor: 'rgba(0,0,0,0.55)',
             }}
           />
         </TouchableWithoutFeedback>
 
         <View
+          className="overflow-hidden rounded-t-3xl"
           style={{
             height: SHEET_HEIGHT,
             backgroundColor: theme.bg,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            overflow: 'hidden',
           }}>
-          <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+          <View className="items-center pb-1 pt-3">
             <View
+              className="h-1 w-10 rounded-full"
               style={{
-                width: 40,
-                height: 4,
-                borderRadius: 2,
                 backgroundColor: theme.border,
               }}
             />
           </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-            }}>
-            <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: 'bold' }}>
+          <View className="flex-row items-center justify-between px-6 py-3">
+            <Text className="text-[22px] font-bold" style={{ color: theme.textPrimary }}>
               {step === 'recording' ? 'Record Expense' : 'Add Expense'}
             </Text>
             <TouchableOpacity
               onPress={handleClose}
+              className="h-10 w-10 items-center justify-center rounded-full"
               style={{
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 20,
                 backgroundColor: theme.iconBg,
               }}>
               <Ionicons name="close" size={20} color={theme.textPrimary} />
@@ -251,27 +223,17 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
 
           {step === 'recording' ? (
             <>
-              <View
-                style={{
-                  flex: 1,
-                  paddingHorizontal: 24,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
+              <View className="flex-1 items-center justify-center px-6">
                 <Text
+                  className="mb-7 max-w-[320px] text-center text-lg leading-7"
                   style={{
                     color: theme.textSecondary,
-                    fontSize: 18,
-                    lineHeight: 28,
-                    textAlign: 'center',
-                    marginBottom: 28,
-                    maxWidth: 320,
                   }}>
                   {`Tap, say:\n"Lunch 15 dollars food"`}
                 </Text>
 
                 {isRecording && (
-                  <View style={{ marginBottom: 16 }}>
+                  <View className="mb-4">
                     <ListeningIndicator />
                   </View>
                 )}
@@ -283,12 +245,8 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   <TouchableOpacity
                     onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
                     disabled={isProcessing}
+                    className="h-28 w-28 items-center justify-center rounded-full"
                     style={{
-                      width: 112,
-                      height: 112,
-                      borderRadius: 56,
-                      alignItems: 'center',
-                      justifyContent: 'center',
                       backgroundColor: isRecording ? '#EF4444' : theme.purple,
                       opacity: isProcessing ? 0.7 : 1,
                     }}>
@@ -302,29 +260,26 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
 
                 {Boolean(error) && (
                   <View
+                    className="mt-[18px] rounded-xl border p-3"
                     style={{
-                      marginTop: 18,
-                      borderRadius: 12,
-                      borderWidth: 1,
                       borderColor: '#F87171',
                       backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2',
-                      padding: 12,
                     }}>
-                    <Text style={{ color: theme.textPrimary, fontSize: 13 }}>{error}</Text>
+                    <Text className="text-[13px]" style={{ color: theme.textPrimary }}>
+                      {error}
+                    </Text>
                   </View>
                 )}
               </View>
 
               <View
+                className="border-t px-6 pt-3"
                 style={{
-                  paddingHorizontal: 24,
                   paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-                  paddingTop: 12,
-                  borderTopWidth: 1,
                   borderTopColor: theme.border,
                   backgroundColor: theme.bg,
                 }}>
-                <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                <Text className="text-center text-[13px]" style={{ color: theme.textSecondary }}>
                   After stop, review inputs will open automatically.
                 </Text>
               </View>
@@ -332,71 +287,63 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
           ) : (
             <>
               <ScrollView
-                style={{ flex: 1, paddingHorizontal: 24 }}
+                className="flex-1 px-6"
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}>
                 <Text
+                  className="mb-2 text-[13px] font-semibold"
                   style={{
                     color: theme.textSecondary,
-                    fontSize: 13,
-                    fontWeight: '600',
-                    marginBottom: 8,
                   }}>
                   Title
                 </Text>
                 <TextInput
+                  className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
                   value={title}
                   onChangeText={setTitle}
                   placeholder="e.g. Lunch at Café"
                   placeholderTextColor={theme.textTertiary}
-                  style={[inputStyle, { marginBottom: 20 }]}
+                  style={inputStyle}
                 />
 
                 <Text
+                  className="mb-2 text-[13px] font-semibold"
                   style={{
                     color: theme.textSecondary,
-                    fontSize: 13,
-                    fontWeight: '600',
-                    marginBottom: 8,
                   }}>
                   Amount ($)
                 </Text>
                 <TextInput
+                  className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
                   value={amount}
                   onChangeText={setAmount}
                   placeholder="0.00"
                   placeholderTextColor={theme.textTertiary}
                   keyboardType="decimal-pad"
-                  style={[inputStyle, { marginBottom: 20 }]}
+                  style={inputStyle}
                 />
 
                 <Text
+                  className="mb-3 text-[13px] font-semibold"
                   style={{
                     color: theme.textSecondary,
-                    fontSize: 13,
-                    fontWeight: '600',
-                    marginBottom: 12,
                   }}>
                   Category
                 </Text>
                 {categories.length === 0 ? (
-                  <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                  <Text className="mb-5 text-sm" style={{ color: theme.textTertiary }}>
                     No categories yet. Check the Budget tab.
                   </Text>
                 ) : (
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                  <View className="mb-6 flex-row flex-wrap gap-2">
                     {categories.map((cat) => {
                       const isSelected = selectedCategory?.id === cat.id;
                       return (
                         <TouchableOpacity
                           key={cat.id}
                           onPress={() => setSelectedCategory(cat)}
+                          className="flex-row items-center rounded-2xl px-3.5 py-2.5"
                           style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingHorizontal: 14,
-                            paddingVertical: 10,
-                            borderRadius: 16,
                             backgroundColor: isSelected
                               ? isDarkMode
                                 ? cat.colorDark + '33'
@@ -411,10 +358,8 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                             color={isSelected ? cat.colorDark : theme.textTertiary}
                           />
                           <Text
+                            className="ml-1.5 text-[13px] font-medium"
                             style={{
-                              marginLeft: 6,
-                              fontSize: 13,
-                              fontWeight: '500',
                               color: isSelected ? cat.colorDark : theme.textSecondary,
                             }}>
                             {cat.name}
@@ -425,33 +370,28 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   </View>
                 )}
 
-                <View style={{ height: 100 }} />
+                <View className="h-[100px]" />
               </ScrollView>
 
               <View
+                className="gap-2.5 border-t px-6 pt-3"
                 style={{
-                  paddingHorizontal: 24,
                   paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-                  paddingTop: 12,
-                  borderTopWidth: 1,
                   borderTopColor: theme.border,
                   backgroundColor: theme.bg,
-                  gap: 10,
                 }}>
                 <TouchableOpacity
                   onPress={handleSave}
                   disabled={saving}
+                  className="items-center rounded-2xl py-4"
                   style={{
                     backgroundColor: theme.purple,
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    alignItems: 'center',
                     opacity: saving ? 0.7 : 1,
                   }}>
                   {saving ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                    <Text className="text-base font-bold text-white">
                       Save Expense
                     </Text>
                   )}
@@ -460,14 +400,11 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                 <TouchableOpacity
                   onPress={() => setStep('recording')}
                   disabled={saving}
+                  className="items-center rounded-2xl border py-3.5"
                   style={{
-                    borderRadius: 16,
-                    paddingVertical: 14,
-                    alignItems: 'center',
-                    borderWidth: 1,
                     borderColor: theme.border,
                   }}>
-                  <Text style={{ color: theme.textSecondary, fontSize: 14, fontWeight: '600' }}>
+                  <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
                     Back to Recording
                   </Text>
                 </TouchableOpacity>
