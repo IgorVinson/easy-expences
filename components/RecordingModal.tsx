@@ -270,6 +270,12 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   {`Tap, say:\n"Lunch 15 dollars food"`}
                 </Text>
 
+                {isRecording && (
+                  <View style={{ marginBottom: 16 }}>
+                    <ListeningIndicator />
+                  </View>
+                )}
+
                 <Animated.View
                   style={{
                     transform: [{ scale: pulse }],
@@ -293,11 +299,6 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                     )}
                   </TouchableOpacity>
                 </Animated.View>
-                {isRecording && (
-                  <View style={{ marginTop: 16 }}>
-                    <ListeningIndicator />
-                  </View>
-                )}
 
                 {Boolean(error) && (
                   <View
