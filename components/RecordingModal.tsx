@@ -68,15 +68,32 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
+  const [animationSession, setAnimationSession] = useState(0);
   const pulse = useRef(new Animated.Value(1)).current;
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
-    if (step !== 'recording' || isProcessing) {
+    if (visible) {
+      setAnimationSession((prev) => prev + 1);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    const shouldAnimate = visible && step === 'recording' && !isProcessing;
+
+    const stopPulse = () => {
+      pulseLoopRef.current?.stop();
+      pulseLoopRef.current = null;
       pulse.stopAnimation();
       pulse.setValue(1);
+    };
+
+    if (!shouldAnimate) {
+      stopPulse();
       return;
     }
 
+    pulse.setValue(1);
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
@@ -91,14 +108,13 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
         }),
       ])
     );
-
+    pulseLoopRef.current = loop;
     loop.start();
 
     return () => {
-      loop.stop();
-      pulse.setValue(1);
+      stopPulse();
     };
-  }, [isProcessing, pulse, step]);
+  }, [animationSession, isProcessing, pulse, step, visible]);
 
   function resetForm() {
     setStep('recording');
@@ -233,12 +249,13 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                 </Text>
 
                 {isRecording && (
-                  <View className="mb-4">
+                  <View className="mb-4" key={`indicator-${animationSession}`}>
                     <ListeningIndicator />
                   </View>
                 )}
 
                 <Animated.View
+                  key={`pulse-${animationSession}`}
                   style={{
                     transform: [{ scale: pulse }],
                   }}>

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { AddExpenseModal } from '../../components/AddExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
 import { RecordingModal } from '../../components/RecordingModal';
@@ -18,6 +18,27 @@ export default function OverviewScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [recModalVisible, setRecModalVisible] = useState(false);
+  const micPulse = useRef(new Animated.Value(0)).current;
+  const fabShadowColor = isDarkMode ? '#FFFFFF' : '#000000';
+  const micPulseColor = isDarkMode ? '#FFFFFF' : theme.purple;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(micPulse, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+
+    return () => {
+      loop.stop();
+      micPulse.setValue(0);
+    };
+  }, [micPulse]);
 
   const loading = expensesLoading || budgetLoading;
   const leftToSpend = Math.max(0, totalBudget - totalSpent);
@@ -146,9 +167,9 @@ export default function OverviewScreen() {
         className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
         style={{ 
           backgroundColor: theme.purple,
-          shadowColor: '#000',
+          shadowColor: fabShadowColor,
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
+          shadowOpacity: isDarkMode ? 0.26 : 0.3,
           shadowRadius: 4.65,
           elevation: 8,
         }}>
@@ -156,19 +177,41 @@ export default function OverviewScreen() {
       </TouchableOpacity>
 
       {/* Quick Mic Button */}
-      <TouchableOpacity
-        onPress={() => setRecModalVisible(true)}
-        className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
-        style={{ 
-          backgroundColor: theme.purple,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4.65,
-          elevation: 8,
-        }}>
-        <Ionicons name="mic" size={32} color="#FFFFFF" />
-      </TouchableOpacity>
+      <Animated.View
+        className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center">
+        <Animated.View
+          pointerEvents="none"
+          className="absolute h-16 w-16 rounded-full"
+          style={{
+            backgroundColor: micPulseColor,
+            opacity: micPulse.interpolate({
+              inputRange: [0, 1],
+              outputRange: isDarkMode ? [0.22, 0] : [0.32, 0],
+            }),
+            transform: [
+              {
+                scale: micPulse.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, 1.38],
+                }),
+              },
+            ],
+          }}
+        />
+        <TouchableOpacity
+          onPress={() => setRecModalVisible(true)}
+          className="h-16 w-16 items-center justify-center rounded-full shadow-lg"
+          style={{ 
+            backgroundColor: theme.purple,
+            shadowColor: fabShadowColor,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDarkMode ? 0.26 : 0.3,
+            shadowRadius: 4.65,
+            elevation: 8,
+          }}>
+          <Ionicons name="mic" size={32} color="#FFFFFF" />
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Add Expense Modal */}
       {user && (
