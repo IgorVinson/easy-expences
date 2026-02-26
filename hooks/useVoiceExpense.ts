@@ -1,34 +1,59 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useCallback, useRef, useState } from 'react';
 
-// You will need to add your Gemini API Key directly here for testing, or via process.env.EXPO_PUBLIC_GEMINI_API_KEY
-// e.g. EXPO_PUBLIC_GEMINI_API_KEY=your_api_key in .env file
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY?.trim() ?? '';
+const GEMINI_MODEL_CANDIDATES = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-flash-latest',
+];
 
 interface VoiceExpenseResult {
+  transcript: string;
   title: string;
   amount: number;
   category: string;
 }
 
+function normalizeModelJson(raw: string): string {
+  return raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+}
+
+function parseVoiceExpense(rawResponse: string): VoiceExpenseResult {
+  const normalized = normalizeModelJson(rawResponse);
+  const parsed = JSON.parse(normalized);
+
+  return {
+    transcript: typeof parsed.transcript === 'string' ? parsed.transcript.trim() : '',
+    title: typeof parsed.title === 'string' ? parsed.title.trim() : '',
+    amount: Number(parsed.amount) > 0 ? Number(parsed.amount) : 0,
+    category: typeof parsed.category === 'string' ? parsed.category.trim() : '',
+  };
+}
+
+function getAudioMimeType(uri: string): string {
+  const extension = uri.split('.').pop()?.toLowerCase();
+  if (extension === 'wav') return 'audio/wav';
+  if (extension === 'mp3') return 'audio/mpeg';
+  if (extension === 'aac') return 'audio/aac';
+  if (extension === '3gp') return 'audio/3gpp';
+  return 'audio/mp4';
+}
+
 export function useVoiceExpense() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const recordingRef = useRef<Audio.Recording | null>(null);
 
   const startRecording = useCallback(async () => {
     try {
-      if (!GEMINI_API_KEY) {
-        console.warn('Gemini API Key is missing. Please set EXPO_PUBLIC_GEMINI_API_KEY in your .env file.');
-      }
+      setError(null);
 
       const permission = await Audio.requestPermissionsAsync();
       if (permission.status !== 'granted') {
-        console.warn('Microphone permission not granted');
-        return;
+        throw new Error('Microphone permission was denied.');
       }
 
       await Audio.setAudioModeAsync({
@@ -41,14 +66,18 @@ export function useVoiceExpense() {
       );
       recordingRef.current = recording;
       setIsRecording(true);
+      return true;
     } catch (err) {
       console.error('Failed to start recording', err);
       setIsRecording(false);
+      setError(err instanceof Error ? err.message : 'Failed to start recording.');
+      return false;
     }
   }, []);
 
   const stopRecordingAndProcess = useCallback(async (): Promise<VoiceExpenseResult | null> => {
     try {
+      setError(null);
       setIsRecording(false);
       const recording = recordingRef.current;
       if (!recording) return null;
@@ -62,50 +91,96 @@ export function useVoiceExpense() {
       const uri = recording.getURI();
       if (!uri) return null;
 
+      if (!GEMINI_API_KEY) {
+        throw new Error('Missing EXPO_PUBLIC_GEMINI_API_KEY.');
+      }
+
       setIsProcessing(true);
 
-      // Read the audio file as base64 string
       const base64Audio = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
-      // Call Gemini API to extract the information
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      
-      const prompt = `
-        You are an expense tracker assistant.
-        Listen to the following audio and extract the expense information.
-        Return the information strictly as a JSON object with no additional formatting or markdown:
-        {
-          "title": "A short, concise title for the expense",
-          "amount": number (just the amount),
-          "category": "The best matching category from common budget categories (e.g. Food, Transport, Utilities, Entertainment, Health, Shopping, Others)"
-        }
-      `;
-
-      const result = await model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            mimeType: 'audio/m4a',
-            data: base64Audio
-          }
-        }
-      ]);
-
-      const textResponse = result.response.text();
-      // Parse the JSON. We might need to handle markdown blocks if Gemini formats it despite instructions
-      const cleanedJSON = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-      
-      const parsedData = JSON.parse(cleanedJSON);
-      return {
-        title: parsedData.title || '',
-        amount: parsedData.amount ? Number(parsedData.amount) : 0,
-        category: parsedData.category || ''
+      const requestBody = {
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are an expense tracker assistant.
+Transcribe this audio and extract a single expense.
+Return strictly valid JSON only in this shape:
+{
+  "transcript": "full user speech transcript",
+  "title": "short expense title",
+  "amount": number,
+  "category": "best matching category name"
+}
+Rules:
+- amount must be a positive number with no currency symbols.
+- If unclear, infer best effort values.
+- Never return markdown or extra text.`,
+              },
+              {
+                inlineData: {
+                  mimeType: getAudioMimeType(uri),
+                  data: base64Audio,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
       };
+
+      let data: any = null;
+      let requestError = '';
+
+      for (const model of GEMINI_MODEL_CANDIDATES) {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+
+        if (response.ok) {
+          data = await response.json();
+          requestError = '';
+          break;
+        }
+
+        const errorText = await response.text();
+        requestError = `Model ${model} failed (${response.status}): ${errorText}`;
+
+        // Continue trying fallback models only for model-not-found style errors.
+        if (response.status !== 404) {
+          break;
+        }
+      }
+
+      if (!data) {
+        throw new Error(`Gemini request failed. ${requestError}`);
+      }
+
+      const modelText: string =
+        data?.candidates?.[0]?.content?.parts?.find((part: any) => typeof part?.text === 'string')
+          ?.text ?? '';
+
+      if (!modelText) {
+        throw new Error('Gemini returned an empty response.');
+      }
+
+      return parseVoiceExpense(modelText);
 
     } catch (err) {
       console.error('Failed to process voice expense:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process voice expense.');
       return null;
     } finally {
       setIsProcessing(false);
@@ -118,13 +193,15 @@ export function useVoiceExpense() {
       recordingRef.current = null;
     }
     setIsRecording(false);
+    setIsProcessing(false);
   }, []);
 
   return {
     isRecording,
     isProcessing,
+    error,
     startRecording,
     stopRecordingAndProcess,
-    cancelRecording
+    cancelRecording,
   };
 }
