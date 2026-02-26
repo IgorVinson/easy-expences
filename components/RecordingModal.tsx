@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -67,20 +67,12 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [transcribedCategory, setTranscribedCategory] = useState('');
-
-  const canReview = useMemo(() => {
-    return Boolean(title.trim() || amount.trim() || transcribedCategory.trim());
-  }, [title, amount, transcribedCategory]);
 
   function resetForm() {
     setStep('recording');
     setTitle('');
     setAmount('');
     setSelectedCategory(null);
-    setTranscript('');
-    setTranscribedCategory('');
     setSaving(false);
   }
 
@@ -101,13 +93,12 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
       return;
     }
 
-    setTranscript(result.transcript);
     setTitle(result.title);
     setAmount(result.amount > 0 ? result.amount.toString() : '');
-    setTranscribedCategory(result.category);
 
     const matchedCategory = findBestCategoryMatch(categories, result.category);
     setSelectedCategory(matchedCategory);
+    setStep('review');
   }
 
   async function handleSave() {
@@ -278,9 +269,9 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                       fontWeight: '600',
                     }}>
                     {isRecording
-                      ? 'Tap to stop and transcribe'
+                      ? 'Tap to stop recording'
                       : isProcessing
-                        ? 'Transcribing audio...'
+                        ? 'Transcribing and opening review...'
                         : 'Tap to start recording'}
                   </Text>
                 </View>
@@ -301,55 +292,6 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   </View>
                 )}
 
-                {canReview && (
-                  <View
-                    style={{
-                      marginTop: 16,
-                      marginBottom: 24,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: theme.border,
-                      backgroundColor: theme.cardBg,
-                      padding: 14,
-                    }}>
-                    <Text
-                      style={{
-                        color: theme.textSecondary,
-                        fontSize: 13,
-                        fontWeight: '600',
-                        marginBottom: 10,
-                      }}>
-                      Transcribed Expense
-                    </Text>
-                    <Text style={{ color: theme.textPrimary, fontSize: 15, marginBottom: 6 }}>
-                      Title: {title || 'Not detected'}
-                    </Text>
-                    <Text style={{ color: theme.textPrimary, fontSize: 15, marginBottom: 6 }}>
-                      Amount: {amount ? `$${amount}` : 'Not detected'}
-                    </Text>
-                    <Text style={{ color: theme.textPrimary, fontSize: 15, marginBottom: 10 }}>
-                      Category: {transcribedCategory || 'Not detected'}
-                    </Text>
-
-                    {Boolean(transcript.trim()) && (
-                      <>
-                        <Text
-                          style={{
-                            color: theme.textSecondary,
-                            fontSize: 12,
-                            fontWeight: '600',
-                            marginBottom: 6,
-                          }}>
-                          Transcript
-                        </Text>
-                        <Text style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 18 }}>
-                          {transcript}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                )}
-
                 <View style={{ height: 100 }} />
               </ScrollView>
 
@@ -362,20 +304,9 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   borderTopColor: theme.border,
                   backgroundColor: theme.bg,
                 }}>
-                <TouchableOpacity
-                  onPress={() => setStep('review')}
-                  disabled={!canReview || isRecording || isProcessing}
-                  style={{
-                    backgroundColor: theme.purple,
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    alignItems: 'center',
-                    opacity: !canReview || isRecording || isProcessing ? 0.5 : 1,
-                  }}>
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
-                    Review Inputs
-                  </Text>
-                </TouchableOpacity>
+                <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                  Stop recording to open review inputs automatically.
+                </Text>
               </View>
             </>
           ) : (
