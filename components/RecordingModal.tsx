@@ -201,7 +201,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
               paddingVertical: 12,
             }}>
             <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: 'bold' }}>
-              {step === 'recording' ? 'Add Expense with Voice' : 'Add Expense'}
+              {step === 'recording' ? 'Record Expense' : 'Add Expense'}
             </Text>
             <TouchableOpacity
               onPress={handleClose}
@@ -219,69 +219,79 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
 
           {step === 'recording' ? (
             <>
-              <ScrollView
-                style={{ flex: 1, paddingHorizontal: 24 }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
+              <View
+                style={{
+                  flex: 1,
+                  paddingHorizontal: 24,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
+                    backgroundColor: theme.iconBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 14,
+                  }}>
+                  <Ionicons name="mic-outline" size={26} color={theme.textTertiary} />
+                </View>
                 <Text
                   style={{
                     color: theme.textSecondary,
-                    fontSize: 14,
-                    lineHeight: 20,
-                    marginBottom: 18,
+                    fontSize: 18,
+                    lineHeight: 28,
+                    textAlign: 'center',
+                    marginBottom: 28,
+                    maxWidth: 320,
                   }}>
-                  {`Say the expense in one sentence, for example: "Lunch at cafe, 18 dollars, Food and Dining". Then stop recording and review before saving.`}
+                  {`Tap, say:\n"Lunch 15 dollars food"`}
                 </Text>
 
-                <View
+                <TouchableOpacity
+                  onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                  disabled={isProcessing}
                   style={{
+                    width: 112,
+                    height: 112,
+                    borderRadius: 56,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 20,
+                    backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                    opacity: isProcessing ? 0.6 : 1,
                   }}>
-                  <TouchableOpacity
-                    onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
-                    disabled={isProcessing}
-                    style={{
-                      width: 92,
-                      height: 92,
-                      borderRadius: 46,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: theme.purple,
-                      opacity: isProcessing ? 0.6 : 1,
-                    }}>
-                    {isProcessing ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <Ionicons
-                        name={isRecording ? 'stop' : 'mic'}
-                        size={36}
-                        color="#fff"
-                      />
-                    )}
-                  </TouchableOpacity>
-                  <Text
-                    style={{
-                      marginTop: 12,
-                      color: theme.textSecondary,
-                      fontSize: 14,
-                      fontWeight: '600',
-                    }}>
-                    {isRecording
-                      ? 'Tap to stop recording'
-                      : isProcessing
-                        ? 'Transcribing and opening review...'
-                        : 'Tap to start recording'}
-                  </Text>
-                </View>
-
-                {isRecording && <ListeningIndicator />}
+                  <Ionicons
+                    name={isRecording ? 'stop' : isProcessing ? 'time-outline' : 'mic'}
+                    size={38}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    marginTop: 14,
+                    color: theme.textSecondary,
+                    fontSize: 16,
+                    fontWeight: '600',
+                    textAlign: 'center',
+                  }}>
+                  {isRecording
+                    ? 'Recording... tap to stop'
+                    : isProcessing
+                      ? 'Transcribing and opening review...'
+                      : 'Tap to start recording'}
+                </Text>
+                {isRecording && (
+                  <View style={{ marginTop: 16 }}>
+                    <ListeningIndicator />
+                  </View>
+                )}
 
                 {Boolean(error) && (
                   <View
                     style={{
-                      marginTop: 16,
+                      marginTop: 18,
                       borderRadius: 12,
                       borderWidth: 1,
                       borderColor: '#F87171',
@@ -291,9 +301,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                     <Text style={{ color: theme.textPrimary, fontSize: 13 }}>{error}</Text>
                   </View>
                 )}
-
-                <View style={{ height: 100 }} />
-              </ScrollView>
+              </View>
 
               <View
                 style={{
@@ -305,7 +313,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   backgroundColor: theme.bg,
                 }}>
                 <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center' }}>
-                  Stop recording to open review inputs automatically.
+                  After stop, review inputs will open automatically.
                 </Text>
               </View>
             </>
