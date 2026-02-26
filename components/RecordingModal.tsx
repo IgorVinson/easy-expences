@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   ActivityIndicator,
   Alert,
   Dimensions,
@@ -67,6 +68,37 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (step !== 'recording' || isProcessing) {
+      pulse.stopAnimation();
+      pulse.setValue(1);
+      return;
+    }
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1.08,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    loop.start();
+
+    return () => {
+      loop.stop();
+      pulse.setValue(1);
+    };
+  }, [isProcessing, pulse, step]);
 
   function resetForm() {
     setStep('recording');
@@ -226,18 +258,6 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <View
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
-                    backgroundColor: theme.iconBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 14,
-                  }}>
-                  <Ionicons name="mic-outline" size={26} color={theme.textTertiary} />
-                </View>
                 <Text
                   style={{
                     color: theme.textSecondary,
@@ -250,38 +270,29 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   {`Tap, say:\n"Lunch 15 dollars food"`}
                 </Text>
 
-                <TouchableOpacity
-                  onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
-                  disabled={isProcessing}
+                <Animated.View
                   style={{
-                    width: 112,
-                    height: 112,
-                    borderRadius: 56,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: isRecording ? '#EF4444' : theme.purple,
-                    opacity: isProcessing ? 0.6 : 1,
+                    transform: [{ scale: pulse }],
                   }}>
-                  <Ionicons
-                    name={isRecording ? 'stop' : isProcessing ? 'time-outline' : 'mic'}
-                    size={38}
-                    color="#fff"
-                  />
-                </TouchableOpacity>
-                <Text
-                  style={{
-                    marginTop: 14,
-                    color: theme.textSecondary,
-                    fontSize: 16,
-                    fontWeight: '600',
-                    textAlign: 'center',
-                  }}>
-                  {isRecording
-                    ? 'Recording... tap to stop'
-                    : isProcessing
-                      ? 'Transcribing and opening review...'
-                      : 'Tap to start recording'}
-                </Text>
+                  <TouchableOpacity
+                    onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                    disabled={isProcessing}
+                    style={{
+                      width: 112,
+                      height: 112,
+                      borderRadius: 56,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                      opacity: isProcessing ? 0.7 : 1,
+                    }}>
+                    {isProcessing ? (
+                      <ActivityIndicator size="large" color="#fff" />
+                    ) : (
+                      <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                </Animated.View>
                 {isRecording && (
                   <View style={{ marginTop: 16 }}>
                     <ListeningIndicator />
