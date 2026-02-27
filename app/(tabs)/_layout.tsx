@@ -17,9 +17,9 @@ export default function TabsLayout() {
               backgroundColor: theme.cardBg,
               borderTopWidth: 1,
               borderTopColor: theme.border,
-              paddingBottom: 0,
+              paddingBottom: 20, // Add bottom padding to lift icons
               paddingTop: 10,
-              height: 80,
+              height: 90, // Increase height to accommodate bottom padding
             },
             !isDarkMode && styles.navShadow,
           ],
