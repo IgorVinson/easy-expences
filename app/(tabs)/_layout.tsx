@@ -4,6 +4,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 import { MonthlyReviewProvider } from '../../components/MonthlyReviewProvider';
 
+import { Platform } from 'react-native';
+
 export default function TabsLayout() {
   const { theme, isDarkMode } = useTheme();
 
@@ -17,12 +19,17 @@ export default function TabsLayout() {
               backgroundColor: theme.cardBg,
               borderTopWidth: 1,
               borderTopColor: theme.border,
-              paddingBottom: 20, // Add bottom padding to lift icons
-              paddingTop: 10,
-              height: 90, // Increase height to accommodate bottom padding
+              paddingBottom: Platform.OS === 'ios' ? 20 : 0, 
+              paddingTop: Platform.OS === 'ios' ? 10 : 0,
+              height: Platform.OS === 'ios' ? 90 : 70, 
+              elevation: 0, // Removes default Android shadow to let custom styles work
             },
             !isDarkMode && styles.navShadow,
           ],
+          tabBarItemStyle: {
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
           tabBarActiveTintColor: theme.purple,
           tabBarInactiveTintColor: theme.textTertiary,
           tabBarShowLabel: false,
