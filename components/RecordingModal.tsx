@@ -26,6 +26,7 @@ interface RecordingModalProps {
   visible: boolean;
   onClose: () => void;
   userId: string;
+  onExpenseSaved?: () => void;
 }
 
 type VoiceStep = 'recording' | 'review';
@@ -57,7 +58,7 @@ function findBestCategoryMatch(categories: BudgetCategory[], rawCategory: string
   return partial ?? null;
 }
 
-export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose, userId }) => {
+export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose, userId, onExpenseSaved }) => {
   const { theme, isDarkMode } = useTheme();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
@@ -178,6 +179,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
         date: new Date().toISOString(),
       });
       await updateCategorySpent(selectedCategory.name, parsedAmount);
+      onExpenseSaved?.();
       await handleClose();
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'Failed to save expense.');

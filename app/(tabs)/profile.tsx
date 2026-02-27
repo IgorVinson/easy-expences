@@ -13,13 +13,17 @@ import {
   View,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription, FREE_VOICE_LIMIT, PLANS } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { PaywallModal } from '../../components/PaywallModal';
 import { styles } from '../../styles';
 
 export default function ProfileScreen() {
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, user } = useAuth();
+  const { isPro, subscription, voiceRecordingsLeft, cancelSubscription } = useSubscription();
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
+  const [isPaywallOpen, setIsPaywallOpen] = React.useState(false);
   const [supportMessage, setSupportMessage] = React.useState('');
   const supportEmail = process.env.EXPO_PUBLIC_SUPPORT_EMAIL;
 
@@ -144,30 +148,78 @@ export default function ProfileScreen() {
             <View className="mb-4 flex-row items-center">
               <View
                 className="h-12 w-12 items-center justify-center rounded-xl"
-                style={{ backgroundColor: isDarkMode ? 'rgba(59,130,246,0.15)' : '#DBEAFE' }}>
-                <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
+                style={{
+                  backgroundColor: isPro
+                    ? isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE'
+                    : isDarkMode ? 'rgba(107,114,128,0.15)' : '#F3F4F6',
+                }}>
+                <Ionicons
+                  name={isPro ? 'diamond' : 'person-outline'}
+                  size={24}
+                  color={isPro ? '#8B5CF6' : '#6B7280'}
+                />
               </View>
-              <View className="ml-3">
+              <View className="ml-3 flex-1">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                  Pro Plan - $4.99/mo
+                  {isPro
+                    ? subscription.plan === 'pro_annual'
+                      ? `Pro Plan - ${PLANS.pro_annual.label}`
+                      : `Pro Plan - ${PLANS.pro_monthly.label}`
+                    : 'Free Plan'}
                 </Text>
-                <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  Renews on May 26, 2023
-                </Text>
+                {isPro && subscription.expiresAt ? (
+                  <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                    Renews on{' '}
+                    {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </Text>
+                ) : (
+                  <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                    {voiceRecordingsLeft} of {FREE_VOICE_LIMIT} voice recordings left this month
+                  </Text>
+                )}
               </View>
             </View>
 
-            <TouchableOpacity
-              className="w-full items-center justify-center rounded-xl py-3"
-              style={{
-                borderWidth: 1,
-                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
-              }}>
-              <Text className="text-sm font-medium" style={{ color: theme.textSecondary }}>
-                Manage Subscription
-              </Text>
-            </TouchableOpacity>
+            {isPro ? (
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    'Cancel Subscription',
+                    'Are you sure? You\'ll lose Pro features at the end of your billing period.',
+                    [
+                      { text: 'Keep Pro', style: 'cancel' },
+                      {
+                        text: 'Cancel',
+                        style: 'destructive',
+                        onPress: cancelSubscription,
+                      },
+                    ]
+                  );
+                }}
+                className="w-full items-center justify-center rounded-xl py-3"
+                style={{
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
+                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
+                }}>
+                <Text className="text-sm font-medium" style={{ color: theme.textSecondary }}>
+                  Manage Subscription
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setIsPaywallOpen(true)}
+                className="w-full items-center justify-center rounded-xl py-3"
+                style={{ backgroundColor: '#8B5CF6' }}>
+                <Text className="text-sm font-bold text-white">
+                  Upgrade to Pro
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -322,6 +374,8 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      <PaywallModal visible={isPaywallOpen} onClose={() => setIsPaywallOpen(false)} />
     </View>
   );
 }

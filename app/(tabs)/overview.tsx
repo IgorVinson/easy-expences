@@ -12,8 +12,10 @@ import {
 import { AddExpenseModal } from '../../components/AddExpenseModal';
 import { EditExpenseModal } from '../../components/EditExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
+import { PaywallModal } from '../../components/PaywallModal';
 import { RecordingModal } from '../../components/RecordingModal';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription, FREE_VOICE_LIMIT } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
 import { useExpenses } from '../../hooks/useExpenses';
@@ -21,6 +23,7 @@ import { useExpenses } from '../../hooks/useExpenses';
 export default function OverviewScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { canUseVoice, voiceRecordingsLeft, isPro, incrementVoiceUsage } = useSubscription();
   const {
     expenses,
     todayExpenses,
@@ -36,6 +39,7 @@ export default function OverviewScreen() {
   const [recModalVisible, setRecModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingExpense, setEditingExpense] = useState<import('../../types').Expense | null>(null);
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const micPulse = useRef(new Animated.Value(0)).current;
   const fabShadowColor = isDarkMode ? '#FFFFFF' : '#000000';
   const micPulseColor = isDarkMode ? '#FFFFFF' : theme.purple;
@@ -239,7 +243,13 @@ export default function OverviewScreen() {
           }}
         />
         <TouchableOpacity
-          onPress={() => setRecModalVisible(true)}
+          onPress={() => {
+            if (!canUseVoice) {
+              setPaywallVisible(true);
+              return;
+            }
+            setRecModalVisible(true);
+          }}
           className="h-16 w-16 items-center justify-center rounded-full shadow-lg"
           style={{
             backgroundColor: theme.purple,
@@ -251,6 +261,18 @@ export default function OverviewScreen() {
           }}>
           <Ionicons name="mic" size={32} color="#FFFFFF" />
         </TouchableOpacity>
+        {/* Voice recordings badge */}
+        {!isPro && (
+          <View
+            className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full px-1"
+            style={{
+              backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444',
+            }}>
+            <Text className="text-[10px] font-bold text-white">
+              {voiceRecordingsLeft}
+            </Text>
+          </View>
+        )}
       </Animated.View>
 
       {/* Add Expense Modal */}
@@ -267,6 +289,7 @@ export default function OverviewScreen() {
           visible={recModalVisible}
           onClose={() => setRecModalVisible(false)}
           userId={user.uid}
+          onExpenseSaved={incrementVoiceUsage}
         />
       )}
 
@@ -280,6 +303,8 @@ export default function OverviewScreen() {
           onDelete={handleDeleteExpense}
         />
       )}
+
+      <PaywallModal visible={paywallVisible} onClose={() => setPaywallVisible(false)} />
     </View>
   );
 }
