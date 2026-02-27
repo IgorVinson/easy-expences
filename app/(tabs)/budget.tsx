@@ -129,21 +129,6 @@ export default function BudgetScreen() {
             <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
               Categories
             </Text>
-            {/* Add category button */}
-            <TouchableOpacity
-              onPress={openAdd}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 12,
-                backgroundColor: theme.purple,
-                gap: 6,
-              }}>
-              <Ionicons name="add" size={18} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Add</Text>
-            </TouchableOpacity>
           </View>
 
           {loading ? (
@@ -177,6 +162,21 @@ export default function BudgetScreen() {
         {/* Bottom padding for tab bar */}
         <View className="h-24" />
       </ScrollView>
+
+      {/* Quick Add Button */}
+      <TouchableOpacity
+        onPress={openAdd}
+        className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
+        style={{
+          backgroundColor: theme.purple,
+          shadowColor: isDarkMode ? '#000' : theme.purple,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDarkMode ? 0.26 : 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}>
+        <Ionicons name="add" size={32} color="#FFFFFF" />
+      </TouchableOpacity>
 
       {/* Add / Edit modal */}
       <AddEditCategoryModal

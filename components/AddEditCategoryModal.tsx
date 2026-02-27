@@ -294,34 +294,6 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                   })}
                 </View>
 
-                {/* Preview */}
-                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                  Preview
-                </Text>
-                <View
-                  className="mb-4 flex-row items-center rounded-2xl p-4"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                  }}>
-                  <View
-                    className="h-12 w-12 items-center justify-center rounded-xl"
-                    style={{
-                      backgroundColor: isDarkMode ? selectedColor.dark + '33' : selectedColor.light,
-                    }}>
-                    <Ionicons name={selectedIcon} size={24} color={selectedColor.dark} />
-                  </View>
-                  <View className="ml-3.5 flex-1">
-                    <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
-                      {name || 'Category Name'}
-                    </Text>
-                    <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-                      ${budget || '0'} / month
-                    </Text>
-                  </View>
-                </View>
-
                 {/* Delete button — inside body, edit mode only */}
                 {isEdit && onDelete && (
                   <TouchableOpacity
