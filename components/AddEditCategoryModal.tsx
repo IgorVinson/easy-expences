@@ -218,14 +218,35 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                   }}
                 />
 
-                {/* Budget header & Reset button */}
+                {/* Budget input with side reset button */}
                 <View className="mb-2.5 flex-row items-center justify-between">
                   <Text className="text-xs font-semibold" style={{ color: theme.textSecondary }}>
                     Monthly Budget ($)
                   </Text>
-                  
+                </View>
+                
+                <View className="mb-5 flex-row items-center gap-3">
+                  <TextInput
+                    value={budget}
+                    onChangeText={setBudget}
+                    placeholder="0.00"
+                    placeholderTextColor={theme.textTertiary}
+                    keyboardType="decimal-pad"
+                    className="flex-1 rounded-2xl px-4 py-3.5 text-base"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      borderColor: theme.border,
+                      borderWidth: 1,
+                      color: theme.textPrimary,
+                    }}
+                  />
+
                   {isEdit && (
                     <TouchableOpacity
+                      className="items-center justify-center rounded-2xl px-4 py-2"
+                      style={{
+                        backgroundColor: isDarkMode ? '#334155' : '#F1F5F9', // subtle background
+                      }}
                       onPress={() => {
                         Alert.alert(
                           'Reset Spent Amount?',
@@ -245,7 +266,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                                       icon: category.icon,
                                       colorLight: category.colorLight,
                                       colorDark: category.colorDark,
-                                    }, true); // The true flag tells the caller to reset `spent`
+                                    }, true);
                                     onClose();
                                   } catch (e: any) {
                                     Alert.alert('Error', e.message);
@@ -259,27 +280,13 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                         );
                       }}
                     >
-                      <Text className="text-xs font-semibold" style={{ color: theme.red }}>
-                        Reset Spent
+                      <Text className="text-[10px] font-semibold mb-1" style={{ color: theme.textSecondary }}>
+                        Reset spent
                       </Text>
+                      <Ionicons name="refresh-circle" size={24} color={theme.textSecondary} />
                     </TouchableOpacity>
                   )}
                 </View>
-
-                <TextInput
-                  value={budget}
-                  onChangeText={setBudget}
-                  placeholder="0.00"
-                  placeholderTextColor={theme.textTertiary}
-                  keyboardType="decimal-pad"
-                  className="mb-5 rounded-2xl px-4 py-3.5 text-base"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    borderColor: theme.border,
-                    borderWidth: 1,
-                    color: theme.textPrimary,
-                  }}
-                />
 
                 {/* Icon picker */}
                 <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
