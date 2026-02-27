@@ -16,7 +16,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Web-safe fallback (native uses firebaseConfig.native.js)
+// Initialize Firebase Auth (native). Persistence defaults to in-memory.
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
