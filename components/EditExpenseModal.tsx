@@ -265,24 +265,18 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             )}
 
             {/* Bottom padding */}
-            <View style={{ height: 20 }} />
+            <View style={{ height: 30 }} />
           </ScrollView>
 
-          {/* Pinned footer — Delete + Save buttons */}
-          <View
-            className="px-6 pt-3"
-            style={{
-              paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-              borderTopWidth: 1,
-              borderTopColor: theme.border,
-              backgroundColor: theme.bg,
-            }}>
+          {/* Delete button — sits on the border line */}
+          <View style={{ alignItems: 'center', marginTop: -14, zIndex: 1 }}>
             <TouchableOpacity
               onPress={handleDeletePress}
               disabled={saving || deleting}
-              className="mb-3 flex-row items-center justify-center self-center gap-1.5 rounded-xl border px-4 py-2"
+              className="flex-row items-center justify-center gap-1.5 rounded-xl border px-4 py-2"
               style={{
                 borderColor: '#F87171',
+                backgroundColor: theme.bg,
                 opacity: saving || deleting ? 0.5 : 1,
               }}>
               {deleting ? (
@@ -291,12 +285,22 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 <>
                   <Ionicons name="trash-outline" size={15} color="#F87171" />
                   <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
-                    Delete Expense
+                    Delete
                   </Text>
                 </>
               )}
             </TouchableOpacity>
+          </View>
 
+          {/* Pinned footer — Save button */}
+          <View
+            className="px-6 pt-3"
+            style={{
+              paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+              borderTopWidth: 1,
+              borderTopColor: theme.border,
+              backgroundColor: theme.bg,
+            }}>
             <TouchableOpacity
               onPress={handleSave}
               disabled={saving || deleting}
