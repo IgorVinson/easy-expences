@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
@@ -104,12 +105,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {/* Backdrop wrapper */}
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-        }}>
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         {/* Absolute touch area for backdrop */}
         <TouchableWithoutFeedback onPress={handleClose}>
           <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
@@ -118,7 +116,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
         {/* Sheet */}
         <View
           style={{
-            height: SHEET_HEIGHT,
+            flexShrink: 1, height: Dimensions.get('window').height * 0.85,
             backgroundColor: theme.bg,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
@@ -162,9 +160,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
               </View>
               {/* Scrollable form */}
               <ScrollView
-                style={{ flex: 1, paddingHorizontal: 24 }}
+                style={{ flexShrink: 1, width: '100%', paddingHorizontal: 24 }}
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 40 }}>
                 {/* Title */}
                 <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
                   Title
@@ -238,8 +237,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
                   </View>
                 )}
 
-                {/* Extra bottom padding so Save button doesn't overlap content */}
-                <View style={{ height: 100 }} />
               </ScrollView>
 
               {/* Save button — pinned to bottom */}
@@ -271,6 +268,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
               </View>
             </View>
         </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

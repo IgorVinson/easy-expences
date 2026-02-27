@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
@@ -198,6 +199,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View className="flex-1 justify-end">
         <TouchableWithoutFeedback onPress={handleClose}>
           <View
@@ -210,10 +212,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
 
         <View
           className="overflow-hidden rounded-t-3xl"
-          style={{
-            height: SHEET_HEIGHT,
-            backgroundColor: theme.bg,
-          }}>
+          style={{ flexShrink: 1, height: Dimensions.get('window').height * 0.85, backgroundColor: theme.bg }}>
           <View className="items-center pb-1 pt-3">
             <View
               className="h-1 w-10 rounded-full"
@@ -304,9 +303,10 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
           ) : (
             <>
               <ScrollView
-                className="flex-1 px-6"
+                className="shrink w-full px-6"
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 40 }}>
                 <Text
                   className="mb-2 text-[13px] font-semibold"
                   style={{
@@ -387,7 +387,6 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   </View>
                 )}
 
-                <View className="h-[100px]" />
               </ScrollView>
 
               <View
@@ -430,6 +429,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
           )}
         </View>
       </View>
+          </KeyboardAvoidingView>
     </Modal>
   );
 };

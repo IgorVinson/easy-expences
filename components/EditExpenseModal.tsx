@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
@@ -151,6 +152,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
 
       {/* Backdrop wrapper */}
       <View className="flex-1 justify-end">
@@ -162,7 +164,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
         {/* Sheet */}
         <View
           className="overflow-hidden rounded-t-3xl"
-          style={{ height: SHEET_HEIGHT, backgroundColor: theme.bg }}>
+          style={{ flexShrink: 1, height: Dimensions.get('window').height * 0.85, backgroundColor: theme.bg }}>
 
           {/* Drag handle */}
           <View className="items-center pb-1 pt-3">
@@ -187,9 +189,10 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
           {/* Scrollable form */}
           <ScrollView
-            className="flex-1 px-6"
+            className="shrink w-full px-6"
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 }}>
 
             {/* Title */}
             <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
@@ -264,19 +267,13 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               </View>
             )}
 
-            {/* Bottom padding */}
-            <View style={{ height: 30 }} />
-          </ScrollView>
-
-          {/* Delete button — sits on the border line */}
-          <View style={{ alignItems: 'center', marginTop: -14, marginBottom: 8, zIndex: 1 }}>
+            {/* Delete button — inside scroll body */}
             <TouchableOpacity
               onPress={handleDeletePress}
               disabled={saving || deleting}
-              className="flex-row items-center justify-center gap-1.5 rounded-xl border px-4 py-2"
+              className="mt-6 mb-4 flex-row items-center justify-center self-center gap-1.5 rounded-xl border px-4 py-2"
               style={{
                 borderColor: '#F87171',
-                backgroundColor: theme.bg,
                 opacity: saving || deleting ? 0.5 : 1,
               }}>
               {deleting ? (
@@ -285,12 +282,13 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 <>
                   <Ionicons name="trash-outline" size={15} color="#F87171" />
                   <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
-                    Delete
+                    Delete Expense
                   </Text>
                 </>
               )}
             </TouchableOpacity>
-          </View>
+
+          </ScrollView>
 
           {/* Pinned footer — Save button */}
           <View
@@ -321,6 +319,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

@@ -1,6 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { AddExpenseModal } from '../../components/AddExpenseModal';
 import { EditExpenseModal } from '../../components/EditExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
@@ -13,8 +21,15 @@ import { useExpenses } from '../../hooks/useExpenses';
 export default function OverviewScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { expenses, todayExpenses, yesterdayExpenses, monthlyTotal, loading: expensesLoading, updateExpense, deleteExpense } =
-    useExpenses(user?.uid);
+  const {
+    expenses,
+    todayExpenses,
+    yesterdayExpenses,
+    monthlyTotal,
+    loading: expensesLoading,
+    updateExpense,
+    deleteExpense,
+  } = useExpenses(user?.uid);
   const { totalBudget, totalSpent, loading: budgetLoading } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -161,7 +176,9 @@ export default function OverviewScreen() {
                 No expenses today yet
               </Text>
             ) : (
-              todayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />)
+              todayExpenses.map((expense) => (
+                <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />
+              ))
             )}
           </View>
         )}
@@ -172,21 +189,21 @@ export default function OverviewScreen() {
             <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
               Yesterday
             </Text>
-            {yesterdayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />)}
+            {yesterdayExpenses.map((expense) => (
+              <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />
+            ))}
           </View>
         )}
 
         {/* Older expenses peek */}
-        {!loading && (
-          <View className="h-24" />
-        )}
+        {!loading && <View className="h-24" />}
       </ScrollView>
 
       {/* Quick Add Button */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
-        style={{ 
+        style={{
           backgroundColor: theme.purple,
           shadowColor: fabShadowColor,
           shadowOffset: { width: 0, height: 4 },
@@ -198,8 +215,7 @@ export default function OverviewScreen() {
       </TouchableOpacity>
 
       {/* Quick Mic Button */}
-      <Animated.View
-        className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center">
+      <Animated.View className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center">
         <Animated.View
           pointerEvents="none"
           className="absolute h-16 w-16 rounded-full"
@@ -222,7 +238,7 @@ export default function OverviewScreen() {
         <TouchableOpacity
           onPress={() => setRecModalVisible(true)}
           className="h-16 w-16 items-center justify-center rounded-full shadow-lg"
-          style={{ 
+          style={{
             backgroundColor: theme.purple,
             shadowColor: fabShadowColor,
             shadowOffset: { width: 0, height: 4 },
@@ -264,4 +280,3 @@ export default function OverviewScreen() {
     </View>
   );
 }
-

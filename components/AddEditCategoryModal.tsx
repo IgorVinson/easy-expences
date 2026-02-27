@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { BudgetCategory, NewBudgetCategory } from '../types';
@@ -157,6 +158,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
 
       {/* Backdrop wrapper */}
       <View className="flex-1 justify-end">
@@ -168,7 +170,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
         {/* Sheet */}
         <View
           className="overflow-hidden rounded-t-3xl"
-          style={{ height: SHEET_HEIGHT, backgroundColor: theme.bg }}>
+          style={{ flexShrink: 1, height: Dimensions.get('window').height * 0.85, backgroundColor: theme.bg }}>
 
               {/* Drag handle */}
               <View className="items-center pb-1 pt-3">
@@ -193,9 +195,10 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
 
               {/* Scrollable form */}
               <ScrollView
-                className="flex-1 px-6"
+                className="shrink w-full px-6"
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 40 }}>
 
                 {/* Name */}
                 <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
@@ -372,6 +375,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
 
             </View>
         </View>
+          </KeyboardAvoidingView>
     </Modal>
   );
 };
