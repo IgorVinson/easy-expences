@@ -19,8 +19,8 @@ export default function TabsLayout() {
               backgroundColor: theme.cardBg,
               borderTopWidth: 1,
               borderTopColor: theme.border,
-              paddingBottom: Platform.OS === 'ios' ? 20 : 0, 
-              paddingTop: Platform.OS === 'ios' ? 10 : 0,
+              paddingBottom: Platform.OS === 'ios' ? 20 : 10, 
+              paddingTop: Platform.OS === 'ios' ? 10 : 10,
               height: Platform.OS === 'ios' ? 90 : 70, 
               elevation: 0, // Removes default Android shadow to let custom styles work
             },
