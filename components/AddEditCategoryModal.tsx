@@ -183,7 +183,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               {/* Header */}
               <View className="flex-row items-center justify-between px-6 py-3">
                 <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-                  {isEdit ? 'Edit Category' : 'Add Category'}
+                  {isEdit ? 'Edit Budget Category' : 'Add Budget Category'}
                 </Text>
                 <TouchableOpacity
                   onPress={handleClose}
@@ -390,7 +390,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text className="text-base font-bold text-white">
-                      {isEdit ? 'Save Changes' : 'Add Category'}
+                      {isEdit ? 'Save Changes' : 'Add Budget Category'}
                     </Text>
                   )}
                 </TouchableOpacity>
