@@ -1,13 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { styles } from '../styles';
 import { Expense } from '../types';
 
-export const ExpenseItem = ({ expense }: { expense: Expense }) => {
+type ExpenseItemProps = {
+  expense: Expense;
+  onPress?: (expense: Expense) => void;
+};
+
+export const ExpenseItem = ({ expense, onPress }: ExpenseItemProps) => {
   const { theme } = useTheme();
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={() => onPress?.(expense)}
       style={[
         styles.expenseItem,
         { backgroundColor: theme.cardBg, borderColor: theme.border },
@@ -44,6 +51,6 @@ export const ExpenseItem = ({ expense }: { expense: Expense }) => {
           </Text>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };

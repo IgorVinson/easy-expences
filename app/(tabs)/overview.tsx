@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { AddExpenseModal } from '../../components/AddExpenseModal';
+import { EditExpenseModal } from '../../components/EditExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
 import { RecordingModal } from '../../components/RecordingModal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,12 +13,14 @@ import { useExpenses } from '../../hooks/useExpenses';
 export default function OverviewScreen() {
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { expenses, todayExpenses, yesterdayExpenses, monthlyTotal, loading: expensesLoading } =
+  const { expenses, todayExpenses, yesterdayExpenses, monthlyTotal, loading: expensesLoading, updateExpense, deleteExpense } =
     useExpenses(user?.uid);
   const { totalBudget, totalSpent, loading: budgetLoading } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [recModalVisible, setRecModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<import('../../types').Expense | null>(null);
   const micPulse = useRef(new Animated.Value(0)).current;
   const fabShadowColor = isDarkMode ? '#FFFFFF' : '#000000';
   const micPulseColor = isDarkMode ? '#FFFFFF' : theme.purple;
@@ -43,6 +46,24 @@ export default function OverviewScreen() {
   const loading = expensesLoading || budgetLoading;
   const leftToSpend = Math.max(0, totalBudget - totalSpent);
   const spendPercent = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
+
+  function openEditExpense(expense: import('../../types').Expense) {
+    setEditingExpense(expense);
+    setEditModalVisible(true);
+  }
+
+  function closeEditExpense() {
+    setEditModalVisible(false);
+    setEditingExpense(null);
+  }
+
+  async function handleUpdateExpense(id: string, changes: any) {
+    await updateExpense(id, changes);
+  }
+
+  async function handleDeleteExpense(id: string) {
+    await deleteExpense(id);
+  }
 
   const now = new Date();
   const monthLabel = now.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -140,7 +161,7 @@ export default function OverviewScreen() {
                 No expenses today yet
               </Text>
             ) : (
-              todayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} />)
+              todayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />)
             )}
           </View>
         )}
@@ -151,7 +172,7 @@ export default function OverviewScreen() {
             <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
               Yesterday
             </Text>
-            {yesterdayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} />)}
+            {yesterdayExpenses.map((expense) => <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />)}
           </View>
         )}
 
@@ -227,6 +248,17 @@ export default function OverviewScreen() {
           visible={recModalVisible}
           onClose={() => setRecModalVisible(false)}
           userId={user.uid}
+        />
+      )}
+
+      {user && (
+        <EditExpenseModal
+          visible={editModalVisible}
+          onClose={closeEditExpense}
+          expense={editingExpense}
+          userId={user.uid}
+          onSave={handleUpdateExpense}
+          onDelete={handleDeleteExpense}
         />
       )}
     </View>
