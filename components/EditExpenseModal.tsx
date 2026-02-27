@@ -269,7 +269,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           </ScrollView>
 
           {/* Delete button — sits on the border line */}
-          <View style={{ alignItems: 'center', marginTop: -14, zIndex: 1 }}>
+          <View style={{ alignItems: 'center', marginTop: -14, marginBottom: 8, zIndex: 1 }}>
             <TouchableOpacity
               onPress={handleDeletePress}
               disabled={saving || deleting}
@@ -324,3 +324,4 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     </Modal>
   );
 };
+// hot reload test
