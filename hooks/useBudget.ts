@@ -153,6 +153,24 @@ export function useBudget(userId: string | null | undefined) {
     await updateDoc(doc(db, 'budgetCategories', target.id), { spent: newSpent });
   }
 
+  /**
+   * Reset all categories `spent` to 0 and apply new budgets.
+   * Useful for monthly rollover.
+   */
+  async function resetAllCategories(newBudgets: Record<string, number>) {
+    if (!userId) throw new Error('Not authenticated');
+    
+    const promises = categories.map((cat) => {
+      const newLimit = newBudgets[cat.id] ?? cat.budget;
+      return updateDoc(doc(db, 'budgetCategories', cat.id), {
+        spent: 0,
+        budget: newLimit,
+      });
+    });
+
+    await Promise.all(promises);
+  }
+
   // ─── Computed ─────────────────────────────────────────────────────────────
 
   const totalBudget = categories.reduce((sum, c) => sum + c.budget, 0);
@@ -168,5 +186,6 @@ export function useBudget(userId: string | null | undefined) {
     updateCategory,
     deleteCategory,
     updateCategorySpent,
+    resetAllCategories,
   };
 }

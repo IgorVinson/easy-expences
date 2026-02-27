@@ -218,8 +218,11 @@ export default function OverviewScreen() {
       <Animated.View className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center">
         <Animated.View
           pointerEvents="none"
-          className="absolute h-16 w-16 rounded-full"
           style={{
+            position: 'absolute',
+            width: 64,
+            height: 64,
+            borderRadius: 32,
             backgroundColor: micPulseColor,
             opacity: micPulse.interpolate({
               inputRange: [0, 1],

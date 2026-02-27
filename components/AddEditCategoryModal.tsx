@@ -47,7 +47,7 @@ interface AddEditCategoryModalProps {
   visible: boolean;
   onClose: () => void;
   category?: BudgetCategory | null;
-  onSave: (data: NewBudgetCategory) => Promise<void>;
+  onSave: (data: NewBudgetCategory, resetSpent?: boolean) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
 
@@ -218,10 +218,54 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                   }}
                 />
 
-                {/* Budget */}
-                <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                  Monthly Budget ($)
-                </Text>
+                {/* Budget header & Reset button */}
+                <View className="mb-2.5 flex-row items-center justify-between">
+                  <Text className="text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                    Monthly Budget ($)
+                  </Text>
+                  
+                  {isEdit && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        Alert.alert(
+                          'Reset Spent Amount?',
+                          `This will reset the spent amount for "${category?.name}" back to $0. Perfect for starting a new cycle early.`,
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            { 
+                              text: 'Reset to $0', 
+                              style: 'destructive',
+                              onPress: async () => {
+                                if (category) {
+                                  try {
+                                    setSaving(true);
+                                    await onSave({
+                                      name: category.name,
+                                      budget: category.budget,
+                                      icon: category.icon,
+                                      colorLight: category.colorLight,
+                                      colorDark: category.colorDark,
+                                    }, true); // The true flag tells the caller to reset `spent`
+                                    onClose();
+                                  } catch (e: any) {
+                                    Alert.alert('Error', e.message);
+                                  } finally {
+                                    setSaving(false);
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        );
+                      }}
+                    >
+                      <Text className="text-xs font-semibold" style={{ color: theme.red }}>
+                        Reset Spent
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
                 <TextInput
                   value={budget}
                   onChangeText={setBudget}

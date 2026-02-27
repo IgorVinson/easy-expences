@@ -38,9 +38,9 @@ export default function BudgetScreen() {
     setEditingCategory(null);
   }
 
-  async function handleSave(data: NewBudgetCategory) {
+  async function handleSave(data: NewBudgetCategory, resetSpent?: boolean) {
     if (editingCategory) {
-      await updateCategory(editingCategory.id, data);
+      await updateCategory(editingCategory.id, resetSpent ? { ...data, spent: 0 } : data);
     } else {
       await addCategory(data);
     }
