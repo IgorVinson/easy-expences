@@ -1,98 +1,87 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useStripe } from '@stripe/stripe-react-native';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { currencies } from '../config/currencies';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { UserProfile, createUserProfile, getUserProfile, updateUserProfile } from '../hooks/useUserProfile';
-import { styles } from '../styles';
+import React from 'react';
+import {
+  Alert,
+  Linking,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { styles } from '../../styles';
 
 export default function ProfileScreen() {
-  const { theme, isDarkMode, toggleTheme } = useTheme();
+  const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, user } = useAuth();
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
-
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editCurrency, setEditCurrency] = useState('');
-  const [editBudgetLimit, setEditBudgetLimit] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        setLoading(true);
-        let p = await getUserProfile(user.uid);
-        if (!p) {
-           p = await createUserProfile(user.uid, user.email, user.displayName);
-        }
-        setProfile(p);
-        setEditName(p.displayName || '');
-        setEditCurrency(p.currency);
-        setEditBudgetLimit(p.monthlyBudgetLimit.toString());
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [user]);
+  const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
+  const [supportMessage, setSupportMessage] = React.useState('');
+  const supportEmail = process.env.EXPO_PUBLIC_SUPPORT_EMAIL;
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
+    console.log('Logout button pressed');
+
+    const doLogout = async () => {
+      console.log('Logout confirmed, calling logout()...');
+      try {
+        await logout();
+        console.log('Logout successful');
+      } catch (error: any) {
+        console.error('Logout failed:', error);
+        Alert.alert('Logout Failed', error.message);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to logout?')) {
+        doLogout();
+      }
+    } else {
+      Alert.alert('Logout', 'Are you sure you want to logout?', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => logout() },
-      ]
-    );
-  };
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-    setSaving(true);
-    try {
-      await updateUserProfile(user.uid, {
-        displayName: editName,
-        currency: editCurrency,
-        monthlyBudgetLimit: parseFloat(editBudgetLimit) || 0,
-      });
-      setProfile((prev) => prev ? { ...prev, displayName: editName, currency: editCurrency, monthlyBudgetLimit: parseFloat(editBudgetLimit) || 0 } : null);
-      setIsEditModalVisible(false);
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setSaving(false);
+        { text: 'Logout', style: 'destructive', onPress: doLogout },
+      ]);
     }
   };
 
-  const toggleNotifications = async () => {
-    if (!user || !profile) return;
-    const newValue = !profile.notificationsEnabled;
-    try {
-      await updateUserProfile(user.uid, { notificationsEnabled: newValue });
-      setProfile({ ...profile, notificationsEnabled: newValue });
-    } catch (error: any) {
-        Alert.alert('Error', 'Failed to update notifications');
+  const handleSendSupport = async () => {
+    const message = supportMessage.trim();
+    if (!message) {
+      Alert.alert('Message Required', 'Please enter a message before sending.');
+      return;
     }
-  };
+    if (!supportEmail) {
+      Alert.alert(
+        'Support Email Missing',
+        'Set EXPO_PUBLIC_SUPPORT_EMAIL in your environment to enable support emails.'
+      );
+      return;
+    }
 
-  const handleSubscribe = async () => {
-     Alert.alert('Coming Soon', 'Stripe checkout will be available soon once backend is deployed.');
-  };
+    const subject = encodeURIComponent('Easy Expenses Support');
+    const body = encodeURIComponent(message);
+    const mailtoUrl = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
 
-  if (loading) {
-     return (
-       <View className="flex-1 items-center justify-center" style={{ backgroundColor: theme.bg }}>
-          <ActivityIndicator size="large" color={theme.purple} />
-       </View>
-     );
-  }
+    const canOpen = await Linking.canOpenURL(mailtoUrl);
+    if (!canOpen) {
+      Alert.alert('Unable to Send', 'No email client is available on this device.');
+      return;
+    }
+
+    await Linking.openURL(mailtoUrl);
+    setSupportMessage('');
+    setIsSupportModalOpen(false);
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header with Theme Toggle */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
@@ -108,92 +97,75 @@ export default function ProfileScreen() {
         </View>
 
         {/* Profile Info Card */}
-        <TouchableOpacity 
-          className="mb-6 px-6"
-          onPress={() => setIsEditModalVisible(true)}
-        >
-          <View 
+        <View className="mb-6 px-6">
+          <View
             style={[
-              styles.expenseItem, 
-              { 
-                backgroundColor: theme.cardBg, 
+              styles.expenseItem,
+              {
+                backgroundColor: theme.cardBg,
                 borderColor: theme.border,
                 marginBottom: 0,
               },
-              !isDarkMode && styles.expenseItemShadow
-            ]}
-          >
-            <View 
+              !isDarkMode && styles.expenseItemShadow,
+            ]}>
+            <View
               className="items-center justify-center rounded-full"
-              style={{ 
-                width: 56, 
-                height: 56, 
+              style={{
+                width: 56,
+                height: 56,
                 backgroundColor: isDarkMode ? 'rgba(139,92,246,0.25)' : '#EDE9FE',
-              }}
-            >
+              }}>
               <Text className="text-xl font-bold" style={{ color: theme.purple }}>
-                {profile?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
               </Text>
             </View>
             <View className="ml-3 flex-1">
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                {profile?.displayName || 'User'}
+                {user?.displayName || 'John Doe'}
               </Text>
               <Text className="mt-0.5 text-sm" style={{ color: theme.textSecondary }}>
-                {user?.email}
+                {user?.email || 'john.doe@example.com'}
               </Text>
             </View>
-            <Ionicons name="pencil" size={20} color={theme.textTertiary} />
           </View>
-        </TouchableOpacity>
+        </View>
 
         {/* My Plan Section */}
         <View className="mb-6 px-6">
           <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
             My Plan
           </Text>
-          <View 
+          <View
             className="rounded-2xl p-4"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow
-            ]}
-          >
+              !isDarkMode && styles.cardShadow,
+            ]}>
             <View className="mb-4 flex-row items-center">
-              <View 
+              <View
                 className="h-12 w-12 items-center justify-center rounded-xl"
-                style={{ backgroundColor: isDarkMode ? 'rgba(59,130,246,0.15)' : '#DBEAFE' }}
-              >
-                <Ionicons name={profile?.plan === 'pro' ? "checkmark-circle" : "star-outline"} size={24} color="#3B82F6" />
+                style={{ backgroundColor: isDarkMode ? 'rgba(59,130,246,0.15)' : '#DBEAFE' }}>
+                <Ionicons name="checkmark-circle" size={24} color="#3B82F6" />
               </View>
               <View className="ml-3">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                  {profile?.plan === 'pro' ? 'Pro Plan - $4.99/mo' : 'Free Plan'}
+                  Pro Plan - $4.99/mo
                 </Text>
-                {profile?.plan === 'pro' && profile.planExpiresAt && (
-                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                     Renews on {new Date(profile.planExpiresAt).toLocaleDateString()}
-                   </Text>
-                )}
-                 {profile?.plan === 'free' && (
-                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                     Limited categories and features
-                   </Text>
-                )}
+                <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                  Renews on May 26, 2023
+                </Text>
               </View>
             </View>
-            
-            <TouchableOpacity 
-              onPress={handleSubscribe}
+
+            <TouchableOpacity
               className="w-full items-center justify-center rounded-xl py-3"
-              style={{ 
-                borderWidth: 1, 
-                borderColor: profile?.plan === 'free' ? theme.purple : (isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB'),
-                backgroundColor: profile?.plan === 'free' ? theme.purple : (isDarkMode ? 'rgba(255,255,255,0.03)' : '#F9FAFB')
-              }}
-            >
-              <Text className="text-sm font-medium" style={{ color: profile?.plan === 'free' ? 'white' : theme.textSecondary }}>
-                {profile?.plan === 'free' ? 'Upgrade to Pro' : 'Manage Subscription'}
+              style={{
+                borderWidth: 1,
+                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
+                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
+              }}>
+              <Text className="text-sm font-medium" style={{ color: theme.textSecondary }}>
+                Manage Subscription
               </Text>
             </TouchableOpacity>
           </View>
@@ -204,95 +176,67 @@ export default function ProfileScreen() {
           <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
             Settings
           </Text>
-          <View 
-            className="p-4 overflow-hidden rounded-2xl"
+          <View
+            className="overflow-hidden rounded-2xl p-4"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
-              !isDarkMode && styles.cardShadow
-            ]}
-          >
-            {/* Notifications */}
-            <TouchableOpacity
-              onPress={toggleNotifications}
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            {/* Theme Preference */}
+            <View
               className="flex-row items-center justify-between border-b py-4"
-              style={{ borderBottomColor: theme.border }}
-            >
+              style={{ borderBottomColor: theme.border }}>
               <View className="flex-row items-center">
-                <View 
+                <View
                   className="h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: isDarkMode ? 'rgba(59,130,246,0.15)' : '#EFF6FF' }}
-                >
-                  <Ionicons name="notifications-outline" size={20} color="#3B82F6" />
+                  style={{ backgroundColor: isDarkMode ? 'rgba(14,165,233,0.15)' : '#E0F2FE' }}>
+                  <Ionicons name="color-palette-outline" size={20} color="#0EA5E9" />
                 </View>
                 <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
-                  Notifications
+                  Theme
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <Text className="mr-2 text-sm" style={{ color: theme.textSecondary }}>
-                  {profile?.notificationsEnabled ? 'On' : 'Off'}
-                </Text>
-                <Ionicons name={profile?.notificationsEnabled ? "toggle" : "toggle-outline"} size={30} color={profile?.notificationsEnabled ? theme.purple : theme.textTertiary} />
+                {(['auto', 'dark', 'light'] as const).map((option) => {
+                  const isSelected = themePreference === option;
+                  const iconName =
+                    option === 'auto'
+                      ? 'phone-portrait-outline'
+                      : option === 'dark'
+                        ? 'moon'
+                        : 'sunny';
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => setThemePreference(option)}
+                      className="ml-2 h-9 w-9 items-center justify-center rounded-full"
+                      style={{
+                        backgroundColor: isSelected
+                          ? theme.purple
+                          : isDarkMode
+                            ? 'rgba(255,255,255,0.06)'
+                            : '#F1F5F9',
+                      }}>
+                      <Ionicons
+                        name={iconName}
+                        size={16}
+                        color={isSelected ? '#FFFFFF' : theme.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            </TouchableOpacity>
-
-            {/* Currency */}
-            <TouchableOpacity
-              onPress={() => setIsEditModalVisible(true)}
-              className="flex-row items-center justify-between border-b py-4"
-              style={{ borderBottomColor: theme.border }}
-            >
-              <View className="flex-row items-center">
-                <View 
-                  className="h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: isDarkMode ? 'rgba(16,185,129,0.15)' : '#ECFDF5' }}
-                >
-                  <Ionicons name="globe-outline" size={20} color="#10B981" />
-                </View>
-                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
-                  Currency
-                </Text>
-              </View>
-              <View className="flex-row items-center">
-                <Text className="mr-1 text-sm" style={{ color: theme.textSecondary }}>({profile?.currency})</Text>
-                <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
-              </View>
-            </TouchableOpacity>
-
-            {/* Budget Limit */}
-            <TouchableOpacity
-              onPress={() => setIsEditModalVisible(true)}
-              className="flex-row items-center justify-between border-b py-4"
-              style={{ borderBottomColor: theme.border }}
-            >
-              <View className="flex-row items-center">
-                <View 
-                  className="h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE' }}
-                >
-                  <Ionicons name="wallet-outline" size={20} color="#8B5CF6" />
-                </View>
-                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
-                  Monthly Budget
-                </Text>
-              </View>
-              <View className="flex-row items-center">
-                <Text className="mr-1 text-sm" style={{ color: theme.textSecondary }}>{profile?.monthlyBudgetLimit}</Text>
-                <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
-              </View>
-            </TouchableOpacity>
-
+            </View>
 
             {/* Help & Support */}
             <TouchableOpacity
+              onPress={() => setIsSupportModalOpen(true)}
               className="flex-row items-center justify-between border-b py-4"
-              style={{ borderBottomColor: theme.border }}
-            >
+              style={{ borderBottomColor: theme.border }}>
               <View className="flex-row items-center">
-                <View 
+                <View
                   className="h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: isDarkMode ? 'rgba(245,158,11,0.15)' : '#FFFBEB' }}
-                >
+                  style={{ backgroundColor: isDarkMode ? 'rgba(245,158,11,0.15)' : '#FFFBEB' }}>
                   <Ionicons name="help-circle-outline" size={20} color="#F59E0B" />
                 </View>
                 <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
@@ -305,13 +249,11 @@ export default function ProfileScreen() {
             {/* Log Out */}
             <TouchableOpacity
               onPress={handleLogout}
-              className="flex-row items-center justify-between py-4"
-            >
+              className="flex-row items-center justify-between py-4">
               <View className="flex-row items-center">
-                <View 
+                <View
                   className="h-10 w-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: isDarkMode ? 'rgba(239,68,68,0.15)' : '#FEF2F2' }}
-                >
+                  style={{ backgroundColor: isDarkMode ? 'rgba(239,68,68,0.15)' : '#FEF2F2' }}>
                   <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                 </View>
                 <Text className="ml-4 text-base font-medium" style={{ color: '#EF4444' }}>
@@ -321,74 +263,65 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         {/* Bottom padding for tab bar */}
         <View className="h-24" />
-
       </ScrollView>
 
-      {/* Edit Profile Modal */}
-      <Modal visible={isEditModalVisible} animationType="slide" transparent>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View className="rounded-t-3xl p-6" style={{ backgroundColor: theme.bg }}>
-            <View className="mb-6 flex-row items-center justify-between">
-              <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>Edit Profile</Text>
-              <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color={theme.textSecondary} />
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isSupportModalOpen}
+        onRequestClose={() => setIsSupportModalOpen(false)}>
+        <View
+          className="flex-1 items-center justify-center px-6"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <View
+            className="w-full rounded-2xl p-6"
+            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
+              Help & Support
+            </Text>
+            <Text className="mt-2 text-sm" style={{ color: theme.textSecondary }}>
+              Tell us what you need and we will send it to support.
+            </Text>
+
+            <TextInput
+              value={supportMessage}
+              onChangeText={setSupportMessage}
+              placeholder="Describe your issue..."
+              placeholderTextColor={theme.textTertiary}
+              multiline
+              className="mt-4 h-28 rounded-xl px-4 py-3 text-sm"
+              style={{
+                backgroundColor: theme.bg,
+                borderWidth: 1,
+                borderColor: theme.border,
+                color: theme.textPrimary,
+              }}
+            />
+
+            <View className="mt-4 flex-row items-center justify-end">
+              <TouchableOpacity
+                onPress={() => setIsSupportModalOpen(false)}
+                className="mr-3 rounded-full px-4 py-2"
+                style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#E2E8F0' }}>
+                <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSendSupport}
+                className="rounded-full px-4 py-2"
+                style={{ backgroundColor: theme.purple }}>
+                <Text className="text-sm font-semibold" style={{ color: '#FFFFFF' }}>
+                  Send
+                </Text>
               </TouchableOpacity>
             </View>
-
-            <Text className="mb-2 text-sm font-medium" style={{ color: theme.textSecondary }}>Display Name</Text>
-            <TextInput
-              className="mb-4 rounded-xl px-4 py-3"
-              style={{ backgroundColor: theme.cardBg, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border }}
-              value={editName}
-              onChangeText={setEditName}
-              placeholder="Your name"
-              placeholderTextColor={theme.textTertiary}
-            />
-
-            <Text className="mb-2 text-sm font-medium" style={{ color: theme.textSecondary }}>Monthly Budget Limit</Text>
-            <TextInput
-              className="mb-4 rounded-xl px-4 py-3"
-              style={{ backgroundColor: theme.cardBg, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border }}
-              value={editBudgetLimit}
-              onChangeText={setEditBudgetLimit}
-              placeholder="0.00"
-              keyboardType="numeric"
-              placeholderTextColor={theme.textTertiary}
-            />
-
-            <Text className="mb-2 text-sm font-medium" style={{ color: theme.textSecondary }}>Currency</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
-               {currencies.map((c) => (
-                 <TouchableOpacity
-                   key={c.code}
-                   onPress={() => setEditCurrency(c.code)}
-                   className="mr-3 rounded-xl px-4 py-2"
-                   style={{
-                     backgroundColor: editCurrency === c.code ? theme.purple : theme.cardBg,
-                     borderWidth: 1,
-                     borderColor: editCurrency === c.code ? theme.purple : theme.border
-                   }}
-                 >
-                   <Text style={{ color: editCurrency === c.code ? 'white' : theme.textPrimary, fontWeight: 'bold' }}>{c.code}</Text>
-                 </TouchableOpacity>
-               ))}
-            </ScrollView>
-
-            <TouchableOpacity
-              onPress={handleSaveProfile}
-              disabled={saving}
-              className="items-center justify-center rounded-xl py-4"
-              style={{ backgroundColor: theme.purple, opacity: saving ? 0.7 : 1 }}
-            >
-              {saving ? <ActivityIndicator color="white" /> : <Text className="font-bold text-white">Save Changes</Text>}
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }
