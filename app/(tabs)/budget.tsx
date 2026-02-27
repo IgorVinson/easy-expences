@@ -69,57 +69,77 @@ export default function BudgetScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Summary Card */}
+        {/* Summary Card - Modern Redesign */}
         <View className="mb-6 px-6">
-          <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
-            <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                This Month
-              </Text>
-              <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                {monthLabel} ▼
-              </Text>
+          <View 
+            className="rounded-[32px] p-6 shadow-sm" 
+            style={{ 
+              backgroundColor: theme.cardBg,
+              borderWidth: 1,
+              borderColor: theme.border,
+            }}>
+            
+            {/* Header & Date */}
+            <View className="mb-6 flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2 rounded-full px-3 py-1.5" style={{ backgroundColor: theme.iconBg }}>
+                <Ionicons name="calendar-clear" size={14} color={theme.purple} />
+                <Text className="text-xs font-semibold" style={{ color: theme.purple }}>
+                  {monthLabel}
+                </Text>
+              </View>
+              <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: theme.purple + '15' }}>
+                <Ionicons name="pie-chart" size={16} color={theme.purple} />
+              </View>
             </View>
 
-            <Text className="mb-4 text-5xl font-bold text-white">
-              ${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Text>
-
-            <View
-              className="rounded-2xl p-4"
-              style={{
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
-                borderWidth: 1,
-                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-              }}>
-              <View className="mb-3 flex-row justify-between">
-                <View>
-                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Left to spend
-                  </Text>
-                  <Text className="text-2xl font-bold text-white">
-                    ${totalRemaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                </View>
-                <View className="items-end">
-                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Monthly budget
-                  </Text>
-                  <Text className="text-2xl font-bold text-white">
-                    ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                </View>
+            {/* Main Stats Row */}
+            <View className="mb-6 flex-row items-end justify-between">
+              <View>
+                <Text className="mb-1 text-sm font-medium" style={{ color: theme.textTertiary }}>
+                  Total Spent
+                </Text>
+                <Text className="text-4xl font-black tracking-tight" style={{ color: theme.textPrimary }}>
+                  ${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
               </View>
+              <View className="items-end pb-1">
+                <Text className="mb-1 text-xs font-medium" style={{ color: theme.textTertiary }}>
+                  Total Budget
+                </Text>
+                <Text className="text-lg font-bold" style={{ color: theme.textSecondary }}>
+                  ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </Text>
+              </View>
+            </View>
 
+            {/* Progress Section */}
+            <View>
+              <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-xs font-semibold" style={{ color: totalRemaining > 0 ? theme.green : theme.red }}>
+                  {totalRemaining > 0 ? 'Remaining' : 'Over Budget'}
+                </Text>
+                <Text className="text-sm font-bold" style={{ color: totalRemaining > 0 ? theme.green : theme.red }}>
+                  ${Math.abs(totalBudget - totalSpent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
+              </View>
+              
               <View
-                className="h-2 overflow-hidden rounded-full"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                className="h-3 overflow-hidden rounded-full"
+                style={{ backgroundColor: theme.border }}>
                 <View
                   className="h-full rounded-full"
-                  style={{ width: `${overallPercentage}%`, backgroundColor: '#C084FC' }}
+                  style={{ 
+                    width: `${Math.min(overallPercentage, 100)}%`, 
+                    backgroundColor: overallPercentage > 100 ? theme.red : theme.purple 
+                  }}
                 />
               </View>
+              
+              <Text className="mt-2 text-right text-[10px] font-medium" style={{ color: theme.textTertiary }}>
+                {Math.round(overallPercentage)}% of budget used
+              </Text>
             </View>
+
           </View>
         </View>
 
