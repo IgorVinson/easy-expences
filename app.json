@@ -11,7 +11,13 @@
     },
     "plugins": [
       "expo-router",
-      "@stripe/stripe-react-native"
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.easy.expenses",
+          "enableGooglePay": false
+        }
+      ]
     ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",

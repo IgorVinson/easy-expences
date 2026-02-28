@@ -9,9 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { FREE_VOICE_LIMIT, PLANS, useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useSubscription, PLANS, FREE_VOICE_LIMIT } from '../contexts/SubscriptionContext';
-import type { PlanType } from '../contexts/SubscriptionContext';
 
 interface PaywallModalProps {
   visible: boolean;
@@ -23,7 +22,7 @@ const FEATURES = [
     icon: 'mic' as const,
     title: 'Unlimited Voice Recording',
     free: `${FREE_VOICE_LIMIT}/month`,
-    pro: 'Unlimited',
+    pro: 'Unlim',
   },
   {
     icon: 'analytics-outline' as const,
@@ -87,10 +86,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
           style={{ backgroundColor: theme.cardBg, maxHeight: '92%' }}>
           {/* Handle bar */}
           <View className="mb-4 items-center">
-            <View
-              className="h-1 w-10 rounded-full"
-              style={{ backgroundColor: theme.border }}
-            />
+            <View className="h-1 w-10 rounded-full" style={{ backgroundColor: theme.border }} />
           </View>
 
           {/* Header */}
@@ -120,14 +116,20 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               borderColor: theme.border,
             }}>
             {/* Header row */}
-            <View className="mb-3 flex-row items-center border-b pb-3" style={{ borderBottomColor: theme.border }}>
+            <View
+              className="mb-3 flex-row items-center border-b pb-3"
+              style={{ borderBottomColor: theme.border }}>
               <View className="flex-1">
-                <Text className="text-xs font-semibold uppercase" style={{ color: theme.textTertiary }}>
+                <Text
+                  className="text-xs font-semibold uppercase"
+                  style={{ color: theme.textTertiary }}>
                   Feature
                 </Text>
               </View>
               <View className="w-16 items-center">
-                <Text className="text-xs font-semibold uppercase" style={{ color: theme.textTertiary }}>
+                <Text
+                  className="text-xs font-semibold uppercase"
+                  style={{ color: theme.textTertiary }}>
                   Free
                 </Text>
               </View>
@@ -194,9 +196,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                   <View
                     className="ml-2 rounded-full px-2 py-0.5"
                     style={{ backgroundColor: '#8B5CF6' }}>
-                    <Text className="text-[10px] font-bold text-white">
-                      SAVE {savingsPercent}%
-                    </Text>
+                    <Text className="text-[10px] font-bold text-white">SAVE {savingsPercent}%</Text>
                   </View>
                 </View>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
@@ -267,13 +267,18 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text className="text-base font-bold text-white">
-                Start Pro · {selectedPlan === 'pro_annual' ? `$${annualPrice.toFixed(2)}/yr` : `$${monthlyPrice.toFixed(2)}/mo`}
+                Start Pro ·{' '}
+                {selectedPlan === 'pro_annual'
+                  ? `$${annualPrice.toFixed(2)}/yr`
+                  : `$${monthlyPrice.toFixed(2)}/mo`}
               </Text>
             )}
           </TouchableOpacity>
 
           {/* Restore + Terms */}
-          <View className="mt-3 items-center" style={{ paddingBottom: Platform.OS === 'ios' ? 10 : 0 }}>
+          <View
+            className="mt-3 items-center"
+            style={{ paddingBottom: Platform.OS === 'ios' ? 10 : 0 }}>
             <TouchableOpacity onPress={handleRestore}>
               <Text className="text-xs" style={{ color: theme.textTertiary }}>
                 Restore Purchases
