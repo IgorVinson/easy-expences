@@ -23,6 +23,7 @@
     "expo-router": "~6.0.22",
     "expo-status-bar": "~3.0.9",
     "firebase": "^12.8.0",
+    "lightningcss-linux-x64-gnu": "^1.31.1",
     "nativewind": "latest",
     "react": "19.1.0",
     "react-dom": "19.1.0",
