@@ -23,7 +23,7 @@ const ICON_OPTIONS: (keyof typeof Ionicons.glyphMap)[] = [
   'restaurant', 'car', 'bulb', 'ticket', 'cart',
   'home', 'medkit', 'school', 'airplane', 'fitness',
   'paw', 'game-controller', 'musical-notes', 'book', 'wallet',
-  'gift', 'heart', 'briefcase', 'cash', 'phone-portrait',
+  'gift', 'heart', 'briefcase', 'cash', 'laptop',
 ];
 
 // ─── Color options ────────────────────────────────────────────────────────────

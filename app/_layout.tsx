@@ -1,6 +1,8 @@
+import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { SubscriptionProvider } from '../contexts/SubscriptionContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
 
@@ -39,7 +41,13 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <RootLayoutNav />
+        <StripeProvider
+          publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}
+        >
+          <SubscriptionProvider>
+            <RootLayoutNav />
+          </SubscriptionProvider>
+        </StripeProvider>
       </ThemeProvider>
     </AuthProvider>
   );
