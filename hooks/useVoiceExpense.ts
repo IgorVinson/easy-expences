@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 
 // You will need to add your Gemini API Key directly here for testing, or via process.env.EXPO_PUBLIC_GEMINI_API_KEY
 // e.g. EXPO_PUBLIC_GEMINI_API_KEY=your_api_key in .env file
@@ -25,6 +26,16 @@ export function useVoiceExpense() {
         console.warn('Gemini API Key is missing. Please set EXPO_PUBLIC_GEMINI_API_KEY in your .env file.');
       }
 
+      // Safeguard: Ensure no old recording exists
+      if (recordingRef.current) {
+        try {
+          await recordingRef.current.stopAndUnloadAsync();
+        } catch {
+          // Ignore if it was already stopped
+        }
+        recordingRef.current = null;
+      }
+
       const permission = await Audio.requestPermissionsAsync();
       if (permission.status !== 'granted') {
         console.warn('Microphone permission not granted');
@@ -44,6 +55,7 @@ export function useVoiceExpense() {
     } catch (err) {
       console.error('Failed to start recording', err);
       setIsRecording(false);
+      recordingRef.current = null;
     }
   }, []);
 
@@ -65,12 +77,35 @@ export function useVoiceExpense() {
       setIsProcessing(true);
 
       // Read the audio file as base64 string
-      const base64Audio = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      let base64Audio: string;
+      let mimeType = 'audio/m4a';
+
+      if (Platform.OS === 'web') {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        mimeType = blob.type || 'audio/webm';
+        
+        base64Audio = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            const base64 = result.split(',')[1];
+            resolve(base64 || '');
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } else {
+        base64Audio = await FileSystem.readAsStringAsync(uri, {
+          encoding: 'base64',
+        });
+      }
+
+      console.log(`Audio recording Base64 length: ${base64Audio.length}`);
+      console.log(`Audio mime type: ${mimeType}`);
 
       // Call Gemini API to extract the information
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
       
       const prompt = `
         You are an expense tracker assistant.
@@ -87,16 +122,20 @@ export function useVoiceExpense() {
         prompt,
         {
           inlineData: {
-            mimeType: 'audio/m4a',
+            mimeType,
             data: base64Audio
           }
         }
       ]);
 
       const textResponse = result.response.text();
-      // Parse the JSON. We might need to handle markdown blocks if Gemini formats it despite instructions
-      const cleanedJSON = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+      console.log('Gemini Raw Text Response:', textResponse);
+
+      // Extract JSON using a robust regex match
+      const match = textResponse.match(/\{[\s\S]*\}/);
+      const cleanedJSON = match ? match[0] : textResponse;
       
+      console.log('Parsed JSON string:', cleanedJSON);
       const parsedData = JSON.parse(cleanedJSON);
       return {
         title: parsedData.title || '',
@@ -118,6 +157,15 @@ export function useVoiceExpense() {
       recordingRef.current = null;
     }
     setIsRecording(false);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+      }
+    };
   }, []);
 
   return {

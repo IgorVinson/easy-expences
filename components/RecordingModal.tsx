@@ -1,19 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Modal,
-  Platform,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
+import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { BudgetCategory } from '../types';
 import ListeningIndicator from './ListeningIndicator';
 
@@ -30,22 +33,50 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
 
+  const [step, setStep] = useState<'RECORDING' | 'REVIEW'>('RECORDING');
+
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
 
-
+  const { isRecording, isProcessing, startRecording, stopRecordingAndProcess, cancelRecording } =
+    useVoiceExpense();
 
   function resetForm() {
     setTitle('');
     setAmount('');
     setSelectedCategory(null);
+    setStep('RECORDING');
   }
 
   function handleClose() {
+    if (isRecording || isProcessing) {
+      cancelRecording();
+    }
     resetForm();
     onClose();
+  }
+
+  async function handleStopRecording() {
+    const result = await stopRecordingAndProcess();
+    if (result) {
+      setTitle(result.title);
+      setAmount(result.amount > 0 ? result.amount.toString() : '');
+
+      if (result.category) {
+        // Try to find a matching category by name
+        const matchedCategory = categories.find(
+          (c) => c.name.toLowerCase() === result.category.toLowerCase()
+        );
+        if (matchedCategory) {
+          setSelectedCategory(matchedCategory);
+        }
+      }
+      setStep('REVIEW');
+    } else {
+      Alert.alert('Error', 'Could not process audio. Please try again.');
+    }
   }
 
   async function handleSave() {
@@ -104,14 +135,18 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
       {/* Backdrop wrapper */}
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'flex-end',
-        }}>
-        {/* Absolute touch area for backdrop */}
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <TouchableWithoutFeedback onPress={handleClose}>
-          <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: 'rgba(0,0,0,0.55)',
+            }}
+          />
         </TouchableWithoutFeedback>
 
         {/* Sheet */}
@@ -123,45 +158,217 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
             borderTopRightRadius: 24,
             overflow: 'hidden',
           }}>
-              {/* Handle */}
-              <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
-                <View
-                  style={{
-                    width: 40,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: theme.border,
-                  }}
-                />
-              </View>
+          {/* Handle */}
+          <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+            <View
+              style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border }}
+            />
+          </View>
 
-              {/* Header */}
-              <View
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+            }}>
+            {step === 'REVIEW' ? (
+              <TouchableOpacity
+                onPress={() => setStep('RECORDING')}
                 style={{
-                  flexDirection: 'row',
+                  width: 40,
+                  height: 40,
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 12,
+                  justifyContent: 'center',
+                  borderRadius: 20,
+                  backgroundColor: theme.iconBg,
+                  marginRight: 10,
                 }}>
-                <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: 'bold' }}>
-                  Add Expense
-                </Text>
+                <Ionicons name="arrow-back" size={20} color={theme.textPrimary} />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 40, marginRight: 10 }} />
+            )}
+
+            <Text
+              style={{
+                flex: 1,
+                color: theme.textPrimary,
+                fontSize: 22,
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}>
+              {step === 'RECORDING' ? 'Record Expense' : 'Review Expense'}
+            </Text>
+
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 20,
+                backgroundColor: theme.iconBg,
+                marginLeft: 10,
+              }}>
+              <Ionicons name="close" size={20} color={theme.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          {step === 'RECORDING' ? (
+            <View
+              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 16,
+                  textAlign: 'center',
+                  marginBottom: 40,
+                }}>
+                Tap to start recording. Try saying:{"\n"}"Lunch at a cafe for 15 dollars"
+              </Text>
+
+              {isProcessing ? (
+                <View style={{ alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color={theme.purple} />
+                  <Text style={{ marginTop: 16, color: theme.textPrimary, fontSize: 16 }}>
+                    Transcribing...
+                  </Text>
+                </View>
+              ) : isRecording ? (
+                <View style={{ alignItems: 'center' }}>
+                  <ListeningIndicator />
+                  <TouchableOpacity
+                    onPress={handleStopRecording}
+                    style={{
+                      marginTop: 40,
+                      backgroundColor: theme.purple,
+                      paddingHorizontal: 32,
+                      paddingVertical: 16,
+                      borderRadius: 24,
+                    }}>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                      Stop Recording
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
                 <TouchableOpacity
-                  onPress={handleClose}
+                  onPress={startRecording}
                   style={{
-                    width: 40,
-                    height: 40,
+                    backgroundColor: theme.purple,
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: 20,
-                    backgroundColor: theme.iconBg,
+                    shadowColor: theme.purple,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 8,
                   }}>
-                  <Ionicons name="close" size={20} color={theme.textPrimary} />
+                  <Ionicons name="mic" size={40} color="#fff" />
                 </TouchableOpacity>
-              </View>
-                  <ListeningIndicator />
+              )}
+            </View>
+          ) : (
+            <>
               {/* Scrollable form */}
+              <ScrollView
+                style={{ flex: 1, paddingHorizontal: 24 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
+                {/* Title */}
+                <Text
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: 13,
+                    fontWeight: '600',
+                    marginBottom: 8,
+                    marginTop: 12,
+                  }}>
+                  Title
+                </Text>
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder="e.g. Lunch at Café"
+                  placeholderTextColor={theme.textTertiary}
+                  style={[inputStyle, { marginBottom: 20 }]}
+                />
+
+                {/* Amount */}
+                <Text
+                  style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
+                  Amount ($)
+                </Text>
+                <TextInput
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="0.00"
+                  placeholderTextColor={theme.textTertiary}
+                  keyboardType="decimal-pad"
+                  style={[inputStyle, { marginBottom: 20 }]}
+                />
+
+                {/* Category */}
+                <Text
+                  style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
+                  Category
+                </Text>
+                {categories.length === 0 ? (
+                  <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                    No categories yet. Check the Budget tab.
+                  </Text>
+                ) : (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                    {categories.map((cat) => {
+                      const isSelected = selectedCategory?.id === cat.id;
+                      return (
+                        <TouchableOpacity
+                          key={cat.id}
+                          onPress={() => setSelectedCategory(cat)}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 14,
+                            paddingVertical: 10,
+                            borderRadius: 16,
+                            backgroundColor: isSelected
+                              ? isDarkMode
+                                ? cat.colorDark + '33'
+                                : cat.colorLight
+                              : theme.cardBg,
+                            borderWidth: isSelected ? 2 : 1,
+                            borderColor: isSelected ? cat.colorDark : theme.border,
+                          }}>
+                          <Ionicons
+                            name={cat.icon as any}
+                            size={15}
+                            color={isSelected ? cat.colorDark : theme.textTertiary}
+                          />
+                          <Text
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 13,
+                              fontWeight: '500',
+                              color: isSelected ? cat.colorDark : theme.textSecondary,
+                            }}>
+                            {cat.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+
+                {/* Extra bottom padding so Save button doesn't overlap content */}
+                <View style={{ height: 100 }} />
+              </ScrollView>
 
               {/* Save button — pinned to bottom */}
               <View
@@ -186,12 +393,16 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   {saving ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Save Expense</Text>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                      Save Expense
+                    </Text>
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
+            </>
+          )}
         </View>
+      </View>
     </Modal>
   );
 };
