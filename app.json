@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "SaySpend",
+    "slug": "sayspend",
     "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"
@@ -14,7 +14,7 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.easy.expenses",
+          "merchantIdentifier": "merchant.com.sayspend",
           "enableGooglePay": false
         }
       ]
@@ -39,6 +39,6 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "scheme": "easy-expenses"
+    "scheme": "sayspend"
   }
 }

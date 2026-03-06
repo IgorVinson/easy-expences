@@ -39,8 +39,8 @@ Easy Expenses is a mobile budgeting application built with React Native and Expo
 
 ```bash
 # Clone the repository
-git clone https://github.com/IgorVinson/easy-expences.git
-cd easy-expences
+git clone https://github.com/IgorVinson/sayspend.git
+cd sayspend
 
 # Install dependencies
 npm install
@@ -72,7 +72,7 @@ export const firebaseConfig = {
 ## Project Structure
 
 ```
-easy-expences/
+sayspend/
 ├── app/                    # Expo Router app directory
 ├── components/             # Reusable UI components
 ├── contexts/               # React contexts (Auth, etc.)
