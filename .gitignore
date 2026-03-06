@@ -9,6 +9,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+SaySpend_Dashboard/
 
 DEVELOPMENT_PROTOCOL.MD
 
