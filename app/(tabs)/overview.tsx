@@ -207,7 +207,7 @@ export default function OverviewScreen() {
               Past
             </Text>
             {olderExpenses.map((expense) => (
-              <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />
+              <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} showDate />
             ))}
           </View>
         )}

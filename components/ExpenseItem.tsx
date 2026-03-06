@@ -7,10 +7,19 @@ import { Expense } from '../types';
 type ExpenseItemProps = {
   expense: Expense;
   onPress?: (expense: Expense) => void;
+  showDate?: boolean;
 };
 
-export const ExpenseItem = ({ expense, onPress }: ExpenseItemProps) => {
+export const ExpenseItem = ({ expense, onPress, showDate }: ExpenseItemProps) => {
   const { theme } = useTheme();
+
+  const formattedDate = showDate
+    ? new Date(expense.date).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      })
+    : null;
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -39,6 +48,11 @@ export const ExpenseItem = ({ expense, onPress }: ExpenseItemProps) => {
           <Text className="text-sm" style={{ color: theme.textTertiary }}>
             {expense.category}
           </Text>
+          {showDate && (
+            <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
+              {formattedDate}
+            </Text>
+          )}
         </View>
       </View>
       <View className="flex-col items-center">
