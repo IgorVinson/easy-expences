@@ -141,10 +141,24 @@ export function useExpenses(userId: string | null | undefined) {
     })
     .reduce((sum, e) => sum + e.amount, 0);
 
+  /** Expenses older than yesterday */
+  const olderExpenses = expenses.filter((e) => {
+    const d = new Date(e.date);
+    const now = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    const isYesterday = d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
+    
+    return !isToday && !isYesterday;
+  });
+
   return {
     expenses,
     todayExpenses,
     yesterdayExpenses,
+    olderExpenses,
     monthlyTotal,
     loading,
     error,

@@ -28,6 +28,7 @@ export default function OverviewScreen() {
     expenses,
     todayExpenses,
     yesterdayExpenses,
+    olderExpenses,
     monthlyTotal,
     loading: expensesLoading,
     updateExpense,
@@ -189,7 +190,7 @@ export default function OverviewScreen() {
 
         {/* Yesterday Section */}
         {!loading && yesterdayExpenses.length > 0 && (
-          <View className="mb-32 px-6">
+          <View className="mb-4 px-6">
             <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
               Yesterday
             </Text>
@@ -199,8 +200,20 @@ export default function OverviewScreen() {
           </View>
         )}
 
-        {/* Older expenses peek */}
-        {!loading && <View className="h-24" />}
+        {/* Past Section */}
+        {!loading && olderExpenses.length > 0 && (
+          <View className="mb-4 px-6">
+            <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
+              Past
+            </Text>
+            {olderExpenses.map((expense) => (
+              <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />
+            ))}
+          </View>
+        )}
+
+        {/* Bottom Padding for floating buttons */}
+        {!loading && <View className="h-32" />}
       </ScrollView>
 
       {/* Quick Add Button */}
