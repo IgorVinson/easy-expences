@@ -1,0 +1,130 @@
+Starting project at /Users/ihorvinson/Documents/Agents/dev-projects/easy-expences-ai
+Starting Metro Bundler
+Tunnel connected.
+Tunnel ready.
+The following packages should be updated for best compatibility with the installed expo version:
+  expo@54.0.32 - expected version: ~54.0.33
+  expo-file-system@55.0.9 - expected version: ~19.0.21
+  expo-linear-gradient@55.0.8 - expected version: ~15.0.8
+Your project may not work correctly until you install the expected versions of the packages.
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 714ms node_modules/expo-router/entry.js (1613 modules)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ WARN  [2026-03-06T08:05:39.533Z]  @firebase/auth: Auth (12.9.0): 
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ ERROR  Failed to load subscription: [FirebaseError: Missing or insufficient permissions.] FirebaseError: Missing or insufficient permissions.
+ ERROR  Text strings must be rendered within a <Text> component. 
+
+Code: ExpenseItem.tsx
+[0m [90m 42 |[39m         [33m<[39m[33m/[39m[33mView[39m[33m>[39m
+ [90m 43 |[39m       [33m<[39m[33m/[39m[33mView[39m[33m>[39m
+[31m[1m>[22m[39m[90m 44 |[39m       [33m<[39m[33mView[39m className[33m=[39m[32m"flex-col items-center"[39m[33m>[39m
+ [90m    |[39m       [31m[1m^[22m[39m
+ [90m 45 |[39m         [33m<[39m[33mText[39m className[33m=[39m[32m"text-lg font-bold"[39m style[33m=[39m{{ color[33m:[39m theme[33m.[39mtextPrimary }}[33m>[39m
+ [90m 46 |[39m           ${[33mMath[39m[33m.[39mabs(expense[33m.[39mamount)[33m.[39mtoFixed([35m2[39m)}
+ [90m 47 |[39m         [33m<[39m[33m/[39m[33mText[39m[33m>[39m[0m
+Call Stack
+  ExpenseItem (components/ExpenseItem.tsx:44:7)
+  olderExpenses.map$argument_0 (app/(tabs)/overview.tsx:210:15)
+  OverviewScreen (app/(tabs)/overview.tsx:209:31)
+  TabsLayout (app/(tabs)/_layout.tsx:14:7)
+  RootLayoutNav (app/_layout.tsx:33:5)
+  RootLayout (app/_layout.tsx:48:13)
+Android node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 139ms node_modules/expo-router/entry.js (1 module)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ WARN  [2026-03-06T08:09:13.187Z]  @firebase/auth: Auth (12.9.0): 
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ ERROR  Failed to load subscription: [FirebaseError: Missing or insufficient permissions.] FirebaseError: Missing or insufficient permissions.
+Android node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 105ms node_modules/expo-router/entry.js (1 module)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ WARN  [2026-03-06T08:12:36.562Z]  @firebase/auth: Auth (12.9.0): 
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ ERROR  Failed to load subscription: [FirebaseError: Missing or insufficient permissions.] FirebaseError: Missing or insufficient permissions.
+Android node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 86ms node_modules/expo-router/entry.js (1 module)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ WARN  [2026-03-06T08:16:19.543Z]  @firebase/auth: Auth (12.9.0): 
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ ERROR  Failed to load subscription: [FirebaseError: Missing or insufficient permissions.] FirebaseError: Missing or insufficient permissions.
+Android node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 90ms node_modules/expo-router/entry.js (1 module)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ WARN  [2026-03-06T08:18:10.909Z]  @firebase/auth: Auth (12.9.0): 
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ ERROR  Failed to load subscription: [FirebaseError: Missing or insufficient permissions.] FirebaseError: Missing or insufficient permissions.
+Android node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 63ms node_modules/expo-router/entry.js (1 module)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ WARN  [2026-03-06T08:20:06.149Z]  @firebase/auth: Auth (12.9.0): 
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ ERROR  Failed to load subscription: [FirebaseError: Missing or insufficient permissions.] FirebaseError: Missing or insufficient permissions.
