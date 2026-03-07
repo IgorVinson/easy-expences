@@ -1,5 +1,5 @@
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system/legacy';
+import { File } from 'expo-file-system';
 import { useCallback, useRef, useState } from 'react';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY?.trim() ?? '';
@@ -97,9 +97,7 @@ export function useVoiceExpense() {
 
       setIsProcessing(true);
 
-      const base64Audio = await FileSystem.readAsStringAsync(uri, {
-        encoding: 'base64',
-      });
+      const base64Audio = await new File(uri).base64();
 
       const requestBody = {
         contents: [

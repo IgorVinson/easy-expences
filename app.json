@@ -40,6 +40,13 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "scheme": "sayspend"
+    "scheme": "sayspend",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3337680d-d154-4367-ba89-263f6d5ef119"
+      }
+    },
+    "owner": "igorvinson"
   }
 }
