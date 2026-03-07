@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from './AuthContext';
@@ -27,7 +28,7 @@ export interface SubscriptionContextType {
   cancelSubscription: () => Promise<void>;
 }
 
-type SubscriptionStore = 'subscriptions' | 'users';
+type SubscriptionStore = 'subscriptions' | 'users' | 'local';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -92,6 +93,10 @@ function getExpirationDate(plan: 'pro_monthly' | 'pro_annual'): string {
   return now.toISOString();
 }
 
+function getLocalSubscriptionKey(userId: string): string {
+  return `subscription_${userId}`;
+}
+
 // ─── Context ────────────────────────────────────────────────────────────────
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -143,9 +148,38 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     return nestedSubscription;
   }, [saveToUsersDoc, user]);
 
+  const saveToLocalStorage = useCallback(
+    async (nextSubscription: SubscriptionInfo) => {
+      if (!user) return;
+      await AsyncStorage.setItem(
+        getLocalSubscriptionKey(user.uid),
+        JSON.stringify(nextSubscription)
+      );
+    },
+    [user]
+  );
+
+  const loadFromLocalStorage = useCallback(async (): Promise<SubscriptionInfo> => {
+    if (!user) return defaultSubscription;
+
+    const raw = await AsyncStorage.getItem(getLocalSubscriptionKey(user.uid));
+    const localSubscription = normalizeSubscription(raw ? JSON.parse(raw) : null);
+
+    if (!raw) {
+      await saveToLocalStorage(localSubscription);
+    }
+
+    return localSubscription;
+  }, [saveToLocalStorage, user]);
+
   const persistSubscription = useCallback(
     async (nextSubscription: SubscriptionInfo) => {
       if (!user) return;
+
+      if (store === 'local') {
+        await saveToLocalStorage(nextSubscription);
+        return;
+      }
 
       if (store === 'users') {
         await saveToUsersDoc(nextSubscription);
@@ -155,7 +189,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const ref = doc(db, 'subscriptions', user.uid);
       await setDoc(ref, nextSubscription);
     },
-    [saveToUsersDoc, store, user]
+    [saveToLocalStorage, saveToUsersDoc, store, user]
   );
 
   // Load subscription on auth change
@@ -228,7 +262,40 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             setSubscription(data);
             return;
           } catch (fallbackError) {
-            console.error('Failed to load subscription fallback from users doc:', fallbackError);
+            if (isPermissionDenied(fallbackError)) {
+              try {
+                setStore('local');
+                let data = await loadFromLocalStorage();
+                const currentMonth = getCurrentMonth();
+
+                if (data.voiceRecordingsResetMonth !== currentMonth) {
+                  data = {
+                    ...data,
+                    voiceRecordingsThisMonth: 0,
+                    voiceRecordingsResetMonth: currentMonth,
+                  };
+                  await saveToLocalStorage(data);
+                }
+
+                if (data.plan !== 'free' && data.expiresAt) {
+                  const expired = new Date(data.expiresAt) < new Date();
+                  if (expired) {
+                    data = { ...data, plan: 'free', expiresAt: null, subscribedAt: null };
+                    await saveToLocalStorage(data);
+                  }
+                }
+
+                setSubscription(data);
+                return;
+              } catch (localFallbackError) {
+                console.error(
+                  'Failed to load subscription fallback from local storage:',
+                  localFallbackError
+                );
+              }
+            } else {
+              console.error('Failed to load subscription fallback from users doc:', fallbackError);
+            }
           }
         } else {
           console.error('Failed to load subscription:', err);
@@ -240,7 +307,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
 
     loadSubscription();
-  }, [loadFromUsersDoc, saveToUsersDoc, user]);
+  }, [loadFromLocalStorage, loadFromUsersDoc, saveToLocalStorage, saveToUsersDoc, user]);
 
   const isPro = subscription.plan !== 'free';
 
@@ -322,9 +389,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const data = await loadFromUsersDoc();
+    const data = store === 'users' ? await loadFromUsersDoc() : await loadFromLocalStorage();
     setSubscription(data);
-  }, [getSubscriptionsRef, loadFromUsersDoc, store, user]);
+  }, [getSubscriptionsRef, loadFromLocalStorage, loadFromUsersDoc, store, user]);
 
   const cancelSubscription = useCallback(async () => {
     const nextSubscription = {
