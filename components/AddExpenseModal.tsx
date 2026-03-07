@@ -23,11 +23,17 @@ interface AddExpenseModalProps {
   visible: boolean;
   onClose: () => void;
   userId: string;
+  initialCategory?: BudgetCategory | null;
 }
 
 const SHEET_HEIGHT = Dimensions.get('window').height * 0.85;
 
-export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, userId }) => {
+export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
+  visible,
+  onClose,
+  userId,
+  initialCategory,
+}) => {
   const { theme, isDarkMode } = useTheme();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
@@ -37,7 +43,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClo
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
 
-
+  // Set initial category when modal becomes visible
+  React.useEffect(() => {
+    if (visible && initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+  }, [visible, initialCategory]);
 
   function resetForm() {
     setTitle('');

@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
+  RefreshControl,
   ScrollView,
   StatusBar,
   Text,
@@ -41,9 +43,18 @@ export default function OverviewScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingExpense, setEditingExpense] = useState<import('../../types').Expense | null>(null);
   const [paywallVisible, setPaywallVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const micPulse = useRef(new Animated.Value(0)).current;
   const fabShadowColor = isDarkMode ? '#FFFFFF' : '#000000';
   const micPulseColor = isDarkMode ? '#FFFFFF' : theme.purple;
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Data is real-time via onSnapshot, so we just simulate a refresh for UX
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -82,7 +93,16 @@ export default function OverviewScreen() {
   }
 
   async function handleDeleteExpense(id: string) {
-    await deleteExpense(id);
+    Alert.alert('Delete Expense', 'Are you sure you want to delete this expense?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteExpense(id);
+        },
+      },
+    ]);
   }
 
   const now = new Date();
@@ -92,7 +112,17 @@ export default function OverviewScreen() {
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.purple}
+            colors={[theme.purple]}
+          />
+        }>
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
@@ -182,7 +212,13 @@ export default function OverviewScreen() {
               </Text>
             ) : (
               todayExpenses.map((expense) => (
-                <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />
+                <ExpenseItem
+                  key={expense.id}
+                  expense={expense}
+                  onPress={openEditExpense}
+                  onDelete={handleDeleteExpense}
+                  onEdit={openEditExpense}
+                />
               ))
             )}
           </View>
@@ -195,7 +231,13 @@ export default function OverviewScreen() {
               Yesterday
             </Text>
             {yesterdayExpenses.map((expense) => (
-              <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} />
+              <ExpenseItem
+                key={expense.id}
+                expense={expense}
+                onPress={openEditExpense}
+                onDelete={handleDeleteExpense}
+                onEdit={openEditExpense}
+              />
             ))}
           </View>
         )}
@@ -207,7 +249,14 @@ export default function OverviewScreen() {
               Past
             </Text>
             {olderExpenses.map((expense) => (
-              <ExpenseItem key={expense.id} expense={expense} onPress={openEditExpense} showDate />
+              <ExpenseItem
+                key={expense.id}
+                expense={expense}
+                onPress={openEditExpense}
+                onDelete={handleDeleteExpense}
+                onEdit={openEditExpense}
+                showDate
+              />
             ))}
           </View>
         )}

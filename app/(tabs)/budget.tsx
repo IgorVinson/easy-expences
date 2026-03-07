@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { AddEditCategoryModal } from '../../components/AddEditCategoryModal';
 import { BudgetCategoryItem } from '../../components/BudgetCategoryItem';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,6 +16,15 @@ export default function BudgetScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BudgetCategory | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Data is real-time via onSnapshot, so we just simulate a refresh for UX
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   const totalRemaining = Math.max(0, totalBudget - totalSpent);
   const overallPercentage = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
@@ -47,7 +56,16 @@ export default function BudgetScreen() {
   }
 
   async function handleDelete(id: string) {
-    await deleteCategory(id);
+    Alert.alert('Delete Category', 'Are you sure you want to delete this category?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteCategory(id);
+        },
+      },
+    ]);
   }
 
 
@@ -55,7 +73,17 @@ export default function BudgetScreen() {
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.purple}
+            colors={[theme.purple]}
+          />
+        }>
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
@@ -174,6 +202,8 @@ export default function BudgetScreen() {
                 key={category.id}
                 category={category}
                 onPress={openEdit}
+                onDelete={handleDelete}
+                onEdit={openEdit}
               />
             ))
           )}
