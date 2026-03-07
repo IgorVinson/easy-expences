@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -23,6 +24,7 @@ import { useBudget } from '../../hooks/useBudget';
 import { useExpenses } from '../../hooks/useExpenses';
 
 export default function OverviewScreen() {
+  const { t } = useTranslation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { canUseVoice, voiceRecordingsLeft, isPro, incrementVoiceUsage } = useSubscription();
@@ -93,10 +95,10 @@ export default function OverviewScreen() {
   }
 
   async function handleDeleteExpense(id: string) {
-    Alert.alert('Delete Expense', 'Are you sure you want to delete this expense?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('overview.deleteTitle'), t('overview.deleteConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteExpense(id);
@@ -126,7 +128,7 @@ export default function OverviewScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
-            Overview
+            {t('overview.title')}
           </Text>
           <TouchableOpacity
             onPress={toggleTheme}
@@ -136,64 +138,12 @@ export default function OverviewScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Monthly Total Card */}
-        {/* <View className="mb-6 px-6">
-          <View className="rounded-3xl p-6" style={{ backgroundColor: theme.purpleCard }}>
-            <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-base font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                This Month
-              </Text>
-              <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                {monthLabel} ▼
-              </Text>
-            </View>
-            <Text className="mb-4 text-5xl font-bold text-white">
-              ${monthlyTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Text>
-
-            <View
-              className="rounded-2xl p-4"
-              style={{
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
-                borderWidth: 1,
-                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-              }}>
-              <View className="mb-3 flex-row justify-between">
-                <View>
-                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Left to spend
-                  </Text>
-                  <Text className="text-2xl font-bold text-white">
-                    ${leftToSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                </View>
-                <View className="items-end">
-                  <Text className="mb-1 text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                    Monthly budget
-                  </Text>
-                  <Text className="text-2xl font-bold text-white">
-                    ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                </View>
-              </View>
-              <View
-                className="h-2 overflow-hidden rounded-full"
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                <View
-                  className="h-full rounded-full"
-                  style={{ width: `${spendPercent}%`, backgroundColor: '#C084FC' }}
-                />
-              </View>
-            </View>
-          </View>
-        </View> */}
-
         {/* Loading state */}
         {loading && (
           <View className="items-center py-10">
             <ActivityIndicator size="large" color={theme.purple} />
             <Text className="mt-3 text-sm" style={{ color: theme.textTertiary }}>
-              Loading expenses…
+              {t('overview.loading')}
             </Text>
           </View>
         )}
@@ -203,12 +153,12 @@ export default function OverviewScreen() {
           <View className="mb-4 px-6">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
-                Today
+                {t('overview.today')}
               </Text>
             </View>
             {todayExpenses.length === 0 ? (
               <Text className="py-4 text-center text-sm" style={{ color: theme.textTertiary }}>
-                No expenses today yet
+                {t('overview.noExpensesToday')}
               </Text>
             ) : (
               todayExpenses.map((expense) => (
@@ -228,7 +178,7 @@ export default function OverviewScreen() {
         {!loading && yesterdayExpenses.length > 0 && (
           <View className="mb-4 px-6">
             <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
-              Yesterday
+              {t('overview.yesterday')}
             </Text>
             {yesterdayExpenses.map((expense) => (
               <ExpenseItem
@@ -246,7 +196,7 @@ export default function OverviewScreen() {
         {!loading && olderExpenses.length > 0 && (
           <View className="mb-4 px-6">
             <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
-              Past
+              {t('overview.past')}
             </Text>
             {olderExpenses.map((expense) => (
               <ExpenseItem

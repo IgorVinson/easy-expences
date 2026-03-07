@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -62,6 +63,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   onSave,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const isEdit = Boolean(category);
   const [deleting, setDeleting] = useState(false);
@@ -98,12 +100,12 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
 
   async function handleSave() {
     if (!name.trim()) {
-      Alert.alert('Missing name', 'Please enter a name for the category.');
+      Alert.alert(t('addCategory.missingName'), t('addCategory.enterName'));
       return;
     }
     const parsedBudget = parseFloat(budget);
     if (isNaN(parsedBudget) || parsedBudget <= 0) {
-      Alert.alert('Invalid budget', 'Please enter a valid positive budget amount.');
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
     try {
@@ -118,7 +120,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
       resetForm();
       onClose();
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to save category.');
+      Alert.alert(t('common.error'), e.message ?? 'Failed to save category.');
     } finally {
       setSaving(false);
     }
@@ -127,12 +129,12 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   function handleDeletePress() {
     if (!category) return;
     Alert.alert(
-      'Delete Category',
-      `Are you sure you want to delete "${category.name}"? This won't delete existing expenses.`,
+      t('budget.deleteTitle'),
+      t('budget.deleteConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -141,7 +143,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               resetForm();
               onClose();
             } catch (e: any) {
-              Alert.alert('Error', e.message ?? 'Failed to delete category.');
+              Alert.alert(t('common.error'), e.message ?? 'Failed to delete category.');
             } finally {
               setDeleting(false);
             }
@@ -183,7 +185,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               {/* Header */}
               <View className="flex-row items-center justify-between px-6 py-3">
                 <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-                  {isEdit ? 'Edit Budget Category' : 'Add Budget Category'}
+                  {isEdit ? t('addCategory.editTitle') : t('addCategory.addTitle')}
                 </Text>
                 <TouchableOpacity
                   onPress={handleClose}
@@ -202,12 +204,12 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
 
                 {/* Name */}
                 <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                  Category Name
+                  {t('addCategory.nameLabel')}
                 </Text>
                 <TextInput
                   value={name}
                   onChangeText={setName}
-                  placeholder="e.g. Food & Dining"
+                  placeholder={t('addCategory.namePlaceholder')}
                   placeholderTextColor={theme.textTertiary}
                   className="mb-5 rounded-2xl px-4 py-3.5 text-base"
                   style={{
@@ -221,7 +223,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 {/* Budget input with side reset button */}
                 <View className="mb-2.5 flex-row items-center justify-between">
                   <Text className="text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                    Monthly Budget ($)
+                    {t('addCategory.budgetLabel')}
                   </Text>
                 </View>
                 
@@ -229,7 +231,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                   <TextInput
                     value={budget}
                     onChangeText={setBudget}
-                    placeholder="0.00"
+                    placeholder={t('addCategory.budgetPlaceholder')}
                     placeholderTextColor={theme.textTertiary}
                     keyboardType="decimal-pad"
                     className="flex-1 rounded-2xl px-4 py-3.5 text-base"
@@ -252,7 +254,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                           'Reset Spent Amount?',
                           `This will reset the spent amount for "${category?.name}" back to $0. Perfect for starting a new cycle early.`,
                           [
-                            { text: 'Cancel', style: 'cancel' },
+                            { text: t('common.cancel'), style: 'cancel' },
                             { 
                               text: 'Reset to $0', 
                               style: 'destructive',
@@ -269,7 +271,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                                     }, true);
                                     onClose();
                                   } catch (e: any) {
-                                    Alert.alert('Error', e.message);
+                                    Alert.alert(t('common.error'), e.message);
                                   } finally {
                                     setSaving(false);
                                   }
@@ -290,7 +292,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
 
                 {/* Icon picker */}
                 <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                  Icon
+                  {t('addCategory.iconLabel')}
                 </Text>
                 <View className="mb-5 flex-row flex-wrap gap-2.5">
                   {ICON_OPTIONS.map((icon) => {
@@ -361,7 +363,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                       <>
                         <Ionicons name="trash-outline" size={15} color="#F87171" />
                         <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
-                          Delete Category
+                          {t('budget.deleteTitle')}
                         </Text>
                       </>
                     )}
@@ -390,7 +392,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text className="text-base font-bold text-white">
-                      {isEdit ? 'Save Changes' : 'Add Budget Category'}
+                      {isEdit ? t('common.save') : t('addCategory.save')}
                     </Text>
                   )}
                 </TouchableOpacity>

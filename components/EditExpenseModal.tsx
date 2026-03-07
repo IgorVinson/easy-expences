@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -37,6 +38,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   onSave,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { categories } = useBudget(userId);
 
@@ -74,16 +76,16 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     if (!expense) return;
 
     if (!title.trim()) {
-      Alert.alert('Missing title', 'Please enter a title for the expense.');
+      Alert.alert(t('addExpense.missingTitle'), t('addExpense.enterTitle'));
       return;
     }
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Invalid amount', 'Please enter a valid positive amount.');
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
     if (!selectedCategory) {
-      Alert.alert('No category', 'Please select a category.');
+      Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
       return;
     }
 
@@ -101,7 +103,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       resetForm();
       onClose();
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to save expense.');
+      Alert.alert(t('common.error'), e.message ?? t('addExpense.failedSave'));
     } finally {
       setSaving(false);
     }
@@ -110,12 +112,12 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   function handleDeletePress() {
     if (!expense) return;
     Alert.alert(
-      'Delete Expense',
-      `Are you sure you want to delete "${expense.title}"?`,
+      t('overview.deleteTitle'),
+      t('overview.deleteConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -124,7 +126,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               resetForm();
               onClose();
             } catch (e: any) {
-              Alert.alert('Error', e.message ?? 'Failed to delete expense.');
+              Alert.alert(t('common.error'), e.message ?? 'Failed to delete expense.');
             } finally {
               setDeleting(false);
             }
@@ -177,7 +179,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           {/* Header */}
           <View className="flex-row items-center justify-between px-6 py-3">
             <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-              Edit Expense
+              {t('editExpense.title')}
             </Text>
             <TouchableOpacity
               onPress={handleClose}
@@ -196,24 +198,24 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
             {/* Title */}
             <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-              Title
+              {t('addExpense.nameLabel')}
             </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="e.g. Lunch at Café"
+              placeholder={t('addExpense.namePlaceholder')}
               placeholderTextColor={theme.textTertiary}
               style={[inputStyle, { marginBottom: 20 }]}
             />
 
             {/* Amount */}
             <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-              Amount ($)
+              {t('addExpense.amountLabel')}
             </Text>
             <TextInput
               value={amount}
               onChangeText={setAmount}
-              placeholder="0.00"
+              placeholder={t('addExpense.amountPlaceholder')}
               placeholderTextColor={theme.textTertiary}
               keyboardType="decimal-pad"
               style={[inputStyle, { marginBottom: 20 }]}
@@ -221,11 +223,11 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
             {/* Category */}
             <Text className="mb-3 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-              Category
+              {t('addExpense.categoryLabel')}
             </Text>
             {categories.length === 0 ? (
               <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
-                No categories yet. Check the Budget tab.
+                {t('addExpense.noCategories')}
               </Text>
             ) : (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -282,7 +284,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 <>
                   <Ionicons name="trash-outline" size={15} color="#F87171" />
                   <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
-                    Delete Expense
+                    {t('editExpense.delete')}
                   </Text>
                 </>
               )}
@@ -311,7 +313,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text className="text-base font-bold text-white">
-                  Save Changes
+                  {t('editExpense.save')}
                 </Text>
               )}
             </TouchableOpacity>

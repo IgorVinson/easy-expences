@@ -1,0 +1,79 @@
+{
+  "tabs": {
+    "overview": "Overview",
+    "budget": "Budget",
+    "profile": "Profile"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "error": "Error"
+  },
+  "overview": {
+    "title": "Overview",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "past": "Past",
+    "noExpensesToday": "No expenses today yet",
+    "loading": "Loading expenses…",
+    "deleteTitle": "Delete Expense",
+    "deleteConfirm": "Are you sure you want to delete this expense?"
+  },
+  "budget": {
+    "title": "Monthly Budget",
+    "totalSpent": "Total Spent",
+    "totalBudget": "Total Budget",
+    "remaining": "Remaining",
+    "overBudget": "Over Budget",
+    "budgetUsed": "{{percent}}% of budget used",
+    "categories": "Categories",
+    "loading": "Loading categories…",
+    "noCategories": "No categories yet",
+    "tapAdd": "Tap \"Add\" to create your first budget category.",
+    "deleteTitle": "Delete Category",
+    "deleteConfirm": "Are you sure you want to delete this category?"
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "Language",
+    "english": "English",
+    "ukrainian": "Українська",
+    "spanish": "Español",
+    "settings": "Settings"
+  },
+  "addExpense": {
+    "title": "Add Expense",
+    "nameLabel": "Title",
+    "namePlaceholder": "e.g. Lunch at Café",
+    "amountLabel": "Amount ($)",
+    "amountPlaceholder": "0.00",
+    "categoryLabel": "Category",
+    "noCategories": "No categories yet. Check the Budget tab.",
+    "save": "Save Expense",
+    "missingTitle": "Missing title",
+    "enterTitle": "Please enter a title for the expense.",
+    "invalidAmount": "Invalid amount",
+    "enterAmount": "Please enter a valid positive amount.",
+    "noCategory": "No category",
+    "selectCategory": "Please select a category.",
+    "failedSave": "Failed to save expense."
+  },
+  "editExpense": {
+    "title": "Edit Expense",
+    "save": "Save Changes",
+    "delete": "Delete Expense"
+  },
+  "addCategory": {
+    "addTitle": "Add Category",
+    "editTitle": "Edit Category",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Groceries",
+    "budgetLabel": "Monthly Budget ($)",
+    "budgetPlaceholder": "0.00",
+    "iconLabel": "Icon",
+    "save": "Save Category",
+    "missingName": "Missing name",
+    "enterName": "Please enter a name for the category."
+  }
+}

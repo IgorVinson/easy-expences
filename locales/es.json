@@ -1,0 +1,79 @@
+{
+  "tabs": {
+    "overview": "Resumen",
+    "budget": "Presupuesto",
+    "profile": "Perfil"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "error": "Error"
+  },
+  "overview": {
+    "title": "Resumen",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "past": "Pasado",
+    "noExpensesToday": "Aún no hay gastos hoy",
+    "loading": "Cargando gastos…",
+    "deleteTitle": "Eliminar gasto",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este gasto?"
+  },
+  "budget": {
+    "title": "Presupuesto Mensual",
+    "totalSpent": "Total Gastado",
+    "totalBudget": "Presupuesto Total",
+    "remaining": "Restante",
+    "overBudget": "Excedido",
+    "budgetUsed": "{{percent}}% del presupuesto usado",
+    "categories": "Categorías",
+    "loading": "Cargando categorías…",
+    "noCategories": "Aún no hay categorías",
+    "tapAdd": "Toca \"Añadir\" para crear tu primera categoría.",
+    "deleteTitle": "Eliminar Categoría",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?"
+  },
+  "profile": {
+    "title": "Perfil",
+    "language": "Idioma",
+    "english": "English",
+    "ukrainian": "Українська",
+    "spanish": "Español",
+    "settings": "Ajustes"
+  },
+  "addExpense": {
+    "title": "Añadir Gasto",
+    "nameLabel": "Título",
+    "namePlaceholder": "ej. Almuerzo en la cafetería",
+    "amountLabel": "Cantidad ($)",
+    "amountPlaceholder": "0.00",
+    "categoryLabel": "Categoría",
+    "noCategories": "No hay categorías. Revisa la pestaña de Presupuesto.",
+    "save": "Guardar Gasto",
+    "missingTitle": "Falta el título",
+    "enterTitle": "Por favor ingresa un título para el gasto.",
+    "invalidAmount": "Cantidad inválida",
+    "enterAmount": "Por favor ingresa una cantidad positiva válida.",
+    "noCategory": "Sin categoría",
+    "selectCategory": "Por favor selecciona una categoría.",
+    "failedSave": "Error al guardar el gasto."
+  },
+  "editExpense": {
+    "title": "Editar Gasto",
+    "save": "Guardar Cambios",
+    "delete": "Eliminar Gasto"
+  },
+  "addCategory": {
+    "addTitle": "Añadir Categoría",
+    "editTitle": "Editar Categoría",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "ej. Comestibles",
+    "budgetLabel": "Presupuesto Mensual ($)",
+    "budgetPlaceholder": "0.00",
+    "iconLabel": "Icono",
+    "save": "Guardar Categoría",
+    "missingName": "Falta el nombre",
+    "enterName": "Por favor ingresa un nombre para la categoría."
+  }
+}

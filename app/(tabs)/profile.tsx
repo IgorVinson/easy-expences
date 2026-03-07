@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Linking,
@@ -19,6 +20,7 @@ import { PaywallModal } from '../../components/PaywallModal';
 import { styles } from '../../styles';
 
 export default function ProfileScreen() {
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, user } = useAuth();
   const { isPro, subscription, voiceRecordingsLeft, cancelSubscription } = useSubscription();
@@ -47,10 +49,19 @@ export default function ProfileScreen() {
       }
     } else {
       Alert.alert('Logout', 'Are you sure you want to logout?', [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { text: 'Logout', style: 'destructive', onPress: doLogout },
       ]);
     }
+  };
+
+  const handleChangeLanguage = () => {
+    Alert.alert(t('profile.language'), '', [
+      { text: t('profile.english'), onPress: () => i18n.changeLanguage('en') },
+      { text: t('profile.ukrainian'), onPress: () => i18n.changeLanguage('uk') },
+      { text: t('profile.spanish'), onPress: () => i18n.changeLanguage('es') },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
   };
 
   const handleSendSupport = async () => {
@@ -90,7 +101,7 @@ export default function ProfileScreen() {
         {/* Header with Theme Toggle */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
-            My Profile
+            {t('profile.title')}
           </Text>
           <TouchableOpacity
             onPress={toggleTheme}
@@ -226,7 +237,7 @@ export default function ProfileScreen() {
         {/* Settings Group */}
         <View className="mb-8 px-6">
           <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
-            Settings
+            {t('profile.settings')}
           </Text>
           <View
             className="overflow-hidden rounded-2xl p-4"
@@ -279,6 +290,29 @@ export default function ProfileScreen() {
                 })}
               </View>
             </View>
+
+            {/* Language Switcher */}
+            <TouchableOpacity
+              onPress={handleChangeLanguage}
+              className="flex-row items-center justify-between border-b py-4"
+              style={{ borderBottomColor: theme.border }}>
+              <View className="flex-row items-center">
+                <View
+                  className="h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(16,185,129,0.15)' : '#D1FAE5' }}>
+                  <Ionicons name="language-outline" size={20} color="#10B981" />
+                </View>
+                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
+                  {t('profile.language')}
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <Text className="mr-2 text-sm font-medium" style={{ color: theme.textSecondary }}>
+                  {i18n.language.toUpperCase()}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+              </View>
+            </TouchableOpacity>
 
             {/* Help & Support */}
             <TouchableOpacity
@@ -359,7 +393,7 @@ export default function ProfileScreen() {
                 className="mr-3 rounded-full px-4 py-2"
                 style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#E2E8F0' }}>
                 <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

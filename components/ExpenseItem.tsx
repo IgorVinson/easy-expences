@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
@@ -21,6 +22,7 @@ export const ExpenseItem = ({
   onEdit,
   showDate,
 }: ExpenseItemProps) => {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
 
@@ -135,7 +137,7 @@ export const ExpenseItem = ({
           </Text>
           {expense.budgetLeft && (
             <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-              ${expense.budgetLeft} left
+              {t('expenseItem.left', { amount: expense.budgetLeft })}
             </Text>
           )}
         </View>

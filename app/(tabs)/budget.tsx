@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { AddEditCategoryModal } from '../../components/AddEditCategoryModal';
 import { BudgetCategoryItem } from '../../components/BudgetCategoryItem';
@@ -9,6 +10,7 @@ import { useBudget } from '../../hooks/useBudget';
 import { BudgetCategory, NewBudgetCategory } from '../../types';
 
 export default function BudgetScreen() {
+  const { t } = useTranslation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { categories, totalBudget, totalSpent, loading, addCategory, updateCategory, deleteCategory } =
@@ -56,10 +58,10 @@ export default function BudgetScreen() {
   }
 
   async function handleDelete(id: string) {
-    Alert.alert('Delete Category', 'Are you sure you want to delete this category?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('budget.deleteTitle'), t('budget.deleteConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteCategory(id);
@@ -87,7 +89,7 @@ export default function BudgetScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
-            Monthly Budget
+            {t('budget.title')}
           </Text>
           <TouchableOpacity
             onPress={toggleTheme}
@@ -124,7 +126,7 @@ export default function BudgetScreen() {
             <View className="mb-6 flex-row items-end justify-between">
               <View>
                 <Text className="mb-1 text-sm font-medium" style={{ color: theme.textTertiary }}>
-                  Total Spent
+                  {t('budget.totalSpent')}
                 </Text>
                 <Text className="text-4xl font-black tracking-tight" style={{ color: theme.textPrimary }}>
                   ${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -132,7 +134,7 @@ export default function BudgetScreen() {
               </View>
               <View className="items-end pb-1">
                 <Text className="mb-1 text-xs font-medium" style={{ color: theme.textTertiary }}>
-                  Total Budget
+                  {t('budget.totalBudget')}
                 </Text>
                 <Text className="text-lg font-bold" style={{ color: theme.textSecondary }}>
                   ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -143,10 +145,10 @@ export default function BudgetScreen() {
             {/* Progress Section */}
             <View>
               <View className="mb-2 flex-row items-center justify-between">
-                <Text className="text-xs font-semibold" style={{ color: totalRemaining > 0 ? theme.green : theme.red }}>
-                  {totalRemaining > 0 ? 'Remaining' : 'Over Budget'}
+                <Text className="text-xs font-semibold" style={{ color: totalRemaining > 0 ? '#10B981' : '#EF4444' }}>
+                  {totalRemaining > 0 ? t('budget.remaining') : t('budget.overBudget')}
                 </Text>
-                <Text className="text-sm font-bold" style={{ color: totalRemaining > 0 ? theme.green : theme.red }}>
+                <Text className="text-sm font-bold" style={{ color: totalRemaining > 0 ? '#10B981' : '#EF4444' }}>
                   ${Math.abs(totalBudget - totalSpent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
               </View>
@@ -158,13 +160,13 @@ export default function BudgetScreen() {
                   className="h-full rounded-full"
                   style={{ 
                     width: `${Math.min(overallPercentage, 100)}%`, 
-                    backgroundColor: overallPercentage > 100 ? theme.red : theme.purple 
+                    backgroundColor: overallPercentage > 100 ? '#EF4444' : theme.purple 
                   }}
                 />
               </View>
               
               <Text className="mt-2 text-right text-[10px] font-medium" style={{ color: theme.textTertiary }}>
-                {Math.round(overallPercentage)}% of budget used
+                {t('budget.budgetUsed', { percent: Math.round(overallPercentage) })}
               </Text>
             </View>
 
@@ -175,7 +177,7 @@ export default function BudgetScreen() {
         <View className="mb-8 px-6">
           <View className="mb-4 flex-row items-center justify-between">
             <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
-              Categories
+              {t('budget.categories')}
             </Text>
           </View>
 
@@ -183,17 +185,17 @@ export default function BudgetScreen() {
             <View className="items-center py-10">
               <ActivityIndicator size="large" color={theme.purple} />
               <Text className="mt-3 text-sm" style={{ color: theme.textTertiary }}>
-                Loading categories…
+                {t('budget.loading')}
               </Text>
             </View>
           ) : categories.length === 0 ? (
             <View className="items-center py-10">
               <Ionicons name="wallet-outline" size={48} color={theme.textTertiary} />
               <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
-                No categories yet
+                {t('budget.noCategories')}
               </Text>
               <Text className="mt-1 text-sm text-center" style={{ color: theme.textTertiary }}>
-                {'Tap "Add" to create your first budget category.'}
+                {t('budget.tapAdd')}
               </Text>
             </View>
           ) : (

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
@@ -19,6 +20,7 @@ export const BudgetCategoryItem = ({
   onDelete,
   onEdit,
 }: BudgetCategoryItemProps) => {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
 
@@ -128,8 +130,8 @@ export const BudgetCategoryItem = ({
               className="mt-0.5 text-xs"
               style={{ color: isOverBudget ? '#F87171' : theme.textTertiary }}>
               {isOverBudget
-                ? `$${Math.abs(remaining).toLocaleString()} over`
-                : `$${remaining.toLocaleString()} left`}
+                ? t('budgetCategoryItem.over', { amount: Math.abs(remaining).toLocaleString() })
+                : t('budgetCategoryItem.left', { amount: remaining.toLocaleString() })}
             </Text>
           </View>
         </View>

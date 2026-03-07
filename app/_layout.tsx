@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { SubscriptionProvider } from '../contexts/SubscriptionContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
+import '../i18n';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();

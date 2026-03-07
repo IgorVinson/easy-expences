@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -34,6 +35,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   userId,
   initialCategory,
 }) => {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
@@ -63,16 +65,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
   async function handleSave() {
     if (!title.trim()) {
-      Alert.alert('Missing title', 'Please enter a title for the expense.');
+      Alert.alert(t('addExpense.missingTitle'), t('addExpense.enterTitle'));
       return;
     }
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Invalid amount', 'Please enter a valid positive amount.');
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
     if (!selectedCategory) {
-      Alert.alert('No category', 'Please select a category.');
+      Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
       return;
     }
 
@@ -92,7 +94,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       resetForm();
       onClose();
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to save expense.');
+      Alert.alert(t('common.error'), e.message ?? t('addExpense.failedSave'));
     } finally {
       setSaving(false);
     }
@@ -154,7 +156,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   paddingVertical: 12,
                 }}>
                 <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: 'bold' }}>
-                  Add Expense
+                  {t('addExpense.title')}
                 </Text>
                 <TouchableOpacity
                   onPress={handleClose}
@@ -177,24 +179,24 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 contentContainerStyle={{ paddingBottom: 40 }}>
                 {/* Title */}
                 <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
-                  Title
+                  {t('addExpense.nameLabel')}
                 </Text>
                 <TextInput
                   value={title}
                   onChangeText={setTitle}
-                  placeholder="e.g. Lunch at Café"
+                  placeholder={t('addExpense.namePlaceholder')}
                   placeholderTextColor={theme.textTertiary}
                   style={[inputStyle, { marginBottom: 20 }]}
                 />
 
                 {/* Amount */}
                 <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
-                  Amount ($)
+                  {t('addExpense.amountLabel')}
                 </Text>
                 <TextInput
                   value={amount}
                   onChangeText={setAmount}
-                  placeholder="0.00"
+                  placeholder={t('addExpense.amountPlaceholder')}
                   placeholderTextColor={theme.textTertiary}
                   keyboardType="decimal-pad"
                   style={[inputStyle, { marginBottom: 20 }]}
@@ -202,11 +204,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
                 {/* Category */}
                 <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
-                  Category
+                  {t('addExpense.categoryLabel')}
                 </Text>
                 {categories.length === 0 ? (
                   <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
-                    No categories yet. Check the Budget tab.
+                    {t('addExpense.noCategories')}
                   </Text>
                 ) : (
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -273,7 +275,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   {saving ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Save Expense</Text>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{t('addExpense.save')}</Text>
                   )}
                 </TouchableOpacity>
               </View>

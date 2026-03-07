@@ -1,0 +1,79 @@
+{
+  "tabs": {
+    "overview": "Огляд",
+    "budget": "Бюджет",
+    "profile": "Профіль"
+  },
+  "common": {
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "save": "Зберегти",
+    "error": "Помилка"
+  },
+  "overview": {
+    "title": "Огляд",
+    "today": "Сьогодні",
+    "yesterday": "Вчора",
+    "past": "Минулі",
+    "noExpensesToday": "Сьогодні ще немає витрат",
+    "loading": "Завантаження витрат…",
+    "deleteTitle": "Видалити витрату",
+    "deleteConfirm": "Ви впевнені, що хочете видалити цю витрату?"
+  },
+  "budget": {
+    "title": "Місячний бюджет",
+    "totalSpent": "Всього витрачено",
+    "totalBudget": "Загальний бюджет",
+    "remaining": "Залишилось",
+    "overBudget": "Перевищення",
+    "budgetUsed": "Використано {{percent}}% бюджету",
+    "categories": "Категорії",
+    "loading": "Завантаження категорій…",
+    "noCategories": "Поки немає категорій",
+    "tapAdd": "Натисніть \"Додати\", щоб створити першу категорію.",
+    "deleteTitle": "Видалити категорію",
+    "deleteConfirm": "Ви впевнені, що хочете видалити цю категорію?"
+  },
+  "profile": {
+    "title": "Профіль",
+    "language": "Мова",
+    "english": "English",
+    "ukrainian": "Українська",
+    "spanish": "Español",
+    "settings": "Налаштування"
+  },
+  "addExpense": {
+    "title": "Додати витрату",
+    "nameLabel": "Назва",
+    "namePlaceholder": "напр., Обід у кафе",
+    "amountLabel": "Сума ($)",
+    "amountPlaceholder": "0.00",
+    "categoryLabel": "Категорія",
+    "noCategories": "Категорій немає. Перевірте вкладку Бюджет.",
+    "save": "Зберегти витрату",
+    "missingTitle": "Відсутня назва",
+    "enterTitle": "Будь ласка, введіть назву витрати.",
+    "invalidAmount": "Неправильна сума",
+    "enterAmount": "Будь ласка, введіть коректну додатну суму.",
+    "noCategory": "Категорію не обрано",
+    "selectCategory": "Будь ласка, оберіть категорію.",
+    "failedSave": "Не вдалося зберегти витрату."
+  },
+  "editExpense": {
+    "title": "Редагувати витрату",
+    "save": "Зберегти зміни",
+    "delete": "Видалити витрату"
+  },
+  "addCategory": {
+    "addTitle": "Додати категорію",
+    "editTitle": "Редагувати категорію",
+    "nameLabel": "Назва",
+    "namePlaceholder": "напр., Продукти",
+    "budgetLabel": "Місячний бюджет ($)",
+    "budgetPlaceholder": "0.00",
+    "iconLabel": "Іконка",
+    "save": "Зберегти категорію",
+    "missingName": "Відсутня назва",
+    "enterName": "Будь ласка, введіть назву категорії."
+  }
+}
