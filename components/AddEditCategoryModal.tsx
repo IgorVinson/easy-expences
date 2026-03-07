@@ -251,12 +251,12 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                       }}
                       onPress={() => {
                         Alert.alert(
-                          'Reset Spent Amount?',
-                          `This will reset the spent amount for "${category?.name}" back to $0. Perfect for starting a new cycle early.`,
+                          t('budget.resetSpentTitle'),
+                          t('budget.resetSpentConfirm', { name: category?.name }),
                           [
                             { text: t('common.cancel'), style: 'cancel' },
                             { 
-                              text: 'Reset to $0', 
+                              text: t('budget.resetToZero'), 
                               style: 'destructive',
                               onPress: async () => {
                                 if (category) {
@@ -283,7 +283,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                       }}
                     >
                       <Text className="text-[10px] font-semibold mb-1" style={{ color: theme.textSecondary }}>
-                        Reset spent
+                        {t('addCategory.resetSpent')}
                       </Text>
                       <Ionicons name="refresh-circle" size={24} color={theme.textSecondary} />
                     </TouchableOpacity>

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -18,6 +19,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function SignUpScreen() {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { signup, googleSignIn } = useAuth();
   const [name, setName] = useState('');
@@ -29,21 +31,20 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillFields'));
       return;
     }
     
     if (password !== confirmPassword) {
-       Alert.alert('Error', 'Passwords do not match');
+       Alert.alert(t('common.error'), t('auth.passwordsNoMatch'));
        return;
     }
 
     setLoading(true);
     try {
       await signup(email, password, name);
-      // Success is handled by the root layout's redirect logic
     } catch (error: any) {
-      Alert.alert('Sign Up Failed', error.message);
+      Alert.alert(t('auth.signupFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -53,9 +54,8 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await googleSignIn();
-      // Success is handled by the root layout's redirect logic
     } catch (error: any) {
-      Alert.alert('Google Sign Up Failed', error.message);
+      Alert.alert(t('auth.googleFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -70,37 +70,33 @@ export default function SignUpScreen() {
         className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="flex-grow"
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           
-           {/* Header Gradient */}
            <LinearGradient
              colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
              style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 250 }}
           />
 
-          {/* Header */}
           <View className="flex-row items-center px-6 pb-2 pt-16">
             <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)' }}>
               <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
             </TouchableOpacity>
           </View>
 
-          {/* Content */}
           <View className="flex-1 px-6 pt-4">
             <Text
               className="text-4xl font-bold"
               style={{ color: theme.textPrimary }}>
-              Create Account
+              {t('auth.createAccount')}
             </Text>
             <Text className="mb-8 mt-2 text-base" style={{ color: theme.textSecondary }}>
-              Start tracking your expenses today
+              {t('auth.startJourney')}
             </Text>
 
-            {/* Name Input */}
             <View className="mb-4">
-              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Full Name</Text>
+              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.fullName')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
@@ -117,9 +113,8 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            {/* Email Input */}
             <View className="mb-4">
-               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Email Address</Text>
+               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
@@ -138,9 +133,8 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            {/* Password Input */}
             <View className="mb-4">
-               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Password</Text>
+               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.password')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
@@ -148,7 +142,7 @@ export default function SignUpScreen() {
                 <TextInput
                   className="flex-1 py-4 pl-3 text-base"
                   style={{ color: theme.textPrimary }}
-                  placeholder="Create a password"
+                  placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={password}
                   onChangeText={setPassword}
@@ -166,9 +160,8 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-             {/* Confirm Password Input */}
              <View className="mb-8">
-               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Confirm Password</Text>
+               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.confirmPassword')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
@@ -176,7 +169,7 @@ export default function SignUpScreen() {
                 <TextInput
                   className="flex-1 py-4 pl-3 text-base"
                   style={{ color: theme.textPrimary }}
-                  placeholder="Repeat your password"
+                  placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -187,7 +180,6 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            {/* Sign Up Button */}
             <TouchableOpacity
               onPress={handleSignUp}
               disabled={loading}
@@ -201,21 +193,19 @@ export default function SignUpScreen() {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-lg font-bold text-white">Create Account</Text>
+                <Text className="text-lg font-bold text-white">{t('auth.signUp')}</Text>
               )}
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Divider */}
             <View className="mb-6 flex-row items-center">
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
               <Text className="px-4 text-sm font-medium" style={{ color: theme.textSecondary }}>
-                OR
+                {t('auth.or')}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
             </View>
 
-            {/* Google Button */}
             <TouchableOpacity
               onPress={handleGoogleSignUp}
               className="mb-6 flex-row items-center justify-center rounded-2xl py-4"
@@ -224,22 +214,19 @@ export default function SignUpScreen() {
                 borderWidth: 1,
                 borderColor: theme.border,
               }}>
-              <Text className="mr-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
-                G
-              </Text>
+              <Ionicons name="logo-google" size={20} color={theme.textPrimary} style={{ marginRight: 10 }} />
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                Continue with Google
+                {t('auth.google')}
               </Text>
             </TouchableOpacity>
 
-            {/* Login Link */}
             <View className="mb-8 mt-2 flex-row items-center justify-center">
               <Text className="text-base" style={{ color: theme.textSecondary }}>
-                Already have an account?{' '}
+                {t('auth.alreadyHaveAccount')}
               </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
                 <Text className="text-base font-bold" style={{ color: theme.purple }}>
-                  Sign In
+                  {t('auth.signIn')}
                 </Text>
               </TouchableOpacity>
             </View>

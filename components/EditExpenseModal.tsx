@@ -113,7 +113,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     if (!expense) return;
     Alert.alert(
       t('overview.deleteTitle'),
-      t('overview.deleteConfirm'),
+      t('editExpense.deleteConfirmSpecific', { title: expense.title }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {

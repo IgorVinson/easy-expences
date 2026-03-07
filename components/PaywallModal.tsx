@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -17,38 +18,39 @@ interface PaywallModalProps {
   onClose: () => void;
 }
 
-const FEATURES = [
-  {
-    icon: 'mic' as const,
-    title: 'Unlimited Voice Recording',
-    free: `${FREE_VOICE_LIMIT}/month`,
-    pro: 'Unlim',
-  },
-  {
-    icon: 'analytics-outline' as const,
-    title: 'Advanced Analytics',
-    free: 'Basic',
-    pro: 'Full',
-  },
-  {
-    icon: 'cloud-upload-outline' as const,
-    title: 'Cloud Backup',
-    free: '—',
-    pro: '✓',
-  },
-  {
-    icon: 'download-outline' as const,
-    title: 'Export Reports',
-    free: '—',
-    pro: '✓',
-  },
-];
-
 export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) => {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { subscribe, restorePurchases } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<'pro_monthly' | 'pro_annual'>('pro_annual');
   const [purchasing, setPurchasing] = useState(false);
+
+  const FEATURES = [
+    {
+      icon: 'mic' as const,
+      title: t('paywall.features.voice'),
+      free: `${FREE_VOICE_LIMIT}/${t('common.month') || 'mo'}`,
+      pro: t('paywall.features.unlimited') || 'Unlim',
+    },
+    {
+      icon: 'analytics-outline' as const,
+      title: t('paywall.features.analytics'),
+      free: t('common.basic') || 'Basic',
+      pro: t('common.full') || 'Full',
+    },
+    {
+      icon: 'cloud-upload-outline' as const,
+      title: t('paywall.features.backup'),
+      free: '—',
+      pro: '✓',
+    },
+    {
+      icon: 'download-outline' as const,
+      title: t('paywall.features.export'),
+      free: '—',
+      pro: '✓',
+    },
+  ];
 
   const monthlyPrice = PLANS.pro_monthly.price;
   const annualPrice = PLANS.pro_annual.price;
@@ -59,11 +61,11 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
     setPurchasing(true);
     try {
       await subscribe(selectedPlan);
-      Alert.alert('Welcome to Pro! 🎉', 'You now have unlimited access to all features.', [
-        { text: 'Awesome!', onPress: onClose },
+      Alert.alert(t('paywall.welcome'), t('paywall.welcomeDetail'), [
+        { text: t('paywall.awesome'), onPress: onClose },
       ]);
     } catch (err: any) {
-      Alert.alert('Purchase Failed', err.message || 'Please try again.');
+      Alert.alert(t('paywall.purchaseFailed'), err.message || t('common.tryAgain') || 'Please try again.');
     } finally {
       setPurchasing(false);
     }
@@ -72,9 +74,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
   const handleRestore = async () => {
     try {
       await restorePurchases();
-      Alert.alert('Restored', 'Your purchases have been checked.');
+      Alert.alert(t('paywall.restored'), t('paywall.restoredDetail'));
     } catch {
-      Alert.alert('Error', 'Could not restore purchases.');
+      Alert.alert(t('common.error'), t('paywall.restoreError') || 'Could not restore purchases.');
     }
   };
 
@@ -93,10 +95,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
           <View className="mb-1 flex-row items-center justify-between">
             <View>
               <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-                Upgrade to Pro
+                {t('paywall.title')}
               </Text>
               <Text className="mt-1 text-sm" style={{ color: theme.textSecondary }}>
-                Unlock unlimited voice & more
+                {t('paywall.subtitle')}
               </Text>
             </View>
             <TouchableOpacity
@@ -123,19 +125,19 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                 <Text
                   className="text-xs font-semibold uppercase"
                   style={{ color: theme.textTertiary }}>
-                  Feature
+                  {t('common.feature')}
                 </Text>
               </View>
               <View className="w-16 items-center">
                 <Text
                   className="text-xs font-semibold uppercase"
                   style={{ color: theme.textTertiary }}>
-                  Free
+                  {t('common.free')}
                 </Text>
               </View>
               <View className="w-16 items-center">
                 <Text className="text-xs font-bold uppercase" style={{ color: '#8B5CF6' }}>
-                  Pro
+                  {t('common.pro')}
                 </Text>
               </View>
             </View>
@@ -191,16 +193,16 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                    Annual
+                    {t('paywall.plans.annual')}
                   </Text>
                   <View
                     className="ml-2 rounded-full px-2 py-0.5"
                     style={{ backgroundColor: '#8B5CF6' }}>
-                    <Text className="text-[10px] font-bold text-white">SAVE {savingsPercent}%</Text>
+                    <Text className="text-[10px] font-bold text-white">{t('paywall.plans.savePercent', { percent: savingsPercent })}</Text>
                   </View>
                 </View>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  ${annualMonthly}/mo · Billed ${annualPrice.toFixed(2)}/year
+                  {t('paywall.plans.annualDetail', { monthly: annualMonthly, annual: annualPrice.toFixed(2) })}
                 </Text>
               </View>
               <View
@@ -234,10 +236,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               }}>
               <View className="flex-1">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                  Monthly
+                  {t('paywall.plans.monthly')}
                 </Text>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  ${monthlyPrice.toFixed(2)}/month
+                  {t('paywall.plans.monthlyDetail', { price: monthlyPrice.toFixed(2) })}
                 </Text>
               </View>
               <View
@@ -267,10 +269,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text className="text-base font-bold text-white">
-                Start Pro ·{' '}
-                {selectedPlan === 'pro_annual'
-                  ? `$${annualPrice.toFixed(2)}/yr`
-                  : `$${monthlyPrice.toFixed(2)}/mo`}
+                {t('paywall.subscribe', { price: selectedPlan === 'pro_annual' ? `$${annualPrice.toFixed(2)}/yr` : `$${monthlyPrice.toFixed(2)}/mo` })}
               </Text>
             )}
           </TouchableOpacity>
@@ -281,7 +280,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
             style={{ paddingBottom: Platform.OS === 'ios' ? 10 : 0 }}>
             <TouchableOpacity onPress={handleRestore}>
               <Text className="text-xs" style={{ color: theme.textTertiary }}>
-                Restore Purchases
+                {t('paywall.restore')}
               </Text>
             </TouchableOpacity>
           </View>

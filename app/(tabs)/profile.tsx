@@ -30,27 +30,22 @@ export default function ProfileScreen() {
   const supportEmail = process.env.EXPO_PUBLIC_SUPPORT_EMAIL;
 
   const handleLogout = () => {
-    console.log('Logout button pressed');
-
     const doLogout = async () => {
-      console.log('Logout confirmed, calling logout()...');
       try {
         await logout();
-        console.log('Logout successful');
       } catch (error: any) {
-        console.error('Logout failed:', error);
-        Alert.alert('Logout Failed', error.message);
+        Alert.alert(t('common.error'), error.message);
       }
     };
 
     if (Platform.OS === 'web') {
-      if (window.confirm('Are you sure you want to logout?')) {
+      if (window.confirm(t('profile.logoutConfirm'))) {
         doLogout();
       }
     } else {
-      Alert.alert('Logout', 'Are you sure you want to logout?', [
+      Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
         { text: t('common.cancel'), style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: doLogout },
+        { text: t('profile.logout'), style: 'destructive', onPress: doLogout },
       ]);
     }
   };
@@ -67,14 +62,11 @@ export default function ProfileScreen() {
   const handleSendSupport = async () => {
     const message = supportMessage.trim();
     if (!message) {
-      Alert.alert('Message Required', 'Please enter a message before sending.');
+      Alert.alert(t('profile.messageRequired'), t('profile.enterMessage'));
       return;
     }
     if (!supportEmail) {
-      Alert.alert(
-        'Support Email Missing',
-        'Set EXPO_PUBLIC_SUPPORT_EMAIL in your environment to enable support emails.'
-      );
+      Alert.alert(t('profile.supportEmailMissing'), t('profile.supportEmailError'));
       return;
     }
 
@@ -84,7 +76,7 @@ export default function ProfileScreen() {
 
     const canOpen = await Linking.canOpenURL(mailtoUrl);
     if (!canOpen) {
-      Alert.alert('Unable to Send', 'No email client is available on this device.');
+      Alert.alert(t('profile.unableToSend'), t('profile.noEmailClient'));
       return;
     }
 
@@ -136,10 +128,10 @@ export default function ProfileScreen() {
             </View>
             <View className="ml-3 flex-1">
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                {user?.displayName || 'John Doe'}
+                {user?.displayName || 'User'}
               </Text>
               <Text className="mt-0.5 text-sm" style={{ color: theme.textSecondary }}>
-                {user?.email || 'john.doe@example.com'}
+                {user?.email || ''}
               </Text>
             </View>
           </View>
@@ -148,7 +140,7 @@ export default function ProfileScreen() {
         {/* My Plan Section */}
         <View className="mb-6 px-6">
           <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
-            My Plan
+            {t('profile.myPlan')}
           </Text>
           <View
             className="rounded-2xl p-4"
@@ -173,23 +165,20 @@ export default function ProfileScreen() {
               <View className="ml-3 flex-1">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
                   {isPro
-                    ? subscription.plan === 'pro_annual'
-                      ? `Pro Plan - ${PLANS.pro_annual.label}`
-                      : `Pro Plan - ${PLANS.pro_monthly.label}`
-                    : 'Free Plan'}
+                    ? t('profile.proPlan', { name: subscription.plan === 'pro_annual' ? PLANS.pro_annual.label : PLANS.pro_monthly.label })
+                    : t('profile.freePlan')}
                 </Text>
                 {isPro && subscription.expiresAt ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                    Renews on{' '}
-                    {new Date(subscription.expiresAt).toLocaleDateString('en-US', {
+                    {t('profile.renewsOn', { date: new Date(subscription.expiresAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'uk' ? 'uk-UA' : 'es-ES'), {
                       month: 'long',
                       day: 'numeric',
                       year: 'numeric',
-                    })}
+                    }) })}
                   </Text>
                 ) : (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                    {voiceRecordingsLeft} of {FREE_VOICE_LIMIT} voice recordings left this month
+                    {t('profile.recordingsLeft', { count: voiceRecordingsLeft, total: FREE_VOICE_LIMIT })}
                   </Text>
                 )}
               </View>
@@ -199,12 +188,12 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 onPress={() => {
                   Alert.alert(
-                    'Cancel Subscription',
-                    'Are you sure? You\'ll lose Pro features at the end of your billing period.',
+                    t('profile.cancelSubscription'),
+                    t('profile.cancelSubscriptionConfirm'),
                     [
-                      { text: 'Keep Pro', style: 'cancel' },
+                      { text: t('profile.keepPro'), style: 'cancel' },
                       {
-                        text: 'Cancel',
+                        text: t('profile.cancelSubscription'),
                         style: 'destructive',
                         onPress: cancelSubscription,
                       },
@@ -218,7 +207,7 @@ export default function ProfileScreen() {
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
                 }}>
                 <Text className="text-sm font-medium" style={{ color: theme.textSecondary }}>
-                  Manage Subscription
+                  {t('profile.manageSubscription')}
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -227,7 +216,7 @@ export default function ProfileScreen() {
                 className="w-full items-center justify-center rounded-xl py-3"
                 style={{ backgroundColor: '#8B5CF6' }}>
                 <Text className="text-sm font-bold text-white">
-                  Upgrade to Pro
+                  {t('profile.upgradeToPro')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -256,7 +245,7 @@ export default function ProfileScreen() {
                   <Ionicons name="color-palette-outline" size={20} color="#0EA5E9" />
                 </View>
                 <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
-                  Theme
+                  {t('profile.theme')}
                 </Text>
               </View>
               <View className="flex-row items-center">
@@ -326,7 +315,7 @@ export default function ProfileScreen() {
                   <Ionicons name="help-circle-outline" size={20} color="#F59E0B" />
                 </View>
                 <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
-                  Help & Support
+                  {t('profile.helpSupport')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
@@ -343,7 +332,7 @@ export default function ProfileScreen() {
                   <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                 </View>
                 <Text className="ml-4 text-base font-medium" style={{ color: '#EF4444' }}>
-                  Log Out
+                  {t('profile.logout')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -366,16 +355,16 @@ export default function ProfileScreen() {
             className="w-full rounded-2xl p-6"
             style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
             <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
-              Help & Support
+              {t('profile.helpSupport')}
             </Text>
             <Text className="mt-2 text-sm" style={{ color: theme.textSecondary }}>
-              Tell us what you need and we will send it to support.
+              {t('profile.supportHelpText')}
             </Text>
 
             <TextInput
               value={supportMessage}
               onChangeText={setSupportMessage}
-              placeholder="Describe your issue..."
+              placeholder={t('profile.describeIssue')}
               placeholderTextColor={theme.textTertiary}
               multiline
               className="mt-4 h-28 rounded-xl px-4 py-3 text-sm"
@@ -401,7 +390,7 @@ export default function ProfileScreen() {
                 className="rounded-full px-4 py-2"
                 style={{ backgroundColor: theme.purple }}>
                 <Text className="text-sm font-semibold" style={{ color: '#FFFFFF' }}>
-                  Send
+                  {t('profile.send')}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -24,6 +25,7 @@ interface MonthlyReviewModalProps {
 }
 
 export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyReviewModalProps) {
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const [budgets, setBudgets] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -44,7 +46,7 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
     for (const cat of categories) {
       const val = parseFloat(budgets[cat.id]);
       if (isNaN(val) || val <= 0) {
-        Alert.alert('Invalid amount', `Please enter a valid positive number for ${cat.name}.`);
+        Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
         return;
       }
       finalBudgets[cat.id] = val;
@@ -54,7 +56,7 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
       setSaving(true);
       await onSave(finalBudgets);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to complete monthly review.');
+      Alert.alert(t('common.error'), e.message ?? 'Failed to complete monthly review.');
     } finally {
       setSaving(false);
     }
@@ -66,7 +68,7 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
   }
 
   const now = new Date();
-  const nextMonth = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const nextMonth = now.toLocaleString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'uk' ? 'uk-UA' : 'es-ES'), { month: 'long', year: 'numeric' });
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -90,10 +92,10 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
             <View className="flex-row items-center justify-between border-b px-6 pb-4" style={{ borderColor: theme.border }}>
               <View>
                 <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
-                  New Month Review
+                  {t('monthlyReview.title')}
                 </Text>
                 <Text className="mt-1 text-sm font-medium" style={{ color: theme.textTertiary }}>
-                  Review your budget for {nextMonth}. This will reset all current spending to $0.
+                  {t('monthlyReview.subtitle', { month: nextMonth })}
                 </Text>
               </View>
             </View>
@@ -111,7 +113,7 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
                       className="h-8 w-8 items-center justify-center rounded-full"
                       style={{ backgroundColor: isDarkMode ? cat.colorDark : cat.colorLight }}>
                       <Ionicons
-                        name={cat.icon}
+                        name={cat.icon as any}
                         size={16}
                         color={isDarkMode ? '#FFFFFF' : cat.colorDark}
                       />
@@ -162,7 +164,7 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
                 {saving ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text className="text-base font-bold text-white">Save & Start {nextMonth}</Text>
+                  <Text className="text-base font-bold text-white">{t('monthlyReview.save', { month: nextMonth })}</Text>
                 )}
               </TouchableOpacity>
             </View>

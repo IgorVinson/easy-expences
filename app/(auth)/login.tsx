@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -18,6 +19,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { login, googleSignIn } = useAuth();
   const [email, setEmail] = useState('');
@@ -27,16 +29,15 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillFields'));
       return;
     }
 
     setLoading(true);
     try {
       await login(email, password);
-      // Success is handled by the root layout's redirect logic
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message);
+      Alert.alert(t('auth.loginFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -46,9 +47,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await googleSignIn();
-      // Success is handled by the root layout's redirect logic
     } catch (error: any) {
-      Alert.alert('Google Login Failed', error.message);
+      Alert.alert(t('auth.googleFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -67,31 +67,27 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           
-          {/* Header Gradient */}
           <LinearGradient
              colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
              style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 250 }}
           />
 
           <View className="flex-1 justify-center px-6 pt-20">
-            {/* Logo/Icon */}
             <View className="mb-6 items-center">
               <View className="items-center justify-center rounded-3xl h-20 w-20" style={{ backgroundColor: theme.purple, shadowColor: theme.purple, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 }}>
                  <Ionicons name="wallet" size={40} color="white" />
               </View>
             </View>
 
-            {/* Welcome Text */}
             <Text className="text-center text-4xl font-bold" style={{ color: theme.textPrimary }}>
-              Welcome Back
+              {t('auth.welcome')}
             </Text>
             <Text className="mb-10 mt-2 text-center text-base" style={{ color: theme.textSecondary }}>
-              Sign in to manage your budget
+              {t('auth.signToManage')}
             </Text>
 
-            {/* Email Input */}
             <View className="mb-4">
-              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Email Address</Text>
+              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{
@@ -114,9 +110,8 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Password Input */}
             <View className="mb-2">
-              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Password</Text>
+              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.password')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{
@@ -128,7 +123,7 @@ export default function LoginScreen() {
                 <TextInput
                   className="flex-1 text-base"
                   style={{ color: theme.textPrimary, paddingVertical: 14, paddingLeft: 12 }}
-                  placeholder="Enter your password"
+                  placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={password}
                   onChangeText={setPassword}
@@ -146,16 +141,14 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Forgot Password */}
             <View className="mb-8 items-end">
               <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} className="p-2">
                 <Text className="text-sm font-medium" style={{ color: theme.purple }}>
-                  Forgot Password?
+                  {t('auth.forgotPassword')}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Login Button */}
             <TouchableOpacity
               onPress={handleLogin}
               disabled={loading}
@@ -169,21 +162,19 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-lg font-bold text-white">Sign In</Text>
+                <Text className="text-lg font-bold text-white">{t('auth.signIn')}</Text>
               )}
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Divider */}
             <View className="mb-6 flex-row items-center">
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
               <Text className="px-4 text-sm font-medium" style={{ color: theme.textSecondary }}>
-                OR
+                {t('auth.or')}
               </Text>
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
             </View>
 
-            {/* Google Button */}
             <TouchableOpacity
               onPress={handleGoogleLogin}
               className="mb-8 flex-row items-center justify-center rounded-2xl py-4"
@@ -192,22 +183,19 @@ export default function LoginScreen() {
                 borderWidth: 1,
                 borderColor: theme.border,
               }}>
-              <View className="mr-3">
-                <Text className="text-xl font-bold">G</Text>
-              </View>
+              <Ionicons name="logo-google" size={20} color={theme.textPrimary} style={{ marginRight: 10 }} />
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                Continue with Google
+                {t('auth.google')}
               </Text>
             </TouchableOpacity>
 
-            {/* Sign Up Link */}
             <View className="mb-8 flex-row items-center justify-center">
               <Text className="text-base" style={{ color: theme.textSecondary }}>
-                Don't have an account?{' '}
+                {t('auth.noAccount')}
               </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
                 <Text className="text-base font-bold" style={{ color: theme.purple }}>
-                  Sign Up
+                  {t('auth.signUp')}
                 </Text>
               </TouchableOpacity>
             </View>

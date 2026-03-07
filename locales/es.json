@@ -8,13 +8,20 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "save": "Guardar",
-    "error": "Error"
+    "error": "Error",
+    "feature": "Función",
+    "free": "Gratis",
+    "pro": "Pro",
+    "month": "mes",
+    "basic": "Básico",
+    "full": "Completo",
+    "tryAgain": "Por favor intenta de nuevo."
   },
   "overview": {
     "title": "Resumen",
     "today": "Hoy",
     "yesterday": "Ayer",
-    "past": "Pasado",
+    "past": "Anterior",
     "noExpensesToday": "Aún no hay gastos hoy",
     "loading": "Cargando gastos…",
     "deleteTitle": "Eliminar gasto",
@@ -32,15 +39,41 @@
     "noCategories": "Aún no hay categorías",
     "tapAdd": "Toca \"Añadir\" para crear tu primera categoría.",
     "deleteTitle": "Eliminar Categoría",
-    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?"
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?",
+    "resetSpentTitle": "¿Restablecer gastos?",
+    "resetSpentConfirm": "Esto restablecerá el gasto de \"{{name}}\" a $0. Ideal para empezar un nuevo ciclo.",
+    "resetToZero": "Restablecer a $0"
   },
   "profile": {
-    "title": "Perfil",
+    "title": "Mi Perfil",
+    "myPlan": "Mi Plan",
     "language": "Idioma",
     "english": "English",
     "ukrainian": "Українська",
     "spanish": "Español",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "theme": "Tema",
+    "helpSupport": "Ayuda y Soporte",
+    "logout": "Cerrar Sesión",
+    "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?",
+    "freePlan": "Plan Gratis",
+    "proPlan": "Plan Pro - {{name}}",
+    "renewsOn": "Se renueva el {{date}}",
+    "recordingsLeft": "Quedan {{count}} de {{total}} grabaciones este mes",
+    "manageSubscription": "Gestionar Suscripción",
+    "upgradeToPro": "Mejorar a Pro",
+    "cancelSubscription": "Cancelar Suscripción",
+    "cancelSubscriptionConfirm": "¿Estás seguro? Perderás las funciones Pro al final del período.",
+    "keepPro": "Mantener Pro",
+    "supportEmailMissing": "Falta email de soporte",
+    "supportEmailError": "Configura EXPO_PUBLIC_SUPPORT_EMAIL en tu entorno.",
+    "messageRequired": "Mensaje requerido",
+    "enterMessage": "Por favor escribe un mensaje antes de enviar.",
+    "unableToSend": "No se pudo enviar",
+    "noEmailClient": "No hay cliente de email en este dispositivo.",
+    "describeIssue": "Describe tu problema...",
+    "supportHelpText": "Cuéntanos qué necesitas y lo enviaremos a soporte.",
+    "send": "Enviar"
   },
   "addExpense": {
     "title": "Añadir Gasto",
@@ -62,18 +95,98 @@
   "editExpense": {
     "title": "Editar Gasto",
     "save": "Guardar Cambios",
-    "delete": "Eliminar Gasto"
+    "delete": "Eliminar Gasto",
+    "deleteConfirmSpecific": "¿Estás seguro de que quieres eliminar \"{{title}}\"?"
   },
   "addCategory": {
     "addTitle": "Añadir Categoría",
     "editTitle": "Editar Categoría",
-    "nameLabel": "Nombre",
-    "namePlaceholder": "ej. Comestibles",
+    "nameLabel": "Nombre de Categoría",
+    "namePlaceholder": "ej. Comida",
     "budgetLabel": "Presupuesto Mensual ($)",
     "budgetPlaceholder": "0.00",
     "iconLabel": "Icono",
+    "colorLabel": "Color",
     "save": "Guardar Categoría",
     "missingName": "Falta el nombre",
-    "enterName": "Por favor ingresa un nombre para la categoría."
+    "enterName": "Por favor ingresa un nombre para la categoría.",
+    "resetSpent": "Restablecer gasto"
+  },
+  "recording": {
+    "title": "Grabar Gasto",
+    "instruction": "Toca y di:\n\"Almuerzo 15 dólares comida\"",
+    "footer": "Tras detener, la revisión se abrirá automáticamente.",
+    "back": "Volver a grabar",
+    "listening": "Grabando voz...",
+    "transcriptionFailed": "Error de transcripción",
+    "couldNotTranscribe": "No se pudo transcribir la grabación. Inténtalo de nuevo."
+  },
+  "paywall": {
+    "title": "Mejorar a Pro",
+    "subtitle": "Voz ilimitada y mucho más",
+    "features": {
+      "voice": "Grabación de voz ilimitada",
+      "analytics": "Análisis avanzados",
+      "backup": "Copia en la nube",
+      "export": "Exportar informes",
+      "unlimited": "Ilimit"
+    },
+    "plans": {
+      "annual": "Anual",
+      "monthly": "Mensual",
+      "savePercent": "AHORRA {{percent}}%",
+      "annualDetail": "${{monthly}}/mes · Facturado ${{annual}}/año",
+      "monthlyDetail": "${{price}}/mes"
+    },
+    "subscribe": "Empezar Pro · {{price}}",
+    "restore": "Restaurar compras",
+    "welcome": "¡Bienvenido a Pro! 🎉",
+    "welcomeDetail": "Ya tienes acceso ilimitado a todas las funciones.",
+    "awesome": "¡Genial!",
+    "purchaseFailed": "Error en la compra",
+    "restored": "Restaurado",
+    "restoredDetail": "Tus compras han sido verificadas.",
+    "restoreError": "No se pudieron restaurar las compras."
+  },
+  "expenseItem": {
+    "left": "Quedan ${{amount}}"
+  },
+  "budgetCategoryItem": {
+    "over": "Excedido ${{amount}}",
+    "left": "Quedan ${{amount}}"
+  },
+  "monthlyReview": {
+    "title": "Revisión Mensual",
+    "subtitle": "Revisa tu presupuesto para {{month}}. Esto restablecerá todos los gastos a $0.",
+    "save": "Guardar y Empezar {{month}}"
+  },
+  "auth": {
+    "welcome": "Bienvenido de nuevo",
+    "signToManage": "Inicia sesión para gestionar tu presupuesto",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "signIn": "Iniciar Sesión",
+    "or": "O",
+    "google": "Continuar con Google",
+    "noAccount": "¿No tienes cuenta? ",
+    "signUp": "Registrarse",
+    "fillFields": "Por favor completa todos los campos",
+    "loginFailed": "Error al iniciar sesión",
+    "googleFailed": "Error al iniciar sesión con Google",
+    "createAccount": "Crear cuenta",
+    "startJourney": "Únete para simplificar tus gastos",
+    "fullName": "Nombre completo",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordsNoMatch": "Las contraseñas no coinciden",
+    "signupFailed": "Error al registrarse",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta? ",
+    "logIn": "Iniciar Sesión",
+    "resetPassword": "Restablecer contraseña",
+    "resetInstructions": "Ingresa tu email para recibir instrucciones",
+    "sendInstructions": "Enviar instrucciones",
+    "backToLogin": "Volver al inicio de sesión",
+    "checkEmail": "Revisa tu correo",
+    "resetEmailSent": "Se ha enviado un enlace de restablecimiento a tu correo."
   }
 }

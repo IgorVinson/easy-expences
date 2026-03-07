@@ -8,7 +8,14 @@
     "cancel": "Скасувати",
     "delete": "Видалити",
     "save": "Зберегти",
-    "error": "Помилка"
+    "error": "Помилка",
+    "feature": "Функція",
+    "free": "Безкоштовно",
+    "pro": "Pro",
+    "month": "міс",
+    "basic": "Базова",
+    "full": "Повна",
+    "tryAgain": "Будь ласка, спробуйте ще раз."
   },
   "overview": {
     "title": "Огляд",
@@ -32,15 +39,41 @@
     "noCategories": "Поки немає категорій",
     "tapAdd": "Натисніть \"Додати\", щоб створити першу категорію.",
     "deleteTitle": "Видалити категорію",
-    "deleteConfirm": "Ви впевнені, що хочете видалити цю категорію?"
+    "deleteConfirm": "Ви впевнені, що хочете видалити цю категорію?",
+    "resetSpentTitle": "Скинути суму витрат?",
+    "resetSpentConfirm": "Це скине витрачену суму для \"{{name}}\" до $0. Корисно для початку нового циклу.",
+    "resetToZero": "Скинути до $0"
   },
   "profile": {
-    "title": "Профіль",
+    "title": "Мій профіль",
+    "myPlan": "Мій тариф",
     "language": "Мова",
     "english": "English",
     "ukrainian": "Українська",
     "spanish": "Español",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "theme": "Тема",
+    "helpSupport": "Допомога та підтримка",
+    "logout": "Вийти",
+    "logoutConfirm": "Ви впевнені, що хочете вийти?",
+    "freePlan": "Безкоштовний тариф",
+    "proPlan": "Pro тариф - {{name}}",
+    "renewsOn": "Оновлюється {{date}}",
+    "recordingsLeft": "Залишилося {{count}} з {{total}} голосових записів цього місяця",
+    "manageSubscription": "Керувати підпискою",
+    "upgradeToPro": "Перейти на Pro",
+    "cancelSubscription": "Скасувати підписку",
+    "cancelSubscriptionConfirm": "Ви впевнені? Ви втратите переваги Pro в кінці розрахункового періоду.",
+    "keepPro": "Залишити Pro",
+    "supportEmailMissing": "Відсутня пошта підтримки",
+    "supportEmailError": "Встановіть EXPO_PUBLIC_SUPPORT_EMAIL у вашому оточенні.",
+    "messageRequired": "Потрібне повідомлення",
+    "enterMessage": "Будь ласка, введіть повідомлення перед відправкою.",
+    "unableToSend": "Не вдалося відправити",
+    "noEmailClient": "На цьому пристрої немає поштового клієнта.",
+    "describeIssue": "Опишіть вашу проблему...",
+    "supportHelpText": "Напишіть нам, що вам потрібно, і ми надішлемо це в підтримку.",
+    "send": "Надіслати"
   },
   "addExpense": {
     "title": "Додати витрату",
@@ -62,18 +95,98 @@
   "editExpense": {
     "title": "Редагувати витрату",
     "save": "Зберегти зміни",
-    "delete": "Видалити витрату"
+    "delete": "Видалити витрату",
+    "deleteConfirmSpecific": "Ви впевнені, що хочете видалити \"{{title}}\"?"
   },
   "addCategory": {
     "addTitle": "Додати категорію",
     "editTitle": "Редагувати категорію",
-    "nameLabel": "Назва",
+    "nameLabel": "Назва категорії",
     "namePlaceholder": "напр., Продукти",
     "budgetLabel": "Місячний бюджет ($)",
     "budgetPlaceholder": "0.00",
     "iconLabel": "Іконка",
+    "colorLabel": "Колір",
     "save": "Зберегти категорію",
     "missingName": "Відсутня назва",
-    "enterName": "Будь ласка, введіть назву категорії."
+    "enterName": "Будь ласка, введіть назву категорії.",
+    "resetSpent": "Скинути витрати"
+  },
+  "recording": {
+    "title": "Записати витрату",
+    "instruction": "Натисніть і скажіть:\n\"Обід 15 доларів їжа\"",
+    "footer": "Після зупинки автоматично відкриється перегляд.",
+    "back": "Назад до запису",
+    "listening": "Запис голосу...",
+    "transcriptionFailed": "Помилка транскрипції",
+    "couldNotTranscribe": "Не вдалося розпізнати запис. Спробуйте ще раз."
+  },
+  "paywall": {
+    "title": "Перейти на Pro",
+    "subtitle": "Безлімітні голосові записи та інше",
+    "features": {
+      "voice": "Безлімітний голосовий ввід",
+      "analytics": "Розширена аналітика",
+      "backup": "Хмарне копіювання",
+      "export": "Експорт звітів",
+      "unlimited": "Безлім"
+    },
+    "plans": {
+      "annual": "Річний",
+      "monthly": "Місячний",
+      "savePercent": "ЕКОНОМІЯ {{percent}}%",
+      "annualDetail": "${{monthly}}/міс · ${{annual}}/рік",
+      "monthlyDetail": "${{price}}/місяць"
+    },
+    "subscribe": "Спробувати Pro · {{price}}",
+    "restore": "Відновити покупки",
+    "welcome": "Ласкаво просимо до Pro! 🎉",
+    "welcomeDetail": "Тепер у вас є безлімітний доступ до всіх функцій.",
+    "awesome": "Чудово!",
+    "purchaseFailed": "Помилка покупки",
+    "restored": "Відновлено",
+    "restoredDetail": "Ваші покупки були перевірені.",
+    "restoreError": "Не вдалося відновити покупки."
+  },
+  "expenseItem": {
+    "left": "Залишилось ${{amount}}"
+  },
+  "budgetCategoryItem": {
+    "over": "Перевищення ${{amount}}",
+    "left": "Залишилось ${{amount}}"
+  },
+  "monthlyReview": {
+    "title": "Огляд нового місяця",
+    "subtitle": "Перегляньте свій бюджет на {{month}}. Це скине всі поточні витрати до $0.",
+    "save": "Зберегти та почати {{month}}"
+  },
+  "auth": {
+    "welcome": "З поверненням",
+    "signToManage": "Увійдіть, щоб керувати бюджетом",
+    "email": "Електронна пошта",
+    "password": "Пароль",
+    "forgotPassword": "Забули пароль?",
+    "signIn": "Увійти",
+    "or": "АБО",
+    "google": "Увійти через Google",
+    "noAccount": "Немає акаунту? ",
+    "signUp": "Зареєструватися",
+    "fillFields": "Будь ласка, заповніть усі поля",
+    "loginFailed": "Помилка входу",
+    "googleFailed": "Помилка входу через Google",
+    "createAccount": "Створити акаунт",
+    "startJourney": "Приєднуйтесь, щоб спростити витрати",
+    "fullName": "Повне ім'я",
+    "confirmPassword": "Підтвердіть пароль",
+    "passwordsNoMatch": "Паролі не збігаються",
+    "signupFailed": "Помилка реєстрації",
+    "alreadyHaveAccount": "Вже маєте акаунт? ",
+    "logIn": "Увійти",
+    "resetPassword": "Скидання пароля",
+    "resetInstructions": "Введіть пошту, щоб отримати інструкції",
+    "sendInstructions": "Надіслати інструкції",
+    "backToLogin": "Назад до входу",
+    "checkEmail": "Перевірте пошту",
+    "resetEmailSent": "Посилання для скидання пароля надіслано на вашу пошту."
   }
 }

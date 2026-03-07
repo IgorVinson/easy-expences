@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   ActivityIndicator,
@@ -59,6 +60,7 @@ function findBestCategoryMatch(categories: BudgetCategory[], rawCategory: string
 }
 
 export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose, userId, onExpenseSaved }) => {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
@@ -139,7 +141,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
   async function handleStopAndTranscribe() {
     const result = await stopRecordingAndProcess();
     if (!result) {
-      Alert.alert('Transcription failed', error ?? 'Could not transcribe your recording. Please try again.');
+      Alert.alert(t('recording.transcriptionFailed'), error ?? t('recording.couldNotTranscribe'));
       return;
     }
 
@@ -153,16 +155,16 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
 
   async function handleSave() {
     if (!title.trim()) {
-      Alert.alert('Missing title', 'Please enter a title for the expense.');
+      Alert.alert(t('addExpense.missingTitle'), t('addExpense.enterTitle'));
       return;
     }
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Invalid amount', 'Please enter a valid positive amount.');
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
     if (!selectedCategory) {
-      Alert.alert('No category', 'Please select a category.');
+      Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
       return;
     }
 
@@ -182,7 +184,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
       onExpenseSaved?.();
       await handleClose();
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to save expense.');
+      Alert.alert(t('common.error'), e.message ?? t('addExpense.failedSave'));
     } finally {
       setSaving(false);
     }
@@ -226,7 +228,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
 
           <View className="flex-row items-center justify-between px-6 py-3">
             <Text className="text-[22px] font-bold" style={{ color: theme.textPrimary }}>
-              {step === 'recording' ? 'Record Expense' : 'Add Expense'}
+              {step === 'recording' ? t('recording.title') : t('addExpense.title')}
             </Text>
             <TouchableOpacity
               onPress={handleClose}
@@ -246,7 +248,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   style={{
                     color: theme.textSecondary,
                   }}>
-                  {`Tap, say:\n"Lunch 15 dollars food"`}
+                  {t('recording.instruction')}
                 </Text>
 
                 {isRecording && (
@@ -298,7 +300,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   backgroundColor: theme.bg,
                 }}>
                 <Text className="text-center text-[13px]" style={{ color: theme.textSecondary }}>
-                  After stop, review inputs will open automatically.
+                  {t('recording.footer')}
                 </Text>
               </View>
             </>
@@ -314,13 +316,13 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   style={{
                     color: theme.textSecondary,
                   }}>
-                  Title
+                  {t('addExpense.nameLabel')}
                 </Text>
                 <TextInput
                   className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
                   value={title}
                   onChangeText={setTitle}
-                  placeholder="e.g. Lunch at Café"
+                  placeholder={t('addExpense.namePlaceholder')}
                   placeholderTextColor={theme.textTertiary}
                   style={inputStyle}
                 />
@@ -330,7 +332,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   style={{
                     color: theme.textSecondary,
                   }}>
-                  Amount ($)
+                  {t('addExpense.amountLabel')}
                 </Text>
                 <TextInput
                   className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
@@ -347,11 +349,11 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                   style={{
                     color: theme.textSecondary,
                   }}>
-                  Category
+                  {t('addExpense.categoryLabel')}
                 </Text>
                 {categories.length === 0 ? (
                   <Text className="mb-5 text-sm" style={{ color: theme.textTertiary }}>
-                    No categories yet. Check the Budget tab.
+                    {t('addExpense.noCategories')}
                   </Text>
                 ) : (
                   <View className="mb-6 flex-row flex-wrap gap-2">
@@ -410,7 +412,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text className="text-base font-bold text-white">
-                      Save Expense
+                      {t('addExpense.save')}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -423,7 +425,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
                     borderColor: theme.border,
                   }}>
                   <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
-                    Back to Recording
+                    {t('recording.back')}
                   </Text>
                 </TouchableOpacity>
               </View>

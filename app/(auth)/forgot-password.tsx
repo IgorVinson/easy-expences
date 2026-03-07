@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -19,6 +20,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { auth } from '../../firebaseConfig';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ export default function ForgotPasswordScreen() {
 
   const handleResetPassword = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email');
+      Alert.alert(t('common.error'), t('auth.email') || 'Please enter your email');
       return;
     }
 
@@ -35,7 +37,7 @@ export default function ForgotPasswordScreen() {
       await sendPasswordResetEmail(auth, email);
       setIsSuccess(true);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -50,34 +52,31 @@ export default function ForgotPasswordScreen() {
         className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="flex-grow"
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           
-          {/* Header Gradient */}
           <LinearGradient
              colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
              style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 250 }}
           />
 
-          {/* Header */}
           <View className="flex-row items-center px-6 pb-2 pt-16">
             <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)' }}>
               <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
             </TouchableOpacity>
           </View>
 
-          {/* Content */}
           <View className="flex-1 px-6 pt-4">
             <Text
               className="text-4xl font-bold"
               style={{ color: theme.textPrimary }}>
-              Reset Password
+              {t('auth.resetPassword')}
             </Text>
             <Text
                 className="mb-10 mt-2 text-base"
                 style={{ color: theme.textSecondary }}>
-                Enter your email address and we'll send you a link to reset your password.
+                {t('auth.resetInstructions')}
             </Text>
 
             {isSuccess ? (
@@ -85,8 +84,8 @@ export default function ForgotPasswordScreen() {
                  <View className="mb-6 h-24 w-24 items-center justify-center rounded-full" style={{ backgroundColor: isDarkMode ? 'rgba(16,185,129,0.2)' : '#D1FAE5' }}>
                     <Ionicons name="mail-open" size={48} color="#10B981" />
                  </View>
-                 <Text className="mb-2 text-center text-2xl font-bold" style={{ color: theme.textPrimary }}>Check Your Email</Text>
-                 <Text className="mb-8 text-center text-base" style={{ color: theme.textSecondary }}>We sent a password reset link to {email}</Text>
+                 <Text className="mb-2 text-center text-2xl font-bold" style={{ color: theme.textPrimary }}>{t('auth.checkEmail')}</Text>
+                 <Text className="mb-8 text-center text-base" style={{ color: theme.textSecondary }}>{t('auth.resetEmailSent')}</Text>
                  <TouchableOpacity
                     onPress={() => router.replace('/(auth)/login')}
                     className="w-full overflow-hidden rounded-2xl">
@@ -96,15 +95,14 @@ export default function ForgotPasswordScreen() {
                       end={{ x: 1, y: 0 }}
                       className="items-center justify-center py-4"
                     >
-                      <Text className="text-lg font-bold text-white">Back to Login</Text>
+                      <Text className="text-lg font-bold text-white">{t('auth.backToLogin')}</Text>
                     </LinearGradient>
                   </TouchableOpacity>
                </View>
             ) : (
               <>
-              {/* Email Input */}
               <View className="mb-8">
-                 <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>Email Address</Text>
+                 <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
                 <View
                   className="flex-row items-center rounded-2xl px-4 py-1"
                   style={{
@@ -127,7 +125,6 @@ export default function ForgotPasswordScreen() {
                 </View>
               </View>
 
-              {/* Reset Button */}
               <TouchableOpacity
                 onPress={handleResetPassword}
                 disabled={loading}
@@ -141,7 +138,7 @@ export default function ForgotPasswordScreen() {
                 {loading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text className="text-lg font-bold text-white">Send Reset Link</Text>
+                  <Text className="text-lg font-bold text-white">{t('auth.sendInstructions')}</Text>
                 )}
                 </LinearGradient>
               </TouchableOpacity>

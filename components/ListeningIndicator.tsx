@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -41,6 +42,7 @@ const VoiceBar = ({
 };
 
 const ListeningIndicator = () => {
+  const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const bars = [0, 90, 180, 270, 220, 140, 60, 120, 200, 280];
   const dotOpacity = useRef(new Animated.Value(1)).current;
@@ -93,7 +95,7 @@ const ListeningIndicator = () => {
           { opacity: dotOpacity },
         ]}
       />
-      <Text style={[styles.text, { color: theme.textSecondary }]}>Voice recording...</Text>
+      <Text style={[styles.text, { color: theme.textSecondary }]}>{t('recording.listening')}</Text>
     </View>
   );
 };
