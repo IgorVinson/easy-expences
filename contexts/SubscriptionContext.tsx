@@ -27,6 +27,8 @@ export interface SubscriptionContextType {
   cancelSubscription: () => Promise<void>;
 }
 
+type SubscriptionStore = 'subscriptions' | 'users';
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const FREE_VOICE_LIMIT = 5;
@@ -46,6 +48,34 @@ const defaultSubscription: SubscriptionInfo = {
   voiceRecordingsThisMonth: 0,
   voiceRecordingsResetMonth: getCurrentMonth(),
 };
+
+function isPermissionDenied(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: string }).code === 'permission-denied'
+  );
+}
+
+function normalizeSubscription(data?: Partial<SubscriptionInfo> | null): SubscriptionInfo {
+  return {
+    ...defaultSubscription,
+    ...data,
+    plan:
+      data?.plan === 'pro_monthly' || data?.plan === 'pro_annual' || data?.plan === 'free'
+        ? data.plan
+        : defaultSubscription.plan,
+    subscribedAt: data?.subscribedAt ?? null,
+    expiresAt: data?.expiresAt ?? null,
+    voiceRecordingsThisMonth:
+      typeof data?.voiceRecordingsThisMonth === 'number' ? data.voiceRecordingsThisMonth : 0,
+    voiceRecordingsResetMonth:
+      typeof data?.voiceRecordingsResetMonth === 'string'
+        ? data.voiceRecordingsResetMonth
+        : getCurrentMonth(),
+  };
+}
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -70,11 +100,62 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionInfo>(defaultSubscription);
   const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState<SubscriptionStore>('subscriptions');
 
   // Firestore doc ref for subscription
-  const getSubDocRef = useCallback(
+  const getSubscriptionsRef = useCallback(
     () => (user ? doc(db, 'subscriptions', user.uid) : null),
     [user]
+  );
+
+  const saveToUsersDoc = useCallback(
+    async (nextSubscription: SubscriptionInfo) => {
+      if (!user) return;
+
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(
+        userRef,
+        {
+          uid: user.uid,
+          email: user.email ?? null,
+          displayName: user.displayName ?? 'User',
+          updatedAt: Date.now(),
+          subscription: nextSubscription,
+        },
+        { merge: true }
+      );
+    },
+    [user]
+  );
+
+  const loadFromUsersDoc = useCallback(async (): Promise<SubscriptionInfo> => {
+    if (!user) return defaultSubscription;
+
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
+    const profileData = snap.exists() ? snap.data() : {};
+    const nestedSubscription = normalizeSubscription(profileData?.subscription);
+
+    if (!snap.exists() || !profileData?.subscription) {
+      await saveToUsersDoc(nestedSubscription);
+    }
+
+    return nestedSubscription;
+  }, [saveToUsersDoc, user]);
+
+  const persistSubscription = useCallback(
+    async (nextSubscription: SubscriptionInfo) => {
+      if (!user) return;
+
+      if (store === 'users') {
+        await saveToUsersDoc(nextSubscription);
+        return;
+      }
+
+      const ref = doc(db, 'subscriptions', user.uid);
+      await setDoc(ref, nextSubscription);
+    },
+    [saveToUsersDoc, store, user]
   );
 
   // Load subscription on auth change
@@ -82,6 +163,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     if (!user) {
       setSubscription(defaultSubscription);
       setLoading(false);
+      setStore('subscriptions');
       return;
     }
 
@@ -91,40 +173,66 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         const ref = doc(db, 'subscriptions', user.uid);
         const snap = await getDoc(ref);
 
-        if (snap.exists()) {
-          const data = snap.data() as SubscriptionInfo;
-          const currentMonth = getCurrentMonth();
+        setStore('subscriptions');
 
-          // Reset voice counter if we're in a new month
-          if (data.voiceRecordingsResetMonth !== currentMonth) {
-            await updateDoc(ref, {
-              voiceRecordingsThisMonth: 0,
-              voiceRecordingsResetMonth: currentMonth,
-            });
-            data.voiceRecordingsThisMonth = 0;
-            data.voiceRecordingsResetMonth = currentMonth;
-          }
+        let data = snap.exists() ? normalizeSubscription(snap.data() as SubscriptionInfo) : { ...defaultSubscription };
 
-          // Check if subscription expired
-          if (data.plan !== 'free' && data.expiresAt) {
-            const expired = new Date(data.expiresAt) < new Date();
-            if (expired) {
-              await updateDoc(ref, { plan: 'free', expiresAt: null, subscribedAt: null });
-              data.plan = 'free';
-              data.expiresAt = null;
-              data.subscribedAt = null;
-            }
-          }
-
-          setSubscription(data);
-        } else {
-          // Create default subscription doc
-          const defaultSub = { ...defaultSubscription };
-          await setDoc(ref, defaultSub);
-          setSubscription(defaultSub);
+        if (!snap.exists()) {
+          await setDoc(ref, data);
         }
+
+        const currentMonth = getCurrentMonth();
+
+        if (data.voiceRecordingsResetMonth !== currentMonth) {
+          data = {
+            ...data,
+            voiceRecordingsThisMonth: 0,
+            voiceRecordingsResetMonth: currentMonth,
+          };
+          await setDoc(ref, data);
+        }
+
+        if (data.plan !== 'free' && data.expiresAt) {
+          const expired = new Date(data.expiresAt) < new Date();
+          if (expired) {
+            data = { ...data, plan: 'free', expiresAt: null, subscribedAt: null };
+            await setDoc(ref, data);
+          }
+        }
+
+        setSubscription(data);
       } catch (err) {
-        console.error('Failed to load subscription:', err);
+        if (isPermissionDenied(err)) {
+          try {
+            setStore('users');
+            let data = await loadFromUsersDoc();
+            const currentMonth = getCurrentMonth();
+
+            if (data.voiceRecordingsResetMonth !== currentMonth) {
+              data = {
+                ...data,
+                voiceRecordingsThisMonth: 0,
+                voiceRecordingsResetMonth: currentMonth,
+              };
+              await saveToUsersDoc(data);
+            }
+
+            if (data.plan !== 'free' && data.expiresAt) {
+              const expired = new Date(data.expiresAt) < new Date();
+              if (expired) {
+                data = { ...data, plan: 'free', expiresAt: null, subscribedAt: null };
+                await saveToUsersDoc(data);
+              }
+            }
+
+            setSubscription(data);
+            return;
+          } catch (fallbackError) {
+            console.error('Failed to load subscription fallback from users doc:', fallbackError);
+          }
+        } else {
+          console.error('Failed to load subscription:', err);
+        }
         setSubscription(defaultSubscription);
       } finally {
         setLoading(false);
@@ -132,7 +240,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
 
     loadSubscription();
-  }, [user]);
+  }, [loadFromUsersDoc, saveToUsersDoc, user]);
 
   const isPro = subscription.plan !== 'free';
 
@@ -143,23 +251,25 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const canUseVoice = isPro || voiceRecordingsLeft > 0;
 
   const incrementVoiceUsage = useCallback(async () => {
-    const ref = getSubDocRef();
-    if (!ref) return;
-
     const currentMonth = getCurrentMonth();
 
-    // If month rolled over, reset first
+    if (!user) return;
+
     if (subscription.voiceRecordingsResetMonth !== currentMonth) {
-      await updateDoc(ref, {
+      const nextSubscription = {
+        ...subscription,
         voiceRecordingsThisMonth: 1,
         voiceRecordingsResetMonth: currentMonth,
-      });
-      setSubscription((prev) => ({
-        ...prev,
-        voiceRecordingsThisMonth: 1,
-        voiceRecordingsResetMonth: currentMonth,
-      }));
-    } else {
+      };
+      await persistSubscription(nextSubscription);
+      setSubscription(nextSubscription);
+      return;
+    }
+
+    if (store === 'subscriptions') {
+      const ref = getSubscriptionsRef();
+      if (!ref) return;
+
       await updateDoc(ref, {
         voiceRecordingsThisMonth: increment(1),
       });
@@ -167,49 +277,65 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         ...prev,
         voiceRecordingsThisMonth: prev.voiceRecordingsThisMonth + 1,
       }));
+    } else {
+      const nextSubscription = {
+        ...subscription,
+        voiceRecordingsThisMonth: subscription.voiceRecordingsThisMonth + 1,
+      };
+      await persistSubscription(nextSubscription);
+      setSubscription(nextSubscription);
     }
-  }, [getSubDocRef, subscription.voiceRecordingsResetMonth]);
+  }, [getSubscriptionsRef, persistSubscription, store, subscription, user]);
 
   // DEV MODE: Instantly activates Pro (no real payment)
   const subscribe = useCallback(
     async (plan: 'pro_monthly' | 'pro_annual') => {
-      const ref = getSubDocRef();
-      if (!ref) return;
+      if (!user) return;
 
       const now = new Date().toISOString();
       const expiresAt = getExpirationDate(plan);
 
-      const update = {
+      const nextSubscription = {
+        ...subscription,
         plan,
         subscribedAt: now,
         expiresAt,
       };
 
-      await updateDoc(ref, update);
-      setSubscription((prev) => ({ ...prev, ...update }));
+      await persistSubscription(nextSubscription);
+      setSubscription(nextSubscription);
     },
-    [getSubDocRef]
+    [persistSubscription, subscription, user]
   );
 
   const restorePurchases = useCallback(async () => {
-    // In dev mode, just re-read from Firestore
-    const ref = getSubDocRef();
-    if (!ref) return;
+    if (!user) return;
 
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      setSubscription(snap.data() as SubscriptionInfo);
+    if (store === 'subscriptions') {
+      const ref = getSubscriptionsRef();
+      if (!ref) return;
+
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        setSubscription(normalizeSubscription(snap.data() as SubscriptionInfo));
+      }
+      return;
     }
-  }, [getSubDocRef]);
+
+    const data = await loadFromUsersDoc();
+    setSubscription(data);
+  }, [getSubscriptionsRef, loadFromUsersDoc, store, user]);
 
   const cancelSubscription = useCallback(async () => {
-    const ref = getSubDocRef();
-    if (!ref) return;
-
-    const update = { plan: 'free' as PlanType, subscribedAt: null, expiresAt: null };
-    await updateDoc(ref, update);
-    setSubscription((prev) => ({ ...prev, ...update }));
-  }, [getSubDocRef]);
+    const nextSubscription = {
+      ...subscription,
+      plan: 'free' as PlanType,
+      subscribedAt: null,
+      expiresAt: null,
+    };
+    await persistSubscription(nextSubscription);
+    setSubscription(nextSubscription);
+  }, [persistSubscription, subscription]);
 
   return (
     <SubscriptionContext.Provider
