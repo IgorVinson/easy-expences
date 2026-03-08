@@ -1,13 +1,70 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter, useSegments } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withRepeat, 
+  withSequence, 
+  withTiming,
+  runOnJS 
+} from 'react-native-reanimated';
 import { MonthlyReviewProvider } from '../../components/MonthlyReviewProvider';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
+
+const SwipeHint = ({ direction, theme }: { direction: 'left' | 'right', theme: any }) => {
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    translateX.value = withRepeat(
+      withSequence(
+        withTiming(direction === 'left' ? -10 : 10, { duration: 1000 }),
+        withTiming(0, { duration: 1000 })
+      ),
+      -1,
+      true
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 1000 }),
+        withTiming(0.2, { duration: 1000 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View 
+      style={[
+        {
+          position: 'absolute',
+          top: '50%',
+          [direction]: 8,
+          zIndex: 10,
+          pointerEvents: 'none',
+        },
+        animatedStyle
+      ]}
+    >
+      <Ionicons 
+        name={direction === 'left' ? 'chevron-forward' : 'chevron-back'} 
+        size={24} 
+        color={theme.textTertiary} 
+      />
+    </Animated.View>
+  );
+};
 
 export default function TabsLayout() {
   const { theme, isDarkMode } = useTheme();
@@ -50,6 +107,9 @@ export default function TabsLayout() {
     <MonthlyReviewProvider>
       <GestureDetector gesture={panGesture}>
         <View style={{ flex: 1 }}>
+          {currentIndex < tabOrder.length - 1 && <SwipeHint direction="left" theme={theme} />}
+          {currentIndex > 0 && <SwipeHint direction="right" theme={theme} />}
+          
           <Tabs
             screenOptions={{
               headerShown: false,
