@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,10 +14,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useSubscription, FREE_VOICE_LIMIT, PLANS } from '../../contexts/SubscriptionContext';
-import { useTheme } from '../../contexts/ThemeContext';
 import { PaywallModal } from '../../components/PaywallModal';
+import { useAuth } from '../../contexts/AuthContext';
+import { FREE_VOICE_LIMIT, PLANS, useSubscription } from '../../contexts/SubscriptionContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
 export default function ProfileScreen() {
@@ -155,8 +154,12 @@ export default function ProfileScreen() {
                 className="h-12 w-12 items-center justify-center rounded-xl"
                 style={{
                   backgroundColor: isPro
-                    ? isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE'
-                    : isDarkMode ? 'rgba(107,114,128,0.15)' : '#F3F4F6',
+                    ? isDarkMode
+                      ? 'rgba(139,92,246,0.15)'
+                      : '#EDE9FE'
+                    : isDarkMode
+                      ? 'rgba(107,114,128,0.15)'
+                      : '#F3F4F6',
                 }}>
                 <Ionicons
                   name={isPro ? 'diamond' : 'person-outline'}
@@ -167,20 +170,37 @@ export default function ProfileScreen() {
               <View className="ml-3 flex-1">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
                   {isPro
-                    ? t('profile.proPlan', { name: subscription.plan === 'pro_annual' ? PLANS.pro_annual.label : PLANS.pro_monthly.label })
+                    ? t('profile.proPlan', {
+                        name:
+                          subscription.plan === 'pro_annual'
+                            ? PLANS.pro_annual.label
+                            : PLANS.pro_monthly.label,
+                      })
                     : t('profile.freePlan')}
                 </Text>
                 {isPro && subscription.expiresAt ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                    {t('profile.renewsOn', { date: new Date(subscription.expiresAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'uk' ? 'uk-UA' : 'es-ES'), {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    }) })}
+                    {t('profile.renewsOn', {
+                      date: new Date(subscription.expiresAt).toLocaleDateString(
+                        i18n.language === 'en'
+                          ? 'en-US'
+                          : i18n.language === 'uk'
+                            ? 'uk-UA'
+                            : 'es-ES',
+                        {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        }
+                      ),
+                    })}
                   </Text>
                 ) : (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                    {t('profile.recordingsLeft', { count: voiceRecordingsLeft, total: FREE_VOICE_LIMIT })}
+                    {t('profile.recordingsLeft', {
+                      count: voiceRecordingsLeft,
+                      total: FREE_VOICE_LIMIT,
+                    })}
                   </Text>
                 )}
               </View>
@@ -217,9 +237,7 @@ export default function ProfileScreen() {
                 onPress={() => setIsPaywallOpen(true)}
                 className="w-full items-center justify-center rounded-xl py-3"
                 style={{ backgroundColor: '#8B5CF6' }}>
-                <Text className="text-sm font-bold text-white">
-                  {t('profile.upgradeToPro')}
-                </Text>
+                <Text className="text-sm font-bold text-white">{t('profile.upgradeToPro')}</Text>
               </TouchableOpacity>
             )}
           </View>

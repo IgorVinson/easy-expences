@@ -4,7 +4,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GestureResponderEvent, Platform, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import {
+  GestureResponderEvent,
+  Platform,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
 const ONBOARDING_KEY = 'onboarding_completed';
@@ -76,10 +83,16 @@ export default function OnboardingScreen() {
     <View
       style={{ flex: 1, backgroundColor: theme.bg, paddingTop: topPadding }}
       onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
+      onTouchEnd={onTouchEnd}>
       {/* ═══ TOP: Skip button ═══ */}
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, height: 44, alignItems: 'center' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          paddingHorizontal: 24,
+          height: 44,
+          alignItems: 'center',
+        }}>
         <TouchableOpacity onPress={completeOnboarding} activeOpacity={0.6}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: theme.textTertiary }}>
             {t('onboarding.skip')}
@@ -88,7 +101,8 @@ export default function OnboardingScreen() {
       </View>
 
       {/* ═══ MIDDLE: Slide content ═══ */}
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
+      <View
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
         <LinearGradient
           colors={slide.gradientColors}
           style={{
@@ -98,8 +112,7 @@ export default function OnboardingScreen() {
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 20,
-          }}
-        >
+          }}>
           <Ionicons name={slide.icon} size={60} color="#FFFFFF" />
         </LinearGradient>
 
@@ -114,8 +127,7 @@ export default function OnboardingScreen() {
                 backgroundColor: theme.iconBg,
                 justifyContent: 'center',
                 alignItems: 'center',
-              }}
-            >
+              }}>
               <Ionicons name={iconName} size={20} color={slide.gradientColors[0]} />
             </View>
           ))}
@@ -128,8 +140,7 @@ export default function OnboardingScreen() {
             color: theme.textPrimary,
             textAlign: 'center',
             marginBottom: 10,
-          }}
-        >
+          }}>
           {t(slide.titleKey)}
         </Text>
 
@@ -140,8 +151,7 @@ export default function OnboardingScreen() {
             color: theme.textSecondary,
             textAlign: 'center',
             paddingHorizontal: 8,
-          }}
-        >
+          }}>
           {t(slide.descriptionKey)}
         </Text>
       </View>
@@ -175,8 +185,7 @@ export default function OnboardingScreen() {
               borderRadius: 16,
               backgroundColor: theme.purple,
               alignItems: 'center',
-            }}
-          >
+            }}>
             <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
               {t('onboarding.getStarted')}
             </Text>
