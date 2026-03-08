@@ -160,6 +160,27 @@
     "subtitle": "Review your budget for {{month}}. This will reset all current spending to $0.",
     "save": "Save & Start {{month}}"
   },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "expenses": {
+      "title": "Track Every Penny",
+      "description": "Effortlessly log your daily expenses. Stay organized with automatic categorization and real-time spending insights."
+    },
+    "voice": {
+      "title": "Just Say It",
+      "description": "Add expenses with your voice — powered by AI. Simply say \"Coffee 5 dollars\" and we'll handle the rest."
+    },
+    "budget": {
+      "title": "Stay On Budget",
+      "description": "Set monthly budgets for each category and track your progress with visual indicators. Never overspend again."
+    },
+    "ready": {
+      "title": "You're All Set!",
+      "description": "Your smart expense tracker is ready. Start adding expenses and take control of your finances today."
+    }
+  },
   "auth": {
     "welcome": "Welcome Back",
     "signToManage": "Sign in to manage your budget",

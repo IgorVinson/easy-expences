@@ -160,6 +160,27 @@
     "subtitle": "Revisa tu presupuesto para {{month}}. Esto restablecerá todos los gastos a $0.",
     "save": "Guardar y Empezar {{month}}"
   },
+  "onboarding": {
+    "skip": "Omitir",
+    "next": "Siguiente",
+    "getStarted": "Comenzar",
+    "expenses": {
+      "title": "Controla cada centavo",
+      "description": "Registra tus gastos diarios sin esfuerzo. Categorización automática y análisis de gastos en tiempo real."
+    },
+    "voice": {
+      "title": "Solo dilo",
+      "description": "Añade gastos con tu voz — con inteligencia artificial. Di \"Café 5 dólares\" y nosotros nos encargamos."
+    },
+    "budget": {
+      "title": "Mantén tu presupuesto",
+      "description": "Establece presupuestos mensuales por categoría y sigue tu progreso visualmente. No vuelvas a gastar de más."
+    },
+    "ready": {
+      "title": "¡Todo listo!",
+      "description": "Tu rastreador de gastos inteligente está listo. Empieza a añadir gastos y toma el control de tus finanzas hoy."
+    }
+  },
   "auth": {
     "welcome": "Bienvenido de nuevo",
     "signToManage": "Inicia sesión para gestionar tu presupuesto",

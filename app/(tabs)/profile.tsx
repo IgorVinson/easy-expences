@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -336,6 +338,27 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </TouchableOpacity>
+
+            {/* Reset Onboarding (dev only) */}
+            {__DEV__ && (
+              <TouchableOpacity
+                onPress={async () => {
+                  await AsyncStorage.removeItem('onboarding_completed');
+                  Alert.alert('Onboarding Reset', 'Restart the app to see onboarding again.');
+                }}
+                className="flex-row items-center justify-between py-4">
+                <View className="flex-row items-center">
+                  <View
+                    className="h-10 w-10 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: isDarkMode ? 'rgba(168,85,247,0.15)' : '#F3E8FF' }}>
+                    <Ionicons name="refresh-outline" size={20} color="#A855F7" />
+                  </View>
+                  <Text className="ml-4 text-base font-medium" style={{ color: '#A855F7' }}>
+                    Reset Onboarding
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 

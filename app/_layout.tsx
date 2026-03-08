@@ -1,39 +1,54 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { SubscriptionProvider } from '../contexts/SubscriptionContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
 import '../i18n';
+import { ONBOARDING_KEY } from './onboarding';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (loading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inOnboarding = segments[0] === 'onboarding';
 
-    if (!user && !inAuthGroup) {
-      // Redirect to the login page if not authenticated and not in auth group
-      router.replace('/(auth)/login');
-    } else if (user && inAuthGroup) {
-      // Redirect to the tabs page if authenticated and in auth group
-      router.replace('/(tabs)/overview');
+    if (!user) {
+      if (!inAuthGroup) router.replace('/(auth)/login');
+      setReady(true);
+      return;
     }
+
+    // Always read fresh from AsyncStorage — avoids stale state when
+    // onboarding completes and segments change in the same cycle.
+    AsyncStorage.getItem(ONBOARDING_KEY).then((value) => {
+      const onboardingDone = value === 'true';
+      if (!onboardingDone && !inOnboarding) {
+        router.replace('/onboarding');
+      } else if (onboardingDone && (inAuthGroup || inOnboarding)) {
+        router.replace('/(tabs)/overview');
+      }
+      setReady(true);
+    });
   }, [user, loading, segments, router]);
 
-  if (loading) {
-    return null; // Or a splash screen
+  if (loading || !ready) {
+    return null;
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(auth)" />
+      <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );
