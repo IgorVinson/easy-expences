@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { 
   useAnimatedStyle, 
@@ -16,23 +16,23 @@ import { MonthlyReviewProvider } from '../../components/MonthlyReviewProvider';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
-const SwipeHint = ({ direction, theme }: { direction: 'left' | 'right', theme: any }) => {
+const TabArrow = ({ direction, theme }: { direction: 'left' | 'right', theme: any }) => {
   const translateX = useSharedValue(0);
-  const opacity = useSharedValue(0.3);
+  const opacity = useSharedValue(0.4);
 
   useEffect(() => {
     translateX.value = withRepeat(
       withSequence(
-        withTiming(direction === 'left' ? -10 : 10, { duration: 1000 }),
-        withTiming(0, { duration: 1000 })
+        withTiming(direction === 'left' ? 4 : -4, { duration: 800 }),
+        withTiming(0, { duration: 800 })
       ),
       -1,
       true
     );
     opacity.value = withRepeat(
       withSequence(
-        withTiming(0.6, { duration: 1000 }),
-        withTiming(0.2, { duration: 1000 })
+        withTiming(0.8, { duration: 800 }),
+        withTiming(0.2, { duration: 800 })
       ),
       -1,
       true
@@ -45,26 +45,75 @@ const SwipeHint = ({ direction, theme }: { direction: 'left' | 'right', theme: a
   }));
 
   return (
-    <Animated.View 
-      style={[
-        {
-          position: 'absolute',
-          top: '50%',
-          [direction]: 8,
-          zIndex: 10,
-          pointerEvents: 'none',
-        },
-        animatedStyle
-      ]}
-    >
+    <Animated.View style={[{ paddingHorizontal: 4 }, animatedStyle]}>
       <Ionicons 
         name={direction === 'left' ? 'chevron-forward' : 'chevron-back'} 
-        size={24} 
+        size={16} 
         color={theme.textTertiary} 
       />
     </Animated.View>
   );
 };
+
+function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any) {
+  return (
+    <View
+      style={[
+        {
+          flexDirection: 'row',
+          backgroundColor: theme.cardBg,
+          borderTopWidth: 1,
+          borderTopColor: theme.border,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+          paddingTop: 10,
+          height: Platform.OS === 'ios' ? 90 : 70,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        !isDarkMode && styles.navShadow,
+      ]}
+    >
+      {state.routes.map((route: any, index: number) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <React.Fragment key={route.key}>
+            {/* Arrow BEFORE the item (if not the first item) */}
+            {index > 0 && <TabArrow direction="right" theme={theme} />}
+
+            <TouchableOpacity
+              onPress={onPress}
+              style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+              activeOpacity={0.7}
+            >
+              {options.tabBarIcon && options.tabBarIcon({ 
+                color: isFocused ? theme.purple : theme.textTertiary,
+                focused: isFocused,
+                size: 32 
+              })}
+            </TouchableOpacity>
+
+            {/* Arrow AFTER the item (if not the last item) */}
+            {index < state.routes.length - 1 && <TabArrow direction="left" theme={theme} />}
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const { theme, isDarkMode } = useTheme();
@@ -89,16 +138,13 @@ export default function TabsLayout() {
     }
   };
 
-  // Swipe gesture detection
   const panGesture = Gesture.Pan()
-    .activeOffsetX([-20, 20]) // Require 20px movement to start
-    .failOffsetY([-20, 20])   // Fail if moving vertically (helps ScrollView)
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-20, 20])
     .onEnd((e) => {
       if (e.velocityX < -500 || e.translationX < -100) {
-        // Swiped left -> Go to next tab
         runOnJS(navigateToTab)('left');
       } else if (e.velocityX > 500 || e.translationX > 100) {
-        // Swiped right -> Go to prev tab
         runOnJS(navigateToTab)('right');
       }
     });
@@ -107,24 +153,16 @@ export default function TabsLayout() {
     <MonthlyReviewProvider>
       <GestureDetector gesture={panGesture}>
         <View style={{ flex: 1 }}>
-          {currentIndex < tabOrder.length - 1 && <SwipeHint direction="left" theme={theme} />}
-          {currentIndex > 0 && <SwipeHint direction="right" theme={theme} />}
-          
           <Tabs
+            tabBar={(props) => (
+              <CustomTabBar 
+                {...props} 
+                theme={theme} 
+                isDarkMode={isDarkMode} 
+              />
+            )}
             screenOptions={{
               headerShown: false,
-              tabBarStyle: [
-                {
-                  backgroundColor: theme.cardBg,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.border,
-                  paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-                  paddingTop: 10,
-                  height: Platform.OS === 'ios' ? 90 : 70,
-                  elevation: 0,
-                },
-                !isDarkMode && styles.navShadow,
-              ],
               tabBarActiveTintColor: theme.purple,
               tabBarInactiveTintColor: theme.textTertiary,
               tabBarShowLabel: false,
