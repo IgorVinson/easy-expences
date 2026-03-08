@@ -56,6 +56,9 @@ const TabArrow = ({ direction, theme }: { direction: 'left' | 'right', theme: an
 };
 
 function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any) {
+  const currentIndex = state.index;
+  const totalTabs = state.routes.length;
+
   return (
     <View
       style={[
@@ -68,33 +71,36 @@ function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any
           paddingTop: 10,
           height: Platform.OS === 'ios' ? 90 : 70,
           alignItems: 'center',
-          justifyContent: 'center',
+          paddingHorizontal: 12,
         },
         !isDarkMode && styles.navShadow,
       ]}
     >
-      {state.routes.map((route: any, index: number) => {
-        const { options } = descriptors[route.key];
-        const isFocused = state.index === index;
+      {/* Left Edge Arrow */}
+      <View style={{ width: 24, alignItems: 'center' }}>
+        {currentIndex > 0 && <TabArrow direction="right" theme={theme} />}
+      </View>
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+        {state.routes.map((route: any, index: number) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
 
-        return (
-          <React.Fragment key={route.key}>
-            {/* Arrow BEFORE the item (if not the first item) */}
-            {index > 0 && <TabArrow direction="right" theme={theme} />}
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
 
+          return (
             <TouchableOpacity
+              key={route.key}
               onPress={onPress}
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
               activeOpacity={0.7}
@@ -105,12 +111,14 @@ function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any
                 size: 32 
               })}
             </TouchableOpacity>
+          );
+        })}
+      </View>
 
-            {/* Arrow AFTER the item (if not the last item) */}
-            {index < state.routes.length - 1 && <TabArrow direction="left" theme={theme} />}
-          </React.Fragment>
-        );
-      })}
+      {/* Right Edge Arrow */}
+      <View style={{ width: 24, alignItems: 'center' }}>
+        {currentIndex < totalTabs - 1 && <TabArrow direction="left" theme={theme} />}
+      </View>
     </View>
   );
 }
