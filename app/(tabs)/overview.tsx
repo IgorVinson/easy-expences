@@ -38,7 +38,7 @@ export default function OverviewScreen() {
     updateExpense,
     deleteExpense,
   } = useExpenses(user?.uid);
-  const { totalBudget, totalSpent, loading: budgetLoading } = useBudget(user?.uid);
+  const { totalBudget, totalSpent, loading: budgetLoading, updateCategorySpent } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [recModalVisible, setRecModalVisible] = useState(false);
@@ -91,10 +91,22 @@ export default function OverviewScreen() {
   }
 
   async function handleUpdateExpense(id: string, changes: any) {
+    const original = expenses.find((e) => e.id === id);
     await updateExpense(id, changes);
+    if (original) {
+      const amountDiff = (changes.amount ?? original.amount) - original.amount;
+      // If category changed, reverse old category and charge new one
+      if (changes.category && changes.category !== original.category) {
+        await updateCategorySpent(original.category, -original.amount);
+        await updateCategorySpent(changes.category, changes.amount ?? original.amount);
+      } else if (amountDiff !== 0) {
+        await updateCategorySpent(original.category, amountDiff);
+      }
+    }
   }
 
   async function handleDeleteExpense(id: string) {
+    const expense = expenses.find((e) => e.id === id);
     Alert.alert(t('overview.deleteTitle'), t('overview.deleteConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
@@ -102,6 +114,9 @@ export default function OverviewScreen() {
         style: 'destructive',
         onPress: async () => {
           await deleteExpense(id);
+          if (expense) {
+            await updateCategorySpent(expense.category, -expense.amount);
+          }
         },
       },
     ]);
