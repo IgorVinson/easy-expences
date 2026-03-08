@@ -18,7 +18,7 @@ import { ExpenseItem } from '../../components/ExpenseItem';
 import { PaywallModal } from '../../components/PaywallModal';
 import { RecordingModal } from '../../components/RecordingModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { useSubscription, FREE_VOICE_LIMIT } from '../../contexts/SubscriptionContext';
+import { useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
 import { useExpenses } from '../../hooks/useExpenses';
@@ -38,7 +38,12 @@ export default function OverviewScreen() {
     updateExpense,
     deleteExpense,
   } = useExpenses(user?.uid);
-  const { totalBudget, totalSpent, loading: budgetLoading, updateCategorySpent } = useBudget(user?.uid);
+  const {
+    totalBudget,
+    totalSpent,
+    loading: budgetLoading,
+    updateCategorySpent,
+  } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [recModalVisible, setRecModalVisible] = useState(false);
@@ -295,9 +300,7 @@ export default function OverviewScreen() {
             style={{
               backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444',
             }}>
-            <Text className="text-[10px] font-bold text-white">
-              {voiceRecordingsLeft}
-            </Text>
+            <Text className="text-[10px] font-bold text-white">{voiceRecordingsLeft}</Text>
           </View>
         )}
       </Animated.View>
