@@ -1,5 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
+import { formatCurrencyAmount } from '../config/currencies';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { styles } from '../styles';
 
@@ -14,7 +17,9 @@ export type BudgetCategory = {
 };
 
 export const BudgetCategoryCard = ({ category }: { category: BudgetCategory }) => {
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const { currency } = useCurrency();
   const remaining = category.budgeted - category.spent;
   const percent = Math.min((category.spent / category.budgeted) * 100, 100);
   const isOverBudget = category.spent > category.budgeted;
@@ -46,7 +51,10 @@ export const BudgetCategoryCard = ({ category }: { category: BudgetCategory }) =
             </Text>
           </View>
           <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-            ${category.budgeted.toFixed(0)}
+            {formatCurrencyAmount(category.budgeted, currency, i18n.language, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
           </Text>
         </View>
 
@@ -66,14 +74,29 @@ export const BudgetCategoryCard = ({ category }: { category: BudgetCategory }) =
         {/* Bottom row: spent / remaining */}
         <View className="flex-row justify-between">
           <Text className="text-sm" style={{ color: theme.textTertiary }}>
-            ${category.spent.toFixed(0)} spent
+            {t('budgetCategoryItem.spent', {
+              amount: formatCurrencyAmount(category.spent, currency, i18n.language, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }),
+            })}
           </Text>
           <Text
             className="text-sm font-medium"
             style={{ color: isOverBudget ? '#EF4444' : theme.textSecondary }}>
             {isOverBudget
-              ? `-$${Math.abs(remaining).toFixed(0)} over`
-              : `$${remaining.toFixed(0)} left`}
+              ? t('budgetCategoryItem.over', {
+                  amount: formatCurrencyAmount(Math.abs(remaining), currency, i18n.language, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }),
+                })
+              : t('budgetCategoryItem.left', {
+                  amount: formatCurrencyAmount(remaining, currency, i18n.language, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }),
+                })}
           </Text>
         </View>
       </View>

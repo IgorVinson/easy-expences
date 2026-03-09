@@ -16,7 +16,8 @@ import {
 } from 'react-native';
 import { PaywallModal } from '../../components/PaywallModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { FREE_VOICE_LIMIT, PLANS, useSubscription } from '../../contexts/SubscriptionContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { FREE_VOICE_LIMIT, useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
@@ -24,7 +25,9 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, user } = useAuth();
+  const { currency, currencies, loading: currencyLoading, setCurrency } = useCurrency();
   const { isPro, subscription, voiceRecordingsLeft, cancelSubscription } = useSubscription();
+  const [isCurrencyModalOpen, setIsCurrencyModalOpen] = React.useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = React.useState(false);
   const [supportMessage, setSupportMessage] = React.useState('');
@@ -58,6 +61,19 @@ export default function ProfileScreen() {
       { text: t('profile.spanish'), onPress: () => i18n.changeLanguage('es') },
       { text: t('common.cancel'), style: 'cancel' },
     ]);
+  };
+
+  const handleChangeCurrency = () => {
+    setIsCurrencyModalOpen(true);
+  };
+
+  const handleSelectCurrency = async (nextCurrency: (typeof currencies)[number]['code']) => {
+    try {
+      await setCurrency(nextCurrency);
+      setIsCurrencyModalOpen(false);
+    } catch (error: any) {
+      Alert.alert(t('common.error'), error?.message ?? t('common.tryAgain'));
+    }
   };
 
   const handleSendSupport = async () => {
@@ -173,22 +189,22 @@ export default function ProfileScreen() {
                     ? t('profile.proPlan', {
                         name:
                           subscription.plan === 'pro_annual'
-                            ? PLANS.pro_annual.label
-                            : PLANS.pro_monthly.label,
+                            ? t('paywall.plans.annual')
+                            : t('paywall.plans.monthly'),
                       })
                     : t('profile.freePlan')}
                 </Text>
                 {isPro && subscription.expiresAt ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
                     {t('profile.renewsOn', {
-                        date: new Date(subscription.expiresAt).toLocaleDateString(
-                          i18n.language === 'en'
-                            ? 'en-US'
-                            : i18n.language === 'ua'
-                              ? 'uk-UA'
-                              : 'es-ES',
-                          {
-                            month: 'long',
+                      date: new Date(subscription.expiresAt).toLocaleDateString(
+                        i18n.language === 'en'
+                          ? 'en-US'
+                          : i18n.language === 'ua'
+                            ? 'uk-UA'
+                            : 'es-ES',
+                        {
+                          month: 'long',
                           day: 'numeric',
                           year: 'numeric',
                         }
@@ -323,6 +339,28 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
 
+            <TouchableOpacity
+              onPress={handleChangeCurrency}
+              className="flex-row items-center justify-between border-b py-4"
+              style={{ borderBottomColor: theme.border }}>
+              <View className="flex-row items-center">
+                <View
+                  className="h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE' }}>
+                  <Ionicons name="cash-outline" size={20} color={theme.purple} />
+                </View>
+                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
+                  {t('profile.currency')}
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <Text className="mr-2 text-sm font-medium" style={{ color: theme.textSecondary }}>
+                  {currencyLoading ? '...' : currency}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+              </View>
+            </TouchableOpacity>
+
             {/* Help & Support */}
             <TouchableOpacity
               onPress={() => setIsSupportModalOpen(true)}
@@ -383,6 +421,70 @@ export default function ProfileScreen() {
         {/* Bottom padding for tab bar */}
         <View className="h-24" />
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isCurrencyModalOpen}
+        onRequestClose={() => setIsCurrencyModalOpen(false)}>
+        <View
+          className="flex-1 items-center justify-center px-6"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <View
+            className="w-full rounded-2xl p-6"
+            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
+              {t('profile.currency')}
+            </Text>
+
+            <View className="mt-4" style={{ gap: 10 }}>
+              {currencies.map((option) => {
+                const isSelected = option.code === currency;
+                return (
+                  <TouchableOpacity
+                    key={option.code}
+                    onPress={() => handleSelectCurrency(option.code)}
+                    className="flex-row items-center justify-between rounded-2xl px-4 py-3"
+                    style={{
+                      backgroundColor: isSelected
+                        ? isDarkMode
+                          ? 'rgba(139,92,246,0.15)'
+                          : '#F3E8FF'
+                        : theme.bg,
+                      borderWidth: 1,
+                      borderColor: isSelected ? theme.purple : theme.border,
+                    }}>
+                    <View>
+                      <Text
+                        className="text-base font-semibold"
+                        style={{ color: theme.textPrimary }}>
+                        {option.code}
+                      </Text>
+                      <Text className="mt-0.5 text-sm" style={{ color: theme.textSecondary }}>
+                        {option.name}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={22} color={theme.purple} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View className="mt-4 flex-row items-center justify-end">
+              <TouchableOpacity
+                onPress={() => setIsCurrencyModalOpen(false)}
+                className="rounded-full px-4 py-2"
+                style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#E2E8F0' }}>
+                <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
+                  {t('common.cancel')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         animationType="slide"

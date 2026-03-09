@@ -41,13 +41,14 @@
     "deleteTitle": "Delete Category",
     "deleteConfirm": "Are you sure you want to delete this category?",
     "resetSpentTitle": "Reset Spent Amount?",
-    "resetSpentConfirm": "This will reset the spent amount for \"{{name}}\" back to $0. Perfect for starting a new cycle early.",
-    "resetToZero": "Reset to $0"
+    "resetSpentConfirm": "This will reset the spent amount for \"{{name}}\" back to zero. Perfect for starting a new cycle early.",
+    "resetToZero": "Reset to zero"
   },
   "profile": {
     "title": "My Profile",
     "myPlan": "My Plan",
     "language": "Language",
+    "currency": "Currency",
     "english": "English",
     "ukrainian": "Українська",
     "spanish": "Español",
@@ -79,7 +80,7 @@
     "title": "Add Expense",
     "nameLabel": "Title",
     "namePlaceholder": "e.g. Lunch at Café",
-    "amountLabel": "Amount ($)",
+    "amountLabel": "Amount ({{currency}})",
     "amountPlaceholder": "0.00",
     "categoryLabel": "Category",
     "noCategories": "No categories yet. Check the Budget tab.",
@@ -103,7 +104,7 @@
     "editTitle": "Edit Category",
     "nameLabel": "Category Name",
     "namePlaceholder": "e.g. Food & Dining",
-    "budgetLabel": "Monthly Budget ($)",
+    "budgetLabel": "Monthly Budget ({{currency}})",
     "budgetPlaceholder": "0.00",
     "iconLabel": "Icon",
     "colorLabel": "Color",
@@ -135,8 +136,8 @@
       "annual": "Annual",
       "monthly": "Monthly",
       "savePercent": "SAVE {{percent}}%",
-      "annualDetail": "${{monthly}}/mo · Billed ${{annual}}/year",
-      "monthlyDetail": "${{price}}/month"
+      "annualDetail": "{{monthly}}/mo · Billed {{annual}}/year",
+      "monthlyDetail": "{{price}}/month"
     },
     "subscribe": "Start Pro · {{price}}",
     "restore": "Restore Purchases",
@@ -149,15 +150,16 @@
     "restoreError": "Could not restore purchases."
   },
   "expenseItem": {
-    "left": "${{amount}} left"
+    "left": "{{amount}} left"
   },
   "budgetCategoryItem": {
-    "over": "${{amount}} over",
-    "left": "${{amount}} left"
+    "spent": "{{amount}} spent",
+    "over": "{{amount}} over",
+    "left": "{{amount}} left"
   },
   "monthlyReview": {
     "title": "New Month Review",
-    "subtitle": "Review your budget for {{month}}. This will reset all current spending to $0.",
+    "subtitle": "Review your budget for {{month}}. This will reset all current spending to zero.",
     "save": "Save & Start {{month}}"
   },
   "onboarding": {

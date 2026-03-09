@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Animated,
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -14,8 +15,8 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  KeyboardAvoidingView,
 } from 'react-native';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
@@ -32,40 +33,53 @@ interface RecordingModalProps {
 
 type VoiceStep = 'recording' | 'review';
 
-const SHEET_HEIGHT = Dimensions.get('window').height * 0.85;
-
 function normalizeCategoryName(value: string): string {
-  return value.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+  return value
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]/g, '');
 }
 
-function findBestCategoryMatch(categories: BudgetCategory[], rawCategory: string): BudgetCategory | null {
+function findBestCategoryMatch(
+  categories: BudgetCategory[],
+  rawCategory: string
+): BudgetCategory | null {
   if (!rawCategory.trim()) return null;
 
   const normalizedTarget = normalizeCategoryName(rawCategory);
 
-  const exact = categories.find(
-    (cat) => normalizeCategoryName(cat.name) === normalizedTarget
-  );
+  const exact = categories.find((cat) => normalizeCategoryName(cat.name) === normalizedTarget);
   if (exact) return exact;
 
   const partial = categories.find((cat) => {
     const normalizedCategory = normalizeCategoryName(cat.name);
     return (
-      normalizedCategory.includes(normalizedTarget) ||
-      normalizedTarget.includes(normalizedCategory)
+      normalizedCategory.includes(normalizedTarget) || normalizedTarget.includes(normalizedCategory)
     );
   });
 
   return partial ?? null;
 }
 
-export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose, userId, onExpenseSaved }) => {
+export const RecordingModal: React.FC<RecordingModalProps> = ({
+  visible,
+  onClose,
+  userId,
+  onExpenseSaved,
+}) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const { currency } = useCurrency();
   const { addExpense } = useExpenses(userId);
   const { categories, updateCategorySpent } = useBudget(userId);
-  const { isRecording, isProcessing, error, startRecording, stopRecordingAndProcess, cancelRecording } =
-    useVoiceExpense();
+  const {
+    isRecording,
+    isProcessing,
+    error,
+    startRecording,
+    stopRecordingAndProcess,
+    cancelRecording,
+  } = useVoiceExpense();
 
   const [step, setStep] = useState<VoiceStep>('recording');
   const [title, setTitle] = useState('');
@@ -203,237 +217,240 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({ visible, onClose
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View className="flex-1 justify-end">
-        <TouchableWithoutFeedback onPress={handleClose}>
-          <View
-            className="absolute inset-0"
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.55)',
-            }}
-          />
-        </TouchableWithoutFeedback>
-
-        <View
-          className="overflow-hidden rounded-t-3xl"
-          style={{ flexShrink: 1, height: Dimensions.get('window').height * 0.85, backgroundColor: theme.bg }}>
-          <View className="items-center pb-1 pt-3">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View className="flex-1 justify-end">
+          <TouchableWithoutFeedback onPress={handleClose}>
             <View
-              className="h-1 w-10 rounded-full"
+              className="absolute inset-0"
               style={{
-                backgroundColor: theme.border,
+                backgroundColor: 'rgba(0,0,0,0.55)',
               }}
             />
-          </View>
+          </TouchableWithoutFeedback>
 
-          <View className="flex-row items-center justify-between px-6 py-3">
-            <Text className="text-[22px] font-bold" style={{ color: theme.textPrimary }}>
-              {step === 'recording' ? t('recording.title') : t('addExpense.title')}
-            </Text>
-            <TouchableOpacity
-              onPress={handleClose}
-              className="h-10 w-10 items-center justify-center rounded-full"
-              style={{
-                backgroundColor: theme.iconBg,
-              }}>
-              <Ionicons name="close" size={20} color={theme.textPrimary} />
-            </TouchableOpacity>
-          </View>
+          <View
+            className="overflow-hidden rounded-t-3xl"
+            style={{
+              flexShrink: 1,
+              height: Dimensions.get('window').height * 0.85,
+              backgroundColor: theme.bg,
+            }}>
+            <View className="items-center pb-1 pt-3">
+              <View
+                className="h-1 w-10 rounded-full"
+                style={{
+                  backgroundColor: theme.border,
+                }}
+              />
+            </View>
 
-          {step === 'recording' ? (
-            <>
-              <View className="flex-1 items-center justify-center px-6">
-                <Text
-                  className="mb-7 max-w-[320px] text-center text-lg leading-7"
+            <View className="flex-row items-center justify-between px-6 py-3">
+              <Text className="text-[22px] font-bold" style={{ color: theme.textPrimary }}>
+                {step === 'recording' ? t('recording.title') : t('addExpense.title')}
+              </Text>
+              <TouchableOpacity
+                onPress={handleClose}
+                className="h-10 w-10 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: theme.iconBg,
+                }}>
+                <Ionicons name="close" size={20} color={theme.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            {step === 'recording' ? (
+              <>
+                <View className="flex-1 items-center justify-center px-6">
+                  <Text
+                    className="mb-7 max-w-[320px] text-center text-lg leading-7"
+                    style={{
+                      color: theme.textSecondary,
+                    }}>
+                    {t('recording.instruction')}
+                  </Text>
+
+                  {isRecording && (
+                    <View className="mb-4" key={`indicator-${animationSession}`}>
+                      <ListeningIndicator />
+                    </View>
+                  )}
+
+                  <Animated.View
+                    key={`pulse-${animationSession}`}
+                    style={{
+                      transform: [{ scale: pulse }],
+                    }}>
+                    <TouchableOpacity
+                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                      disabled={isProcessing}
+                      className="h-28 w-28 items-center justify-center rounded-full"
+                      style={{
+                        backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                        opacity: isProcessing ? 0.7 : 1,
+                      }}>
+                      {isProcessing ? (
+                        <ActivityIndicator size="large" color="#fff" />
+                      ) : (
+                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+
+                  {Boolean(error) && (
+                    <View
+                      className="mt-[18px] rounded-xl border p-3"
+                      style={{
+                        borderColor: '#F87171',
+                        backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2',
+                      }}>
+                      <Text className="text-[13px]" style={{ color: theme.textPrimary }}>
+                        {error}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View
+                  className="border-t px-6 pt-3"
                   style={{
-                    color: theme.textSecondary,
+                    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+                    borderTopColor: theme.border,
+                    backgroundColor: theme.bg,
                   }}>
-                  {t('recording.instruction')}
-                </Text>
+                  <Text className="text-center text-[13px]" style={{ color: theme.textSecondary }}>
+                    {t('recording.footer')}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <ScrollView
+                  className="w-full shrink px-6"
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 40 }}>
+                  <Text
+                    className="mb-2 text-[13px] font-semibold"
+                    style={{
+                      color: theme.textSecondary,
+                    }}>
+                    {t('addExpense.nameLabel')}
+                  </Text>
+                  <TextInput
+                    className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder={t('addExpense.namePlaceholder')}
+                    placeholderTextColor={theme.textTertiary}
+                    style={inputStyle}
+                  />
 
-                {isRecording && (
-                  <View className="mb-4" key={`indicator-${animationSession}`}>
-                    <ListeningIndicator />
-                  </View>
-                )}
+                  <Text
+                    className="mb-2 text-[13px] font-semibold"
+                    style={{
+                      color: theme.textSecondary,
+                    }}>
+                    {t('addExpense.amountLabel', { currency })}
+                  </Text>
+                  <TextInput
+                    className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholder="0.00"
+                    placeholderTextColor={theme.textTertiary}
+                    keyboardType="decimal-pad"
+                    style={inputStyle}
+                  />
 
-                <Animated.View
-                  key={`pulse-${animationSession}`}
+                  <Text
+                    className="mb-3 text-[13px] font-semibold"
+                    style={{
+                      color: theme.textSecondary,
+                    }}>
+                    {t('addExpense.categoryLabel')}
+                  </Text>
+                  {categories.length === 0 ? (
+                    <Text className="mb-5 text-sm" style={{ color: theme.textTertiary }}>
+                      {t('addExpense.noCategories')}
+                    </Text>
+                  ) : (
+                    <View className="mb-6 flex-row flex-wrap gap-2">
+                      {categories.map((cat) => {
+                        const isSelected = selectedCategory?.id === cat.id;
+                        return (
+                          <TouchableOpacity
+                            key={cat.id}
+                            onPress={() => setSelectedCategory(cat)}
+                            className="flex-row items-center rounded-2xl px-3.5 py-2.5"
+                            style={{
+                              backgroundColor: isSelected
+                                ? isDarkMode
+                                  ? cat.colorDark + '33'
+                                  : cat.colorLight
+                                : theme.cardBg,
+                              borderWidth: isSelected ? 2 : 1,
+                              borderColor: isSelected ? cat.colorDark : theme.border,
+                            }}>
+                            <Ionicons
+                              name={cat.icon as any}
+                              size={15}
+                              color={isSelected ? cat.colorDark : theme.textTertiary}
+                            />
+                            <Text
+                              className="ml-1.5 text-[13px] font-medium"
+                              style={{
+                                color: isSelected ? cat.colorDark : theme.textSecondary,
+                              }}>
+                              {cat.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+                </ScrollView>
+
+                <View
+                  className="gap-2.5 border-t px-6 pt-3"
                   style={{
-                    transform: [{ scale: pulse }],
+                    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+                    borderTopColor: theme.border,
+                    backgroundColor: theme.bg,
                   }}>
                   <TouchableOpacity
-                    onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
-                    disabled={isProcessing}
-                    className="h-28 w-28 items-center justify-center rounded-full"
+                    onPress={handleSave}
+                    disabled={saving}
+                    className="items-center rounded-2xl py-4"
                     style={{
-                      backgroundColor: isRecording ? '#EF4444' : theme.purple,
-                      opacity: isProcessing ? 0.7 : 1,
+                      backgroundColor: theme.purple,
+                      opacity: saving ? 0.7 : 1,
                     }}>
-                    {isProcessing ? (
-                      <ActivityIndicator size="large" color="#fff" />
+                    {saving ? (
+                      <ActivityIndicator color="#fff" />
                     ) : (
-                      <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
+                      <Text className="text-base font-bold text-white">{t('addExpense.save')}</Text>
                     )}
                   </TouchableOpacity>
-                </Animated.View>
 
-                {Boolean(error) && (
-                  <View
-                    className="mt-[18px] rounded-xl border p-3"
+                  <TouchableOpacity
+                    onPress={() => setStep('recording')}
+                    disabled={saving}
+                    className="items-center rounded-2xl border py-3.5"
                     style={{
-                      borderColor: '#F87171',
-                      backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2',
+                      borderColor: theme.border,
                     }}>
-                    <Text className="text-[13px]" style={{ color: theme.textPrimary }}>
-                      {error}
+                    <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
+                      {t('recording.back')}
                     </Text>
-                  </View>
-                )}
-              </View>
-
-              <View
-                className="border-t px-6 pt-3"
-                style={{
-                  paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-                  borderTopColor: theme.border,
-                  backgroundColor: theme.bg,
-                }}>
-                <Text className="text-center text-[13px]" style={{ color: theme.textSecondary }}>
-                  {t('recording.footer')}
-                </Text>
-              </View>
-            </>
-          ) : (
-            <>
-              <ScrollView
-                className="shrink w-full px-6"
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 40 }}>
-                <Text
-                  className="mb-2 text-[13px] font-semibold"
-                  style={{
-                    color: theme.textSecondary,
-                  }}>
-                  {t('addExpense.nameLabel')}
-                </Text>
-                <TextInput
-                  className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder={t('addExpense.namePlaceholder')}
-                  placeholderTextColor={theme.textTertiary}
-                  style={inputStyle}
-                />
-
-                <Text
-                  className="mb-2 text-[13px] font-semibold"
-                  style={{
-                    color: theme.textSecondary,
-                  }}>
-                  {t('addExpense.amountLabel')}
-                </Text>
-                <TextInput
-                  className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholder="0.00"
-                  placeholderTextColor={theme.textTertiary}
-                  keyboardType="decimal-pad"
-                  style={inputStyle}
-                />
-
-                <Text
-                  className="mb-3 text-[13px] font-semibold"
-                  style={{
-                    color: theme.textSecondary,
-                  }}>
-                  {t('addExpense.categoryLabel')}
-                </Text>
-                {categories.length === 0 ? (
-                  <Text className="mb-5 text-sm" style={{ color: theme.textTertiary }}>
-                    {t('addExpense.noCategories')}
-                  </Text>
-                ) : (
-                  <View className="mb-6 flex-row flex-wrap gap-2">
-                    {categories.map((cat) => {
-                      const isSelected = selectedCategory?.id === cat.id;
-                      return (
-                        <TouchableOpacity
-                          key={cat.id}
-                          onPress={() => setSelectedCategory(cat)}
-                          className="flex-row items-center rounded-2xl px-3.5 py-2.5"
-                          style={{
-                            backgroundColor: isSelected
-                              ? isDarkMode
-                                ? cat.colorDark + '33'
-                                : cat.colorLight
-                              : theme.cardBg,
-                            borderWidth: isSelected ? 2 : 1,
-                            borderColor: isSelected ? cat.colorDark : theme.border,
-                          }}>
-                          <Ionicons
-                            name={cat.icon as any}
-                            size={15}
-                            color={isSelected ? cat.colorDark : theme.textTertiary}
-                          />
-                          <Text
-                            className="ml-1.5 text-[13px] font-medium"
-                            style={{
-                              color: isSelected ? cat.colorDark : theme.textSecondary,
-                            }}>
-                            {cat.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-
-              </ScrollView>
-
-              <View
-                className="gap-2.5 border-t px-6 pt-3"
-                style={{
-                  paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-                  borderTopColor: theme.border,
-                  backgroundColor: theme.bg,
-                }}>
-                <TouchableOpacity
-                  onPress={handleSave}
-                  disabled={saving}
-                  className="items-center rounded-2xl py-4"
-                  style={{
-                    backgroundColor: theme.purple,
-                    opacity: saving ? 0.7 : 1,
-                  }}>
-                  {saving ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text className="text-base font-bold text-white">
-                      {t('addExpense.save')}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setStep('recording')}
-                  disabled={saving}
-                  className="items-center rounded-2xl border py-3.5"
-                  style={{
-                    borderColor: theme.border,
-                  }}>
-                  <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
-                    {t('recording.back')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
         </View>
-      </View>
-          </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

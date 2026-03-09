@@ -1,20 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { AddEditCategoryModal } from '../../components/AddEditCategoryModal';
 import { BudgetCategoryItem } from '../../components/BudgetCategoryItem';
+import { formatCurrencyAmount } from '../../config/currencies';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
 import { BudgetCategory, NewBudgetCategory } from '../../types';
 
 export default function BudgetScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { categories, totalBudget, totalSpent, loading, addCategory, updateCategory, deleteCategory } =
-    useBudget(user?.uid);
+  const { currency } = useCurrency();
+  const {
+    categories,
+    totalBudget,
+    totalSpent,
+    loading,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+  } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BudgetCategory | null>(null);
@@ -70,7 +89,6 @@ export default function BudgetScreen() {
     ]);
   }
 
-
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -101,23 +119,26 @@ export default function BudgetScreen() {
 
         {/* Summary Card - Modern Redesign */}
         <View className="mb-6 px-6">
-          <View 
-            className="rounded-[32px] p-6 shadow-sm" 
-            style={{ 
+          <View
+            className="rounded-[32px] p-6 shadow-sm"
+            style={{
               backgroundColor: theme.cardBg,
               borderWidth: 1,
               borderColor: theme.border,
             }}>
-            
             {/* Header & Date */}
             <View className="mb-6 flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2 rounded-full px-3 py-1.5" style={{ backgroundColor: theme.iconBg }}>
+              <View
+                className="flex-row items-center gap-2 rounded-full px-3 py-1.5"
+                style={{ backgroundColor: theme.iconBg }}>
                 <Ionicons name="calendar-clear" size={14} color={theme.purple} />
                 <Text className="text-xs font-semibold" style={{ color: theme.purple }}>
                   {monthLabel}
                 </Text>
               </View>
-              <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: theme.purple + '15' }}>
+              <View
+                className="h-8 w-8 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.purple + '15' }}>
                 <Ionicons name="pie-chart" size={16} color={theme.purple} />
               </View>
             </View>
@@ -128,8 +149,10 @@ export default function BudgetScreen() {
                 <Text className="mb-1 text-sm font-medium" style={{ color: theme.textTertiary }}>
                   {t('budget.totalSpent')}
                 </Text>
-                <Text className="text-4xl font-black tracking-tight" style={{ color: theme.textPrimary }}>
-                  ${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <Text
+                  className="text-4xl font-black tracking-tight"
+                  style={{ color: theme.textPrimary }}>
+                  {formatCurrencyAmount(totalSpent, currency, i18n.language)}
                 </Text>
               </View>
               <View className="items-end pb-1">
@@ -137,7 +160,10 @@ export default function BudgetScreen() {
                   {t('budget.totalBudget')}
                 </Text>
                 <Text className="text-lg font-bold" style={{ color: theme.textSecondary }}>
-                  ${totalBudget.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  {formatCurrencyAmount(totalBudget, currency, i18n.language, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
                 </Text>
               </View>
             </View>
@@ -145,31 +171,40 @@ export default function BudgetScreen() {
             {/* Progress Section */}
             <View>
               <View className="mb-2 flex-row items-center justify-between">
-                <Text className="text-xs font-semibold" style={{ color: totalRemaining > 0 ? '#10B981' : '#EF4444' }}>
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: totalRemaining > 0 ? '#10B981' : '#EF4444' }}>
                   {totalRemaining > 0 ? t('budget.remaining') : t('budget.overBudget')}
                 </Text>
-                <Text className="text-sm font-bold" style={{ color: totalRemaining > 0 ? '#10B981' : '#EF4444' }}>
-                  ${Math.abs(totalBudget - totalSpent).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <Text
+                  className="text-sm font-bold"
+                  style={{ color: totalRemaining > 0 ? '#10B981' : '#EF4444' }}>
+                  {formatCurrencyAmount(
+                    Math.abs(totalBudget - totalSpent),
+                    currency,
+                    i18n.language
+                  )}
                 </Text>
               </View>
-              
+
               <View
                 className="h-3 overflow-hidden rounded-full"
                 style={{ backgroundColor: theme.border }}>
                 <View
                   className="h-full rounded-full"
-                  style={{ 
-                    width: `${Math.min(overallPercentage, 100)}%`, 
-                    backgroundColor: overallPercentage > 100 ? '#EF4444' : theme.purple 
+                  style={{
+                    width: `${Math.min(overallPercentage, 100)}%`,
+                    backgroundColor: overallPercentage > 100 ? '#EF4444' : theme.purple,
                   }}
                 />
               </View>
-              
-              <Text className="mt-2 text-right text-[10px] font-medium" style={{ color: theme.textTertiary }}>
+
+              <Text
+                className="mt-2 text-right text-[10px] font-medium"
+                style={{ color: theme.textTertiary }}>
                 {t('budget.budgetUsed', { percent: Math.round(overallPercentage) })}
               </Text>
             </View>
-
           </View>
         </View>
 
@@ -194,7 +229,7 @@ export default function BudgetScreen() {
               <Text className="mt-4 text-base font-semibold" style={{ color: theme.textSecondary }}>
                 {t('budget.noCategories')}
               </Text>
-              <Text className="mt-1 text-sm text-center" style={{ color: theme.textTertiary }}>
+              <Text className="mt-1 text-center text-sm" style={{ color: theme.textTertiary }}>
                 {t('budget.tapAdd')}
               </Text>
             </View>

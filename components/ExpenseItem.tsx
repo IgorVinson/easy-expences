@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { formatCurrencyAmount } from '../config/currencies';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
 import { styles } from '../styles';
@@ -15,15 +17,10 @@ type ExpenseItemProps = {
   showDate?: boolean;
 };
 
-export const ExpenseItem = ({
-  expense,
-  onPress,
-  onDelete,
-  onEdit,
-  showDate,
-}: ExpenseItemProps) => {
-  const { t } = useTranslation();
+export const ExpenseItem = ({ expense, onPress, onDelete, onEdit, showDate }: ExpenseItemProps) => {
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const { currency } = useCurrency();
   const swipeableRef = useRef<Swipeable>(null);
 
   const formattedDate = showDate
@@ -32,6 +29,8 @@ export const ExpenseItem = ({
         day: 'numeric',
       })
     : null;
+  const formattedAmount = formatCurrencyAmount(Math.abs(expense.amount), currency, i18n.language);
+  const formattedBudgetLeft = formatCurrencyAmount(expense.budgetLeft, currency, i18n.language);
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
@@ -133,11 +132,11 @@ export const ExpenseItem = ({
         </View>
         <View className="flex-col items-center">
           <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-            ${Math.abs(expense.amount).toFixed(2)}
+            {formattedAmount}
           </Text>
           {expense.budgetLeft && (
             <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-              {t('expenseItem.left', { amount: expense.budgetLeft })}
+              {t('expenseItem.left', { amount: formattedBudgetLeft })}
             </Text>
           )}
         </View>

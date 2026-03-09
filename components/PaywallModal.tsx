@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { formatCurrencyAmount } from '../config/currencies';
 import { FREE_VOICE_LIMIT, PLANS, useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -19,7 +20,7 @@ interface PaywallModalProps {
 }
 
 export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { subscribe, restorePurchases } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<'pro_monthly' | 'pro_annual'>('pro_annual');
@@ -54,7 +55,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
 
   const monthlyPrice = PLANS.pro_monthly.price;
   const annualPrice = PLANS.pro_annual.price;
-  const annualMonthly = (annualPrice / 12).toFixed(2);
+  const annualMonthly = formatCurrencyAmount(annualPrice / 12, 'USD', i18n.language);
+  const annualPriceLabel = formatCurrencyAmount(annualPrice, 'USD', i18n.language);
+  const monthlyPriceLabel = formatCurrencyAmount(monthlyPrice, 'USD', i18n.language);
   const savingsPercent = Math.round((1 - annualPrice / (monthlyPrice * 12)) * 100);
 
   const handlePurchase = async () => {
@@ -65,7 +68,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
         { text: t('paywall.awesome'), onPress: onClose },
       ]);
     } catch (err: any) {
-      Alert.alert(t('paywall.purchaseFailed'), err.message || t('common.tryAgain') || 'Please try again.');
+      Alert.alert(
+        t('paywall.purchaseFailed'),
+        err.message || t('common.tryAgain') || 'Please try again.'
+      );
     } finally {
       setPurchasing(false);
     }
@@ -198,11 +204,16 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                   <View
                     className="ml-2 rounded-full px-2 py-0.5"
                     style={{ backgroundColor: '#8B5CF6' }}>
-                    <Text className="text-[10px] font-bold text-white">{t('paywall.plans.savePercent', { percent: savingsPercent })}</Text>
+                    <Text className="text-[10px] font-bold text-white">
+                      {t('paywall.plans.savePercent', { percent: savingsPercent })}
+                    </Text>
                   </View>
                 </View>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  {t('paywall.plans.annualDetail', { monthly: annualMonthly, annual: annualPrice.toFixed(2) })}
+                  {t('paywall.plans.annualDetail', {
+                    monthly: annualMonthly,
+                    annual: annualPriceLabel,
+                  })}
                 </Text>
               </View>
               <View
@@ -239,7 +250,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                   {t('paywall.plans.monthly')}
                 </Text>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  {t('paywall.plans.monthlyDetail', { price: monthlyPrice.toFixed(2) })}
+                  {t('paywall.plans.monthlyDetail', { price: monthlyPriceLabel })}
                 </Text>
               </View>
               <View
@@ -269,7 +280,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text className="text-base font-bold text-white">
-                {t('paywall.subscribe', { price: selectedPlan === 'pro_annual' ? `$${annualPrice.toFixed(2)}/yr` : `$${monthlyPrice.toFixed(2)}/mo` })}
+                {t('paywall.subscribe', {
+                  price: selectedPlan === 'pro_annual' ? annualPriceLabel : monthlyPriceLabel,
+                })}
               </Text>
             )}
           </TouchableOpacity>

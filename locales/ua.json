@@ -41,13 +41,14 @@
     "deleteTitle": "Видалити категорію",
     "deleteConfirm": "Ви впевнені, що хочете видалити цю категорію?",
     "resetSpentTitle": "Скинути суму витрат?",
-    "resetSpentConfirm": "Це скине витрачену суму для \"{{name}}\" до $0. Корисно для початку нового циклу.",
-    "resetToZero": "Скинути до $0"
+    "resetSpentConfirm": "Це скине витрачену суму для \"{{name}}\" до нуля. Корисно для початку нового циклу.",
+    "resetToZero": "Скинути до нуля"
   },
   "profile": {
     "title": "Мій профіль",
     "myPlan": "Мій тариф",
     "language": "Мова",
+    "currency": "Валюта",
     "english": "English",
     "ukrainian": "Українська",
     "spanish": "Español",
@@ -79,7 +80,7 @@
     "title": "Додати витрату",
     "nameLabel": "Назва",
     "namePlaceholder": "напр., Обід у кафе",
-    "amountLabel": "Сума ($)",
+    "amountLabel": "Сума ({{currency}})",
     "amountPlaceholder": "0.00",
     "categoryLabel": "Категорія",
     "noCategories": "Категорій немає. Перевірте вкладку Бюджет.",
@@ -103,7 +104,7 @@
     "editTitle": "Редагувати категорію",
     "nameLabel": "Назва категорії",
     "namePlaceholder": "напр., Продукти",
-    "budgetLabel": "Місячний бюджет ($)",
+    "budgetLabel": "Місячний бюджет ({{currency}})",
     "budgetPlaceholder": "0.00",
     "iconLabel": "Іконка",
     "colorLabel": "Колір",
@@ -135,8 +136,8 @@
       "annual": "Річний",
       "monthly": "Місячний",
       "savePercent": "ЕКОНОМІЯ {{percent}}%",
-      "annualDetail": "${{monthly}}/міс · ${{annual}}/рік",
-      "monthlyDetail": "${{price}}/місяць"
+      "annualDetail": "{{monthly}}/міс · {{annual}}/рік",
+      "monthlyDetail": "{{price}}/місяць"
     },
     "subscribe": "Спробувати Pro · {{price}}",
     "restore": "Відновити покупки",
@@ -149,15 +150,16 @@
     "restoreError": "Не вдалося відновити покупки."
   },
   "expenseItem": {
-    "left": "Залишилось ${{amount}}"
+    "left": "Залишилось {{amount}}"
   },
   "budgetCategoryItem": {
-    "over": "Перевищення ${{amount}}",
-    "left": "Залишилось ${{amount}}"
+    "spent": "Витрачено {{amount}}",
+    "over": "Перевищення {{amount}}",
+    "left": "Залишилось {{amount}}"
   },
   "monthlyReview": {
     "title": "Огляд нового місяця",
-    "subtitle": "Перегляньте свій бюджет на {{month}}. Це скине всі поточні витрати до $0.",
+    "subtitle": "Перегляньте свій бюджет на {{month}}. Це скине всі поточні витрати до нуля.",
     "save": "Зберегти та почати {{month}}"
   },
   "onboarding": {

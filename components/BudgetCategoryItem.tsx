@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { formatCurrencyAmount } from '../config/currencies';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
 import { styles } from '../styles';
@@ -20,13 +22,22 @@ export const BudgetCategoryItem = ({
   onDelete,
   onEdit,
 }: BudgetCategoryItemProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const { currency } = useCurrency();
   const swipeableRef = useRef<Swipeable>(null);
 
   const percentage = Math.min((category.spent / category.budget) * 100, 100);
   const remaining = category.budget - category.spent;
   const isOverBudget = remaining < 0;
+  const formattedBudget = formatCurrencyAmount(category.budget, currency, i18n.language, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  const formattedRemaining = formatCurrencyAmount(Math.abs(remaining), currency, i18n.language, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
@@ -124,14 +135,14 @@ export const BudgetCategoryItem = ({
 
           <View className="items-end">
             <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-              ${category.budget.toLocaleString()}
+              {formattedBudget}
             </Text>
             <Text
               className="mt-0.5 text-xs"
               style={{ color: isOverBudget ? '#F87171' : theme.textTertiary }}>
               {isOverBudget
-                ? t('budgetCategoryItem.over', { amount: Math.abs(remaining).toLocaleString() })
-                : t('budgetCategoryItem.left', { amount: remaining.toLocaleString() })}
+                ? t('budgetCategoryItem.over', { amount: formattedRemaining })
+                : t('budgetCategoryItem.left', { amount: formattedRemaining })}
             </Text>
           </View>
         </View>

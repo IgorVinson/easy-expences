@@ -41,13 +41,14 @@
     "deleteTitle": "Eliminar Categoría",
     "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?",
     "resetSpentTitle": "¿Restablecer gastos?",
-    "resetSpentConfirm": "Esto restablecerá el gasto de \"{{name}}\" a $0. Ideal para empezar un nuevo ciclo.",
-    "resetToZero": "Restablecer a $0"
+    "resetSpentConfirm": "Esto restablecerá el gasto de \"{{name}}\" a cero. Ideal para empezar un nuevo ciclo.",
+    "resetToZero": "Restablecer a cero"
   },
   "profile": {
     "title": "Mi Perfil",
     "myPlan": "Mi Plan",
     "language": "Idioma",
+    "currency": "Moneda",
     "english": "English",
     "ukrainian": "Українська",
     "spanish": "Español",
@@ -79,7 +80,7 @@
     "title": "Añadir Gasto",
     "nameLabel": "Título",
     "namePlaceholder": "ej. Almuerzo en la cafetería",
-    "amountLabel": "Cantidad ($)",
+    "amountLabel": "Cantidad ({{currency}})",
     "amountPlaceholder": "0.00",
     "categoryLabel": "Categoría",
     "noCategories": "No hay categorías. Revisa la pestaña de Presupuesto.",
@@ -103,7 +104,7 @@
     "editTitle": "Editar Categoría",
     "nameLabel": "Nombre de Categoría",
     "namePlaceholder": "ej. Comida",
-    "budgetLabel": "Presupuesto Mensual ($)",
+    "budgetLabel": "Presupuesto Mensual ({{currency}})",
     "budgetPlaceholder": "0.00",
     "iconLabel": "Icono",
     "colorLabel": "Color",
@@ -135,8 +136,8 @@
       "annual": "Anual",
       "monthly": "Mensual",
       "savePercent": "AHORRA {{percent}}%",
-      "annualDetail": "${{monthly}}/mes · Facturado ${{annual}}/año",
-      "monthlyDetail": "${{price}}/mes"
+      "annualDetail": "{{monthly}}/mes · Facturado {{annual}}/año",
+      "monthlyDetail": "{{price}}/mes"
     },
     "subscribe": "Empezar Pro · {{price}}",
     "restore": "Restaurar compras",
@@ -149,15 +150,16 @@
     "restoreError": "No se pudieron restaurar las compras."
   },
   "expenseItem": {
-    "left": "Quedan ${{amount}}"
+    "left": "Quedan {{amount}}"
   },
   "budgetCategoryItem": {
-    "over": "Excedido ${{amount}}",
-    "left": "Quedan ${{amount}}"
+    "spent": "{{amount}} gastados",
+    "over": "Excedido {{amount}}",
+    "left": "Quedan {{amount}}"
   },
   "monthlyReview": {
     "title": "Revisión Mensual",
-    "subtitle": "Revisa tu presupuesto para {{month}}. Esto restablecerá todos los gastos a $0.",
+    "subtitle": "Revisa tu presupuesto para {{month}}. Esto restablecerá todos los gastos a cero.",
     "save": "Guardar y Empezar {{month}}"
   },
   "onboarding": {

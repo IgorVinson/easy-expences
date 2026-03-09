@@ -4,6 +4,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { CurrencyProvider } from '../contexts/CurrencyContext';
 import { SubscriptionProvider } from '../contexts/SubscriptionContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
@@ -59,11 +60,13 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <ThemeProvider>
-          <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}>
-            <SubscriptionProvider>
-              <RootLayoutNav />
-            </SubscriptionProvider>
-          </StripeProvider>
+          <CurrencyProvider>
+            <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}>
+              <SubscriptionProvider>
+                <RootLayoutNav />
+              </SubscriptionProvider>
+            </StripeProvider>
+          </CurrencyProvider>
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
