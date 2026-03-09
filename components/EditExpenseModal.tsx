@@ -19,6 +19,7 @@ import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
 import { BudgetCategory, Expense } from '../types';
+import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 
 interface EditExpenseModalProps {
   visible: boolean;
@@ -55,16 +56,18 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
+  const [calculatorExpression, setCalculatorExpression] = useState('');
+  const [isCalculatorVisible, setIsCalculatorVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Populate form when expense changes
   useEffect(() => {
     if (expense) {
+      const nextAmount = String(expense.amount);
       setTitle(expense.title);
-      setAmount(String(expense.amount));
-      // Match category by name
+      setAmount(nextAmount);
+      setCalculatorExpression(nextAmount);
       const matched = categories.find((c) => c.name === expense.category);
       setSelectedCategory(matched ?? null);
     } else {
@@ -75,12 +78,18 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   function resetForm() {
     setTitle('');
     setAmount('');
+    setCalculatorExpression('');
+    setIsCalculatorVisible(false);
     setSelectedCategory(null);
   }
 
   function handleClose() {
     resetForm();
     onClose();
+  }
+
+  function hideCalculator() {
+    setIsCalculatorVisible(false);
   }
 
   async function handleSave() {
@@ -90,11 +99,26 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       Alert.alert(t('addExpense.missingTitle'), t('addExpense.enterTitle'));
       return;
     }
-    const parsedAmount = parseFloat(amount);
+
+    const resolvedAmount = resolveCalculatedAmount(calculatorExpression, amount);
+
+    if (resolvedAmount === null) {
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
+      return;
+    }
+
+    const parsedAmount = parseFloat(resolvedAmount);
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
+
+    if (resolvedAmount !== amount || resolvedAmount !== calculatorExpression) {
+      setAmount(resolvedAmount);
+      setCalculatorExpression(resolvedAmount);
+    }
+
     if (!selectedCategory) {
       Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
       return;
@@ -158,6 +182,13 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     fontSize: 16,
   };
 
+  const labelStyle = {
+    color: theme.textSecondary,
+    fontSize: 13,
+    fontWeight: '600' as const,
+    marginBottom: 8,
+  };
+
   return (
     <Modal
       visible={visible}
@@ -168,9 +199,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Backdrop wrapper */}
         <View className="flex-1 justify-end">
-          {/* Absolute touch area for backdrop */}
           <TouchableWithoutFeedback onPress={handleClose}>
             <View
               style={{
@@ -184,7 +213,6 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             />
           </TouchableWithoutFeedback>
 
-          {/* Sheet */}
           <View
             className="overflow-hidden rounded-t-3xl"
             style={{
@@ -192,12 +220,10 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               height: Dimensions.get('window').height * 0.85,
               backgroundColor: theme.bg,
             }}>
-            {/* Drag handle */}
             <View className="items-center pb-1 pt-3">
               <View className="h-1 w-10 rounded-full" style={{ backgroundColor: theme.border }} />
             </View>
 
-            {/* Header */}
             <View className="flex-row items-center justify-between px-6 py-3">
               <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
                 {t('editExpense.title')}
@@ -210,38 +236,34 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Scrollable form */}
             <ScrollView
               className="w-full shrink px-6"
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 40 }}>
-              {/* Title */}
-              <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                {t('addExpense.nameLabel')}
-              </Text>
+              <Text style={labelStyle}>{t('addExpense.nameLabel')}</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
+                onFocus={hideCalculator}
                 placeholder={t('addExpense.namePlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 style={[inputStyle, { marginBottom: 20 }]}
               />
 
-              {/* Amount */}
-              <Text className="mb-2.5 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                {t('addExpense.amountLabel', { currency })}
-              </Text>
-              <TextInput
+              <ExpenseAmountInput
                 value={amount}
-                onChangeText={setAmount}
+                expression={calculatorExpression}
+                onValueChange={setAmount}
+                onExpressionChange={setCalculatorExpression}
+                onShowCalculator={() => setIsCalculatorVisible(true)}
+                label={t('addExpense.amountLabel', { currency })}
                 placeholder={t('addExpense.amountPlaceholder')}
-                placeholderTextColor={theme.textTertiary}
-                keyboardType="decimal-pad"
-                style={[inputStyle, { marginBottom: 20 }]}
+                isCalculatorVisible={isCalculatorVisible}
+                inputStyle={inputStyle}
+                labelStyle={labelStyle}
               />
 
-              {/* Category */}
               <Text className="mb-3 text-xs font-semibold" style={{ color: theme.textSecondary }}>
                 {t('addExpense.categoryLabel')}
               </Text>
@@ -256,7 +278,10 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                     return (
                       <TouchableOpacity
                         key={cat.id}
-                        onPress={() => setSelectedCategory(cat)}
+                        onPress={() => {
+                          hideCalculator();
+                          setSelectedCategory(cat);
+                        }}
                         style={{
                           flexDirection: 'row',
                           alignItems: 'center',
@@ -291,7 +316,6 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 </View>
               )}
 
-              {/* Delete button — inside scroll body */}
               <TouchableOpacity
                 onPress={handleDeletePress}
                 disabled={saving || deleting}
@@ -313,7 +337,6 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
               </TouchableOpacity>
             </ScrollView>
 
-            {/* Pinned footer — Save button */}
             <View
               className="px-6 pt-3"
               style={{
@@ -343,4 +366,3 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     </Modal>
   );
 };
-// hot reload test

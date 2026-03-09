@@ -20,6 +20,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
 import { BudgetCategory } from '../types';
+import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 
 interface AddExpenseModalProps {
   visible: boolean;
@@ -42,10 +43,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
+  const [calculatorExpression, setCalculatorExpression] = useState('');
+  const [isCalculatorVisible, setIsCalculatorVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Set initial category when modal becomes visible
   React.useEffect(() => {
     if (visible && initialCategory) {
       setSelectedCategory(initialCategory);
@@ -55,6 +57,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   function resetForm() {
     setTitle('');
     setAmount('');
+    setCalculatorExpression('');
+    setIsCalculatorVisible(false);
     setSelectedCategory(null);
   }
 
@@ -63,16 +67,35 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     onClose();
   }
 
+  function hideCalculator() {
+    setIsCalculatorVisible(false);
+  }
+
   async function handleSave() {
     if (!title.trim()) {
       Alert.alert(t('addExpense.missingTitle'), t('addExpense.enterTitle'));
       return;
     }
-    const parsedAmount = parseFloat(amount);
+
+    const resolvedAmount = resolveCalculatedAmount(calculatorExpression, amount);
+
+    if (resolvedAmount === null) {
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
+      return;
+    }
+
+    const parsedAmount = parseFloat(resolvedAmount);
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
+
+    if (resolvedAmount !== amount || resolvedAmount !== calculatorExpression) {
+      setAmount(resolvedAmount);
+      setCalculatorExpression(resolvedAmount);
+    }
+
     if (!selectedCategory) {
       Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
       return;
@@ -111,6 +134,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     fontSize: 16,
   };
 
+  const amountLabelStyle = {
+    color: theme.textSecondary,
+    fontSize: 13,
+    fontWeight: '600' as const,
+    marginBottom: 8,
+  };
+
   return (
     <Modal
       visible={visible}
@@ -121,9 +151,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Backdrop wrapper */}
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-          {/* Absolute touch area for backdrop */}
           <TouchableWithoutFeedback onPress={handleClose}>
             <View
               style={{
@@ -137,7 +165,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             />
           </TouchableWithoutFeedback>
 
-          {/* Sheet */}
           <View
             style={{
               flexShrink: 1,
@@ -147,7 +174,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               borderTopRightRadius: 24,
               overflow: 'hidden',
             }}>
-            {/* Handle */}
             <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
               <View
                 style={{
@@ -158,7 +184,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 }}
               />
             </View>
-            {/* Header */}
             <View
               style={{
                 flexDirection: 'row',
@@ -183,50 +208,34 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 <Ionicons name="close" size={20} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
-            {/* Scrollable form */}
             <ScrollView
               style={{ flexShrink: 1, width: '100%', paddingHorizontal: 24 }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 40 }}>
-              {/* Title */}
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 13,
-                  fontWeight: '600',
-                  marginBottom: 8,
-                }}>
-                {t('addExpense.nameLabel')}
-              </Text>
+              <Text style={amountLabelStyle}>{t('addExpense.nameLabel')}</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
+                onFocus={hideCalculator}
                 placeholder={t('addExpense.namePlaceholder')}
                 placeholderTextColor={theme.textTertiary}
                 style={[inputStyle, { marginBottom: 20 }]}
               />
 
-              {/* Amount */}
-              <Text
-                style={{
-                  color: theme.textSecondary,
-                  fontSize: 13,
-                  fontWeight: '600',
-                  marginBottom: 8,
-                }}>
-                {t('addExpense.amountLabel', { currency })}
-              </Text>
-              <TextInput
+              <ExpenseAmountInput
                 value={amount}
-                onChangeText={setAmount}
+                expression={calculatorExpression}
+                onValueChange={setAmount}
+                onExpressionChange={setCalculatorExpression}
+                onShowCalculator={() => setIsCalculatorVisible(true)}
+                label={t('addExpense.amountLabel', { currency })}
                 placeholder={t('addExpense.amountPlaceholder')}
-                placeholderTextColor={theme.textTertiary}
-                keyboardType="decimal-pad"
-                style={[inputStyle, { marginBottom: 20 }]}
+                isCalculatorVisible={isCalculatorVisible}
+                inputStyle={inputStyle}
+                labelStyle={amountLabelStyle}
               />
 
-              {/* Category */}
               <Text
                 style={{
                   color: theme.textSecondary,
@@ -247,7 +256,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     return (
                       <TouchableOpacity
                         key={cat.id}
-                        onPress={() => setSelectedCategory(cat)}
+                        onPress={() => {
+                          hideCalculator();
+                          setSelectedCategory(cat);
+                        }}
                         style={{
                           flexDirection: 'row',
                           alignItems: 'center',
@@ -283,7 +295,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               )}
             </ScrollView>
 
-            {/* Save button — pinned to bottom */}
             <View
               style={{
                 paddingHorizontal: 24,

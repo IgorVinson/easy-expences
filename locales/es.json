@@ -91,7 +91,9 @@
     "enterAmount": "Por favor ingresa una cantidad positiva válida.",
     "noCategory": "Sin categoría",
     "selectCategory": "Por favor selecciona una categoría.",
-    "failedSave": "Error al guardar el gasto."
+    "failedSave": "Error al guardar el gasto.",
+    "calculatorLabel": "Calculadora",
+    "calculatorHint": "Forma la cantidad con cálculos rápidos."
   },
   "editExpense": {
     "title": "Editar Gasto",

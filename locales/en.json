@@ -91,7 +91,9 @@
     "enterAmount": "Please enter a valid positive amount.",
     "noCategory": "No category",
     "selectCategory": "Please select a category.",
-    "failedSave": "Failed to save expense."
+    "failedSave": "Failed to save expense.",
+    "calculatorLabel": "Calculator",
+    "calculatorHint": "Build the amount with quick math."
   },
   "editExpense": {
     "title": "Edit Expense",

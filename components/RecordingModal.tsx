@@ -22,6 +22,7 @@ import { useBudget } from '../hooks/useBudget';
 import { useExpenses } from '../hooks/useExpenses';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { BudgetCategory } from '../types';
+import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 import ListeningIndicator from './ListeningIndicator';
 
 interface RecordingModalProps {
@@ -84,6 +85,8 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
   const [step, setStep] = useState<VoiceStep>('recording');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
+  const [calculatorExpression, setCalculatorExpression] = useState('');
+  const [isCalculatorVisible, setIsCalculatorVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [saving, setSaving] = useState(false);
   const [animationSession, setAnimationSession] = useState(0);
@@ -138,6 +141,8 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
     setStep('recording');
     setTitle('');
     setAmount('');
+    setCalculatorExpression('');
+    setIsCalculatorVisible(false);
     setSelectedCategory(null);
     setSaving(false);
   }
@@ -160,11 +165,17 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
     }
 
     setTitle(result.title);
-    setAmount(result.amount > 0 ? result.amount.toString() : '');
+    const nextAmount = result.amount > 0 ? result.amount.toString() : '';
+    setAmount(nextAmount);
+    setCalculatorExpression(nextAmount);
 
     const matchedCategory = findBestCategoryMatch(categories, result.category);
     setSelectedCategory(matchedCategory);
     setStep('review');
+  }
+
+  function hideCalculator() {
+    setIsCalculatorVisible(false);
   }
 
   async function handleSave() {
@@ -172,11 +183,26 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
       Alert.alert(t('addExpense.missingTitle'), t('addExpense.enterTitle'));
       return;
     }
-    const parsedAmount = parseFloat(amount);
+
+    const resolvedAmount = resolveCalculatedAmount(calculatorExpression, amount);
+
+    if (resolvedAmount === null) {
+      Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
+      return;
+    }
+
+    const parsedAmount = parseFloat(resolvedAmount);
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert(t('addExpense.invalidAmount'), t('addExpense.enterAmount'));
       return;
     }
+
+    if (resolvedAmount !== amount || resolvedAmount !== calculatorExpression) {
+      setAmount(resolvedAmount);
+      setCalculatorExpression(resolvedAmount);
+    }
+
     if (!selectedCategory) {
       Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
       return;
@@ -342,26 +368,29 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
                     className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
                     value={title}
                     onChangeText={setTitle}
+                    onFocus={hideCalculator}
                     placeholder={t('addExpense.namePlaceholder')}
                     placeholderTextColor={theme.textTertiary}
                     style={inputStyle}
                   />
 
-                  <Text
-                    className="mb-2 text-[13px] font-semibold"
-                    style={{
-                      color: theme.textSecondary,
-                    }}>
-                    {t('addExpense.amountLabel', { currency })}
-                  </Text>
-                  <TextInput
-                    className="mb-5 rounded-2xl border px-4 py-3.5 text-base"
+                  <ExpenseAmountInput
                     value={amount}
-                    onChangeText={setAmount}
+                    expression={calculatorExpression}
+                    onValueChange={setAmount}
+                    onExpressionChange={setCalculatorExpression}
+                    onShowCalculator={() => setIsCalculatorVisible(true)}
+                    label={t('addExpense.amountLabel', { currency })}
                     placeholder="0.00"
-                    placeholderTextColor={theme.textTertiary}
-                    keyboardType="decimal-pad"
-                    style={inputStyle}
+                    isCalculatorVisible={isCalculatorVisible}
+                    inputStyle={inputStyle}
+                    inputClassName="rounded-2xl border px-4 py-3.5 text-base"
+                    labelStyle={{
+                      color: theme.textSecondary,
+                      fontSize: 13,
+                      fontWeight: '600',
+                      marginBottom: 8,
+                    }}
                   />
 
                   <Text
@@ -382,7 +411,10 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
                         return (
                           <TouchableOpacity
                             key={cat.id}
-                            onPress={() => setSelectedCategory(cat)}
+                            onPress={() => {
+                              hideCalculator();
+                              setSelectedCategory(cat);
+                            }}
                             className="flex-row items-center rounded-2xl px-3.5 py-2.5"
                             style={{
                               backgroundColor: isSelected
@@ -435,7 +467,10 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => setStep('recording')}
+                    onPress={() => {
+                      hideCalculator();
+                      setStep('recording');
+                    }}
                     disabled={saving}
                     className="items-center rounded-2xl border py-3.5"
                     style={{
