@@ -54,7 +54,7 @@ export default function ProfileScreen() {
   const handleChangeLanguage = () => {
     Alert.alert(t('profile.language'), '', [
       { text: t('profile.english'), onPress: () => i18n.changeLanguage('en') },
-      { text: t('profile.ukrainian'), onPress: () => i18n.changeLanguage('uk') },
+      { text: t('profile.ukrainian'), onPress: () => i18n.changeLanguage('ua') },
       { text: t('profile.spanish'), onPress: () => i18n.changeLanguage('es') },
       { text: t('common.cancel'), style: 'cancel' },
     ]);
@@ -181,14 +181,14 @@ export default function ProfileScreen() {
                 {isPro && subscription.expiresAt ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
                     {t('profile.renewsOn', {
-                      date: new Date(subscription.expiresAt).toLocaleDateString(
-                        i18n.language === 'en'
-                          ? 'en-US'
-                          : i18n.language === 'uk'
-                            ? 'uk-UA'
-                            : 'es-ES',
-                        {
-                          month: 'long',
+                        date: new Date(subscription.expiresAt).toLocaleDateString(
+                          i18n.language === 'en'
+                            ? 'en-US'
+                            : i18n.language === 'ua'
+                              ? 'uk-UA'
+                              : 'es-ES',
+                          {
+                            month: 'long',
                           day: 'numeric',
                           year: 'numeric',
                         }

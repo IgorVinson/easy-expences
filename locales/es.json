@@ -165,20 +165,20 @@
     "next": "Siguiente",
     "getStarted": "Comenzar",
     "expenses": {
-      "title": "Controla cada centavo",
-      "description": "Registra tus gastos diarios sin esfuerzo. Categorización automática y análisis de gastos en tiempo real."
+      "title": "Registra gastos rápido",
+      "description": "Anota café, compras o transporte en segundos. Mantén cada gasto organizado para saber siempre a dónde va tu dinero."
     },
     "voice": {
-      "title": "Solo dilo",
-      "description": "Añade gastos con tu voz — con inteligencia artificial. Di \"Café 5 dólares\" y nosotros nos encargamos."
+      "title": "Añade gastos sobre la marcha",
+      "description": "¿Vas con prisa? Solo di \"Café 5 dólares\" y la IA lo convierte en un gasto por ti."
     },
     "budget": {
-      "title": "Mantén tu presupuesto",
-      "description": "Establece presupuestos mensuales por categoría y sigue tu progreso visualmente. No vuelvas a gastar de más."
+      "title": "Detecta riesgos antes",
+      "description": "Crea presupuestos por categoría, detecta excesos antes de fin de mes y toma mejores decisiones con indicadores claros."
     },
     "ready": {
-      "title": "¡Todo listo!",
-      "description": "Tu rastreador de gastos inteligente está listo. Empieza a añadir gastos y toma el control de tus finanzas hoy."
+      "title": "Mantén el control cada día",
+      "description": "Guarda tus gastos, presupuestos y progreso en un solo lugar para revisar tu historial y mantenerte en camino cada día."
     }
   },
   "auth": {

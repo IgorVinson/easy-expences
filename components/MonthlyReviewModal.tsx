@@ -68,7 +68,10 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
   }
 
   const now = new Date();
-  const nextMonth = now.toLocaleString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'uk' ? 'uk-UA' : 'es-ES'), { month: 'long', year: 'numeric' });
+  const nextMonth = now.toLocaleString(
+    i18n.language === 'en' ? 'en-US' : i18n.language === 'ua' ? 'uk-UA' : 'es-ES',
+    { month: 'long', year: 'numeric' }
+  );
 
   return (
     <Modal visible={visible} transparent animationType="slide">

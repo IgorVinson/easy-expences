@@ -165,20 +165,20 @@
     "next": "Next",
     "getStarted": "Get Started",
     "expenses": {
-      "title": "Track Every Penny",
-      "description": "Effortlessly log your daily expenses. Stay organized with automatic categorization and real-time spending insights."
+      "title": "Capture Expenses Fast",
+      "description": "Log coffee, groceries, or transport in seconds. Keep every purchase organized so you always know where your money goes."
     },
     "voice": {
-      "title": "Just Say It",
-      "description": "Add expenses with your voice — powered by AI. Simply say \"Coffee 5 dollars\" and we'll handle the rest."
+      "title": "Add Spending on the Go",
+      "description": "In a rush? Just say \"Coffee 5 dollars\" and AI turns it into an expense for you."
     },
     "budget": {
-      "title": "Stay On Budget",
-      "description": "Set monthly budgets for each category and track your progress with visual indicators. Never overspend again."
+      "title": "See Budget Risks Early",
+      "description": "Set category budgets, spot overspending before month-end, and make smarter decisions with clear progress indicators."
     },
     "ready": {
-      "title": "You're All Set!",
-      "description": "Your smart expense tracker is ready. Start adding expenses and take control of your finances today."
+      "title": "Stay in Control Daily",
+      "description": "Keep your expenses, budgets, and progress in one place so you can review history and stay on track every day."
     }
   },
   "auth": {
