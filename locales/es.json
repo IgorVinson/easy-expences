@@ -42,7 +42,9 @@
     "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?",
     "resetSpentTitle": "¿Restablecer gastos?",
     "resetSpentConfirm": "Esto restablecerá el gasto de \"{{name}}\" a cero. Ideal para empezar un nuevo ciclo.",
-    "resetToZero": "Restablecer a cero"
+    "resetToZero": "Restablecer a cero",
+    "transactionsTitle": "Transacciones",
+    "noTransactions": "Todavía no hay transacciones en esta categoría."
   },
   "profile": {
     "title": "Mi Perfil",

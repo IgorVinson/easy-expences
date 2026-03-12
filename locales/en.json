@@ -42,7 +42,9 @@
     "deleteConfirm": "Are you sure you want to delete this category?",
     "resetSpentTitle": "Reset Spent Amount?",
     "resetSpentConfirm": "This will reset the spent amount for \"{{name}}\" back to zero. Perfect for starting a new cycle early.",
-    "resetToZero": "Reset to zero"
+    "resetToZero": "Reset to zero",
+    "transactionsTitle": "Transactions",
+    "noTransactions": "No transactions in this category yet."
   },
   "profile": {
     "title": "My Profile",

@@ -39,7 +39,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
   const { addExpense } = useExpenses(userId);
-  const { categories, updateCategorySpent } = useBudget(userId);
+  const { categories } = useBudget(userId);
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -108,12 +108,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         amount: parsedAmount,
         budgetLeft: selectedCategory.budget - selectedCategory.spent - parsedAmount,
         category: selectedCategory.name,
+        categoryId: selectedCategory.id,
         icon: selectedCategory.icon,
         colorLight: selectedCategory.colorLight,
         colorDark: selectedCategory.colorDark,
         date: new Date().toISOString(),
       });
-      await updateCategorySpent(selectedCategory.name, parsedAmount);
       resetForm();
       onClose();
     } catch (e: any) {

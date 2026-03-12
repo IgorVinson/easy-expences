@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
+import { useExpenses } from '../../hooks/useExpenses';
 import { BudgetCategory, NewBudgetCategory } from '../../types';
 
 export default function BudgetScreen() {
@@ -34,6 +35,7 @@ export default function BudgetScreen() {
     updateCategory,
     deleteCategory,
   } = useBudget(user?.uid);
+  const { expenses, updateExpense } = useExpenses(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BudgetCategory | null>(null);
@@ -70,7 +72,40 @@ export default function BudgetScreen() {
 
   async function handleSave(data: NewBudgetCategory, resetSpent?: boolean) {
     if (editingCategory) {
-      await updateCategory(editingCategory.id, resetSpent ? { ...data, spent: 0 } : data);
+      const nextCategoryData = resetSpent
+        ? { ...data, spent: 0, periodStart: new Date().toISOString() }
+        : data;
+      await updateCategory(editingCategory.id, nextCategoryData);
+
+      const relatedExpenses = expenses.filter(
+        (expense) =>
+          expense.categoryId === editingCategory.id ||
+          (!expense.categoryId &&
+            expense.category.trim().toLowerCase() === editingCategory.name.trim().toLowerCase())
+      );
+
+      const requiresExpenseSync = relatedExpenses.some(
+        (expense) =>
+          expense.categoryId !== editingCategory.id ||
+          expense.category !== data.name ||
+          expense.icon !== data.icon ||
+          expense.colorLight !== data.colorLight ||
+          expense.colorDark !== data.colorDark
+      );
+
+      if (requiresExpenseSync) {
+        await Promise.all(
+          relatedExpenses.map((expense) =>
+            updateExpense(expense.id, {
+              category: data.name,
+              categoryId: editingCategory.id,
+              icon: data.icon,
+              colorLight: data.colorLight,
+              colorDark: data.colorDark,
+            })
+          )
+        );
+      }
     } else {
       await addCategory(data);
     }
@@ -88,6 +123,15 @@ export default function BudgetScreen() {
       },
     ]);
   }
+
+  const categoryTransactions = editingCategory
+    ? expenses.filter(
+        (expense) =>
+          expense.categoryId === editingCategory.id ||
+          (!expense.categoryId &&
+            expense.category.trim().toLowerCase() === editingCategory.name.trim().toLowerCase())
+      )
+    : [];
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
@@ -270,6 +314,7 @@ export default function BudgetScreen() {
         visible={modalVisible}
         onClose={handleClose}
         category={editingCategory}
+        categoryTransactions={categoryTransactions}
         onSave={handleSave}
         onDelete={handleDelete}
       />

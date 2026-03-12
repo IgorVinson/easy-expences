@@ -15,9 +15,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { BudgetCategory, NewBudgetCategory } from '../types';
+import { BudgetCategory, Expense, NewBudgetCategory } from '../types';
 
 // ─── Icon picker options ──────────────────────────────────────────────────────
 
@@ -65,6 +66,7 @@ interface AddEditCategoryModalProps {
   visible: boolean;
   onClose: () => void;
   category?: BudgetCategory | null;
+  categoryTransactions?: Expense[];
   onSave: (data: NewBudgetCategory, resetSpent?: boolean) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
@@ -75,10 +77,11 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   visible,
   onClose,
   category,
+  categoryTransactions = [],
   onSave,
   onDelete,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
   const isEdit = Boolean(category);
@@ -373,6 +376,90 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                   );
                 })}
               </View>
+
+              {isEdit && (
+                <View className="mb-6">
+                  <View className="mb-3 flex-row items-center justify-between">
+                    <Text className="text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                      {t('budget.transactionsTitle')}
+                    </Text>
+                    <View
+                      className="rounded-full px-2.5 py-1"
+                      style={{ backgroundColor: theme.iconBg }}>
+                      <Text
+                        className="text-[11px] font-semibold"
+                        style={{ color: theme.textTertiary }}>
+                        {categoryTransactions.length}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {categoryTransactions.length === 0 ? (
+                    <View
+                      className="rounded-2xl px-4 py-4"
+                      style={{
+                        backgroundColor: theme.cardBg,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                      }}>
+                      <Text className="text-sm" style={{ color: theme.textTertiary }}>
+                        {t('budget.noTransactions')}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View
+                      className="overflow-hidden rounded-2xl"
+                      style={{
+                        backgroundColor: theme.cardBg,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                      }}>
+                      {categoryTransactions.map((expense, index) => {
+                        const formattedAmount = formatCurrencyAmount(
+                          Math.abs(expense.amount),
+                          currency,
+                          i18n.language
+                        );
+                        const formattedDate = new Date(expense.date).toLocaleDateString(
+                          i18n.language,
+                          {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          }
+                        );
+
+                        return (
+                          <View
+                            key={expense.id}
+                            className="flex-row items-center justify-between px-4 py-3"
+                            style={{
+                              borderBottomWidth: index === categoryTransactions.length - 1 ? 0 : 1,
+                              borderBottomColor: theme.border,
+                            }}>
+                            <View className="mr-3 flex-1">
+                              <Text
+                                numberOfLines={1}
+                                className="text-sm font-semibold"
+                                style={{ color: theme.textPrimary }}>
+                                {expense.title}
+                              </Text>
+                              <Text className="mt-1 text-xs" style={{ color: theme.textTertiary }}>
+                                {formattedDate}
+                              </Text>
+                            </View>
+                            <Text
+                              className="text-sm font-bold"
+                              style={{ color: theme.textPrimary }}>
+                              {formattedAmount}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              )}
 
               {/* Delete button — inside body, edit mode only */}
               {isEdit && onDelete && (

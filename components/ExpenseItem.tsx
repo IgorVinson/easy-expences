@@ -15,13 +15,22 @@ type ExpenseItemProps = {
   onDelete?: (id: string) => void;
   onEdit?: (expense: Expense) => void;
   showDate?: boolean;
+  budgetLeftOverride?: number | null;
 };
 
-export const ExpenseItem = ({ expense, onPress, onDelete, onEdit, showDate }: ExpenseItemProps) => {
+export const ExpenseItem = ({
+  expense,
+  onPress,
+  onDelete,
+  onEdit,
+  showDate,
+  budgetLeftOverride,
+}: ExpenseItemProps) => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const { currency } = useCurrency();
   const swipeableRef = useRef<Swipeable>(null);
+  const budgetLeftToShow = budgetLeftOverride ?? expense.budgetLeft;
 
   const formattedDate = showDate
     ? new Date(expense.date).toLocaleDateString(undefined, {
@@ -30,7 +39,11 @@ export const ExpenseItem = ({ expense, onPress, onDelete, onEdit, showDate }: Ex
       })
     : null;
   const formattedAmount = formatCurrencyAmount(Math.abs(expense.amount), currency, i18n.language);
-  const formattedBudgetLeft = formatCurrencyAmount(expense.budgetLeft, currency, i18n.language);
+  const formattedBudgetLeft = formatCurrencyAmount(
+    Math.abs(budgetLeftToShow),
+    currency,
+    i18n.language
+  );
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
@@ -134,7 +147,7 @@ export const ExpenseItem = ({ expense, onPress, onDelete, onEdit, showDate }: Ex
           <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
             {formattedAmount}
           </Text>
-          {expense.budgetLeft && (
+          {budgetLeftToShow !== null && budgetLeftToShow !== undefined && (
             <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
               {t('expenseItem.left', { amount: formattedBudgetLeft })}
             </Text>

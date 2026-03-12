@@ -32,6 +32,7 @@ interface EditExpenseModalProps {
       title: string;
       amount: number;
       category: string;
+      categoryId?: string;
       icon: any;
       colorLight: string;
       colorDark: string;
@@ -68,7 +69,9 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setTitle(expense.title);
       setAmount(nextAmount);
       setCalculatorExpression(nextAmount);
-      const matched = categories.find((c) => c.name === expense.category);
+      const matched = expense.categoryId
+        ? categories.find((c) => c.id === expense.categoryId)
+        : categories.find((c) => c.name === expense.category);
       setSelectedCategory(matched ?? null);
     } else {
       resetForm();
@@ -130,6 +133,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
         title: title.trim(),
         amount: parsedAmount,
         category: selectedCategory.name,
+        categoryId: selectedCategory.id,
         icon: selectedCategory.icon,
         colorLight: selectedCategory.colorLight,
         colorDark: selectedCategory.colorDark,

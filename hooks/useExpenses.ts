@@ -21,6 +21,7 @@ function docToExpense(id: string, data: Record<string, any>): Expense {
     id,
     title: data.title ?? '',
     category: data.category ?? '',
+    categoryId: data.categoryId,
     amount: data.amount ?? 0,
     budgetLeft: data.budgetLeft ?? 0,
     icon: data.icon ?? 'cash',
@@ -30,7 +31,7 @@ function docToExpense(id: string, data: Record<string, any>): Expense {
     date:
       data.date instanceof Timestamp
         ? data.date.toDate().toISOString()
-        : data.date ?? new Date().toISOString(),
+        : (data.date ?? new Date().toISOString()),
     userId: data.userId,
   };
 }
@@ -94,7 +95,10 @@ export function useExpenses(userId: string | null | undefined) {
   }
 
   /** Update any fields on an existing expense */
-  async function updateExpense(id: string, changes: Partial<Omit<NewExpense, 'date'> & { date?: string }>) {
+  async function updateExpense(
+    id: string,
+    changes: Partial<Omit<NewExpense, 'date'> & { date?: string }>
+  ) {
     const updateData: Record<string, any> = { ...changes };
     if (changes.date) {
       updateData.date = Timestamp.fromDate(new Date(changes.date));
@@ -147,10 +151,16 @@ export function useExpenses(userId: string | null | undefined) {
     const now = new Date();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    
-    const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-    const isYesterday = d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
-    
+
+    const isToday =
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
+    const isYesterday =
+      d.getFullYear() === yesterday.getFullYear() &&
+      d.getMonth() === yesterday.getMonth() &&
+      d.getDate() === yesterday.getDate();
+
     return !isToday && !isYesterday;
   });
 

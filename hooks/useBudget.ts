@@ -1,15 +1,16 @@
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    onSnapshot,
-    query,
-    updateDoc,
-    where,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { db } from '../firebaseConfig';
+import { useExpenses } from './useExpenses';
 import { BudgetCategory, NewBudgetCategory } from '../types';
 
 // ─── Default categories (seeded for new users) ───────────────────────────────
@@ -52,27 +53,32 @@ const DEFAULT_CATEGORIES: Omit<NewBudgetCategory, never>[] = [
   },
 ];
 
+function getCurrentMonthStartIso() {
+  const now = new Date();
+  now.setDate(1);
+  now.setHours(0, 0, 0, 0);
+  return now.toISOString();
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useBudget(userId: string | null | undefined) {
-  const [categories, setCategories] = useState<BudgetCategory[]>([]);
+  const [storedCategories, setStoredCategories] = useState<BudgetCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { expenses } = useExpenses(userId);
 
   // ─── Real-time listener ───────────────────────────────────────────────────
   useEffect(() => {
     if (!userId) {
-      setCategories([]);
+      setStoredCategories([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
 
-    const q = query(
-      collection(db, 'budgetCategories'),
-      where('userId', '==', userId)
-    );
+    const q = query(collection(db, 'budgetCategories'), where('userId', '==', userId));
 
     const unsubscribe = onSnapshot(
       q,
@@ -88,13 +94,14 @@ export function useBudget(userId: string | null | undefined) {
           name: d.data().name ?? '',
           budget: d.data().budget ?? 0,
           spent: d.data().spent ?? 0,
+          periodStart: d.data().periodStart ?? getCurrentMonthStartIso(),
           icon: d.data().icon ?? 'cash',
           colorLight: d.data().colorLight ?? '#E2E8F0',
           colorDark: d.data().colorDark ?? '#94A3B8',
           userId: d.data().userId,
         }));
 
-        setCategories(docs);
+        setStoredCategories(docs);
         setLoading(false);
         setError(null);
       },
@@ -112,7 +119,12 @@ export function useBudget(userId: string | null | undefined) {
 
   async function seedDefaultCategories(uid: string) {
     const promises = DEFAULT_CATEGORIES.map((cat) =>
-      addDoc(collection(db, 'budgetCategories'), { ...cat, spent: 0, userId: uid })
+      addDoc(collection(db, 'budgetCategories'), {
+        ...cat,
+        spent: 0,
+        periodStart: getCurrentMonthStartIso(),
+        userId: uid,
+      })
     );
     await Promise.all(promises);
   }
@@ -125,12 +137,16 @@ export function useBudget(userId: string | null | undefined) {
     await addDoc(collection(db, 'budgetCategories'), {
       ...category,
       spent: 0,
+      periodStart: getCurrentMonthStartIso(),
       userId,
     });
   }
 
   /** Update a category's budget limit or other fields */
-  async function updateCategory(id: string, changes: Partial<Omit<BudgetCategory, 'id' | 'userId'>>) {
+  async function updateCategory(
+    id: string,
+    changes: Partial<Omit<BudgetCategory, 'id' | 'userId'>>
+  ) {
     await updateDoc(doc(db, 'budgetCategories', id), changes);
   }
 
@@ -140,31 +156,19 @@ export function useBudget(userId: string | null | undefined) {
   }
 
   /**
-   * Update the `spent` field on a category.
-   * Called when an expense is added/deleted so budget progress updates live.
-   */
-  async function updateCategorySpent(categoryName: string, delta: number) {
-    if (!userId) return;
-    const target = categories.find(
-      (c) => c.name.toLowerCase() === categoryName.toLowerCase()
-    );
-    if (!target) return;
-    const newSpent = Math.max(0, target.spent + delta);
-    await updateDoc(doc(db, 'budgetCategories', target.id), { spent: newSpent });
-  }
-
-  /**
    * Reset all categories `spent` to 0 and apply new budgets.
    * Useful for monthly rollover.
    */
   async function resetAllCategories(newBudgets: Record<string, number>) {
     if (!userId) throw new Error('Not authenticated');
-    
-    const promises = categories.map((cat) => {
+
+    const nextPeriodStart = new Date().toISOString();
+    const promises = storedCategories.map((cat) => {
       const newLimit = newBudgets[cat.id] ?? cat.budget;
       return updateDoc(doc(db, 'budgetCategories', cat.id), {
         spent: 0,
         budget: newLimit,
+        periodStart: nextPeriodStart,
       });
     });
 
@@ -172,6 +176,34 @@ export function useBudget(userId: string | null | undefined) {
   }
 
   // ─── Computed ─────────────────────────────────────────────────────────────
+
+  const categories = useMemo(
+    () =>
+      storedCategories.map((category) => {
+        const periodStartTime = new Date(
+          category.periodStart ?? getCurrentMonthStartIso()
+        ).getTime();
+        const spent = expenses.reduce((sum, expense) => {
+          const expenseTime = new Date(expense.date).getTime();
+          const matchesCategory =
+            expense.categoryId === category.id ||
+            (!expense.categoryId &&
+              expense.category.trim().toLowerCase() === category.name.trim().toLowerCase());
+
+          if (!matchesCategory || expenseTime < periodStartTime) {
+            return sum;
+          }
+
+          return sum + expense.amount;
+        }, 0);
+
+        return {
+          ...category,
+          spent,
+        };
+      }),
+    [expenses, storedCategories]
+  );
 
   const totalBudget = categories.reduce((sum, c) => sum + c.budget, 0);
   const totalSpent = categories.reduce((sum, c) => sum + c.spent, 0);
@@ -185,7 +217,6 @@ export function useBudget(userId: string | null | undefined) {
     addCategory,
     updateCategory,
     deleteCategory,
-    updateCategorySpent,
     resetAllCategories,
   };
 }

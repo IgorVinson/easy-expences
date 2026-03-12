@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -33,17 +33,11 @@ export default function OverviewScreen() {
     todayExpenses,
     yesterdayExpenses,
     olderExpenses,
-    monthlyTotal,
     loading: expensesLoading,
     updateExpense,
     deleteExpense,
   } = useExpenses(user?.uid);
-  const {
-    totalBudget,
-    totalSpent,
-    loading: budgetLoading,
-    updateCategorySpent,
-  } = useBudget(user?.uid);
+  const { categories, loading: budgetLoading } = useBudget(user?.uid);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [recModalVisible, setRecModalVisible] = useState(false);
@@ -82,8 +76,32 @@ export default function OverviewScreen() {
   }, [micPulse]);
 
   const loading = expensesLoading || budgetLoading;
-  const leftToSpend = Math.max(0, totalBudget - totalSpent);
-  const spendPercent = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
+
+  const derivedBudgetLeftByExpenseId = useMemo(() => {
+    const remainingByExpenseId: Record<string, number> = {};
+
+    categories.forEach((category) => {
+      const periodStartTime = new Date(category.periodStart ?? 0).getTime();
+      const categoryExpenses = expenses
+        .filter((expense) => {
+          const matchesCategory =
+            expense.categoryId === category.id ||
+            (!expense.categoryId &&
+              expense.category.trim().toLowerCase() === category.name.trim().toLowerCase());
+
+          return matchesCategory && new Date(expense.date).getTime() >= periodStartTime;
+        })
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      let runningSpent = 0;
+      categoryExpenses.forEach((expense) => {
+        runningSpent += expense.amount;
+        remainingByExpenseId[expense.id] = category.budget - runningSpent;
+      });
+    });
+
+    return remainingByExpenseId;
+  }, [categories, expenses]);
 
   function openEditExpense(expense: import('../../types').Expense) {
     setEditingExpense(expense);
@@ -96,22 +114,10 @@ export default function OverviewScreen() {
   }
 
   async function handleUpdateExpense(id: string, changes: any) {
-    const original = expenses.find((e) => e.id === id);
     await updateExpense(id, changes);
-    if (original) {
-      const amountDiff = (changes.amount ?? original.amount) - original.amount;
-      // If category changed, reverse old category and charge new one
-      if (changes.category && changes.category !== original.category) {
-        await updateCategorySpent(original.category, -original.amount);
-        await updateCategorySpent(changes.category, changes.amount ?? original.amount);
-      } else if (amountDiff !== 0) {
-        await updateCategorySpent(original.category, amountDiff);
-      }
-    }
   }
 
   async function handleDeleteExpense(id: string) {
-    const expense = expenses.find((e) => e.id === id);
     Alert.alert(t('overview.deleteTitle'), t('overview.deleteConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
@@ -119,16 +125,10 @@ export default function OverviewScreen() {
         style: 'destructive',
         onPress: async () => {
           await deleteExpense(id);
-          if (expense) {
-            await updateCategorySpent(expense.category, -expense.amount);
-          }
         },
       },
     ]);
   }
-
-  const now = new Date();
-  const monthLabel = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
@@ -185,6 +185,7 @@ export default function OverviewScreen() {
                 <ExpenseItem
                   key={expense.id}
                   expense={expense}
+                  budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
                   onPress={openEditExpense}
                   onDelete={handleDeleteExpense}
                   onEdit={openEditExpense}
@@ -204,6 +205,7 @@ export default function OverviewScreen() {
               <ExpenseItem
                 key={expense.id}
                 expense={expense}
+                budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
                 onPress={openEditExpense}
                 onDelete={handleDeleteExpense}
                 onEdit={openEditExpense}
@@ -222,6 +224,7 @@ export default function OverviewScreen() {
               <ExpenseItem
                 key={expense.id}
                 expense={expense}
+                budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
                 onPress={openEditExpense}
                 onDelete={handleDeleteExpense}
                 onEdit={openEditExpense}

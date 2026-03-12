@@ -6,6 +6,7 @@ export type Expense = {
   id: string;
   title: string;
   category: string;
+  categoryId?: string;
   amount: number; // always positive (we treat all as spending)
   budgetLeft: number;
   icon: keyof typeof Ionicons.glyphMap;
@@ -24,7 +25,8 @@ export type BudgetCategory = {
   id: string;
   name: string;
   budget: number; // monthly limit
-  spent: number;  // computed / stored
+  spent: number; // computed / stored
+  periodStart?: string;
   icon: keyof typeof Ionicons.glyphMap;
   colorLight: string;
   colorDark: string;
