@@ -158,7 +158,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
   }
 
   async function handleStopAndTranscribe() {
-    const result = await stopRecordingAndProcess();
+    const result = await stopRecordingAndProcess(categories.map((c) => c.name));
     if (!result) {
       Alert.alert(t('recording.transcriptionFailed'), error ?? t('recording.couldNotTranscribe'));
       return;

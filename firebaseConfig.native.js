@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Your web app's Firebase configuration
@@ -30,5 +31,6 @@ const createAuth = () => {
 // Persist auth sessions on native so users stay signed in across app restarts.
 export const auth = createAuth();
 export const db = getFirestore(app);
+export const functions = getFunctions(app);
 
 export default app;
