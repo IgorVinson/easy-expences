@@ -154,7 +154,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
   }
 
   async function handleStartRecording() {
-    await startRecording();
+    await startRecording(handleStopAndTranscribe);
   }
 
   async function handleStopAndTranscribe() {

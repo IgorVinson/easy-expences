@@ -31,13 +31,23 @@ const processVoiceExpenseFn = httpsCallable<ProcessVoiceExpenseRequest, VoiceExp
   'processVoiceExpense'
 );
 
+const RECORDING_LIMIT_MS = 30_000;
+
 export function useVoiceExpense() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const recordingRef = useRef<Audio.Recording | null>(null);
+  const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const startRecording = useCallback(async () => {
+  const clearAutoStopTimer = () => {
+    if (autoStopTimerRef.current) {
+      clearTimeout(autoStopTimerRef.current);
+      autoStopTimerRef.current = null;
+    }
+  };
+
+  const startRecording = useCallback(async (onAutoStop?: () => void) => {
     try {
       setError(null);
 
@@ -56,6 +66,11 @@ export function useVoiceExpense() {
       );
       recordingRef.current = recording;
       setIsRecording(true);
+
+      if (onAutoStop) {
+        autoStopTimerRef.current = setTimeout(onAutoStop, RECORDING_LIMIT_MS);
+      }
+
       return true;
     } catch (err) {
       console.error('Failed to start recording', err);
@@ -70,6 +85,7 @@ export function useVoiceExpense() {
       try {
         setError(null);
         setIsRecording(false);
+        clearAutoStopTimer();
         const recording = recordingRef.current;
         if (!recording) return null;
 
@@ -107,6 +123,7 @@ export function useVoiceExpense() {
   );
 
   const cancelRecording = useCallback(async () => {
+    clearAutoStopTimer();
     if (recordingRef.current) {
       await recordingRef.current.stopAndUnloadAsync();
       recordingRef.current = null;

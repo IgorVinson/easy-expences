@@ -1,5 +1,106 @@
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
+
+initializeApp();
+const db = getFirestore();
+
+const RATE_LIMIT_PER_MINUTE = 5;
+const RATE_LIMIT_PER_HOUR = 50;
+const FREE_VOICE_LIMIT_PER_MONTH = 15;
+
+function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+const DAILY_HARD_LIMIT = 200;
+
+async function checkDailyLimit(userId: string): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const ref = db.collection('rateLimits').doc(userId);
+
+  await db.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    const data = doc.data() ?? {};
+
+    const dailyCount = data.dailyDate === today ? (data.dailyCount ?? 0) : 0;
+
+    if (dailyCount >= DAILY_HARD_LIMIT) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'Daily recording limit reached. Please try again tomorrow.'
+      );
+    }
+
+    tx.set(
+      ref,
+      {
+        dailyCount: dailyCount + 1,
+        dailyDate: today,
+      },
+      { merge: true }
+    );
+  });
+}
+
+async function checkFreeTierLimit(userId: string): Promise<void> {
+  const ref = db.collection('subscriptions').doc(userId);
+  const snap = await ref.get();
+
+  if (!snap.exists) return; // no doc yet = new user, allow through
+
+  const data = snap.data()!;
+  const plan: string = data.plan ?? 'free';
+  const expiresAt: string | null = data.expiresAt ?? null;
+
+  // Treat expired pro plans as free
+  const isPro = plan !== 'free' && expiresAt !== null && new Date(expiresAt) > new Date();
+
+  if (isPro) return;
+
+  const currentMonth = getCurrentMonth();
+  const resetMonth: string = data.voiceRecordingsResetMonth ?? currentMonth;
+  const count: number = resetMonth === currentMonth ? (data.voiceRecordingsThisMonth ?? 0) : 0;
+
+  if (count >= FREE_VOICE_LIMIT_PER_MONTH) {
+    throw new HttpsError(
+      'resource-exhausted',
+      'Free tier monthly voice limit reached. Upgrade to Pro for unlimited recordings.'
+    );
+  }
+}
+
+async function checkRateLimit(userId: string): Promise<void> {
+  const now = Date.now();
+  const ref = db.collection('rateLimits').doc(userId);
+
+  await db.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    const data = doc.data() ?? {};
+
+    const minuteWindowStart: number = data.minuteWindowStart?.toMillis() ?? 0;
+    const hourWindowStart: number = data.hourWindowStart?.toMillis() ?? 0;
+
+    const minuteCount = now - minuteWindowStart < 60_000 ? (data.minuteCount ?? 0) : 0;
+    const hourCount = now - hourWindowStart < 3_600_000 ? (data.hourCount ?? 0) : 0;
+
+    if (minuteCount >= RATE_LIMIT_PER_MINUTE) {
+      throw new HttpsError('resource-exhausted', 'Too many requests. Please wait a minute.');
+    }
+    if (hourCount >= RATE_LIMIT_PER_HOUR) {
+      throw new HttpsError('resource-exhausted', 'Hourly limit reached. Please try again later.');
+    }
+
+    tx.set(ref, {
+      minuteCount: minuteCount + 1,
+      minuteWindowStart: minuteCount === 0 ? Timestamp.fromMillis(now) : data.minuteWindowStart,
+      hourCount: hourCount + 1,
+      hourWindowStart: hourCount === 0 ? Timestamp.fromMillis(now) : data.hourWindowStart,
+    });
+  });
+}
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
@@ -23,7 +124,10 @@ interface ProcessVoiceExpenseResponse {
 }
 
 function normalizeModelJson(raw: string): string {
-  return raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  return raw
+    .replace(/```json/gi, '')
+    .replace(/```/g, '')
+    .trim();
 }
 
 function parseVoiceExpense(rawResponse: string): ProcessVoiceExpenseResponse {
@@ -44,10 +148,19 @@ export const processVoiceExpense = onCall(
       throw new HttpsError('unauthenticated', 'Must be signed in to use voice expenses.');
     }
 
+    await checkRateLimit(request.auth.uid);
+    await checkDailyLimit(request.auth.uid);
+    await checkFreeTierLimit(request.auth.uid);
+
     const { audioBase64, mimeType, categories } = request.data as ProcessVoiceExpenseRequest;
 
     if (!audioBase64 || !mimeType) {
       throw new HttpsError('invalid-argument', 'audioBase64 and mimeType are required.');
+    }
+
+    // ~1MB base64 ≈ 45 seconds of HIGH_QUALITY audio — hard server-side limit
+    if (audioBase64.length > 1_048_576) {
+      throw new HttpsError('invalid-argument', 'Audio recording exceeds the maximum allowed size.');
     }
 
     const apiKey = geminiApiKey.value();
@@ -121,9 +234,8 @@ Rules:
 
     const responseData = data as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
     const modelText: string =
-      responseData?.candidates?.[0]?.content?.parts?.find(
-        (p) => typeof p?.text === 'string'
-      )?.text ?? '';
+      responseData?.candidates?.[0]?.content?.parts?.find((p) => typeof p?.text === 'string')
+        ?.text ?? '';
 
     if (!modelText) {
       throw new HttpsError('internal', 'Gemini returned an empty response.');

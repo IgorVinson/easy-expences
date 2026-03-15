@@ -32,7 +32,7 @@ type SubscriptionStore = 'subscriptions' | 'users' | 'local';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const FREE_VOICE_LIMIT = 5;
+const FREE_VOICE_LIMIT = 15;
 const PLANS = {
   pro_monthly: { price: 6.99, label: '$6.99/mo' },
   pro_annual: { price: 67.10, label: '$67.10/yr' },
