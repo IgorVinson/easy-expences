@@ -49,14 +49,10 @@ async function checkFreeTierLimit(userId: string): Promise<void> {
   const ref = db.collection('subscriptions').doc(userId);
   const snap = await ref.get();
 
-  if (!snap.exists) return; // no doc yet = new user, allow through
+  if (!snap.exists) return; // new user, allow through
 
   const data = snap.data()!;
-  const plan: string = data.plan ?? 'free';
-  const expiresAt: string | null = data.expiresAt ?? null;
-
-  // Treat expired pro plans as free
-  const isPro = plan !== 'free' && expiresAt !== null && new Date(expiresAt) > new Date();
+  const isPro: boolean = data.isPro === true;
 
   if (isPro) return;
 

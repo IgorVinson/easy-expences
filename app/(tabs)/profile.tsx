@@ -26,7 +26,8 @@ export default function ProfileScreen() {
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, user } = useAuth();
   const { currency, currencies, loading: currencyLoading, setCurrency } = useCurrency();
-  const { isPro, subscription, voiceRecordingsLeft, cancelSubscription } = useSubscription();
+  const { isPro, customerInfo, voiceRecordingsLeft, presentCustomerCenter } = useSubscription();
+  const entitlementInfo = customerInfo?.entitlements.active['SaySpend Pro'];
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = React.useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = React.useState(false);
@@ -187,17 +188,16 @@ export default function ProfileScreen() {
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
                   {isPro
                     ? t('profile.proPlan', {
-                        name:
-                          subscription.plan === 'pro_annual'
-                            ? t('paywall.plans.annual')
-                            : t('paywall.plans.monthly'),
+                        name: entitlementInfo?.productIdentifier?.includes('annual')
+                          ? t('paywall.plans.annual')
+                          : t('paywall.plans.monthly'),
                       })
                     : t('profile.freePlan')}
                 </Text>
-                {isPro && subscription.expiresAt ? (
+                {isPro && entitlementInfo?.expirationDate ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
                     {t('profile.renewsOn', {
-                      date: new Date(subscription.expiresAt).toLocaleDateString(
+                      date: new Date(entitlementInfo.expirationDate).toLocaleDateString(
                         i18n.language === 'en'
                           ? 'en-US'
                           : i18n.language === 'ua'
@@ -224,20 +224,7 @@ export default function ProfileScreen() {
 
             {isPro ? (
               <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    t('profile.cancelSubscription'),
-                    t('profile.cancelSubscriptionConfirm'),
-                    [
-                      { text: t('profile.keepPro'), style: 'cancel' },
-                      {
-                        text: t('profile.cancelSubscription'),
-                        style: 'destructive',
-                        onPress: cancelSubscription,
-                      },
-                    ]
-                  );
-                }}
+                onPress={presentCustomerCenter}
                 className="w-full items-center justify-center rounded-xl py-3"
                 style={{
                   borderWidth: 1,

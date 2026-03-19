@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -61,11 +60,9 @@ export default function RootLayout() {
       <AuthProvider>
         <ThemeProvider>
           <CurrencyProvider>
-            <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''}>
-              <SubscriptionProvider>
-                <RootLayoutNav />
-              </SubscriptionProvider>
-            </StripeProvider>
+            <SubscriptionProvider>
+              <RootLayoutNav />
+            </SubscriptionProvider>
           </CurrencyProvider>
         </ThemeProvider>
       </AuthProvider>
