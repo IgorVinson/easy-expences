@@ -11,6 +11,10 @@ npm-debug.*
 web-build/
 
 DEVELOPMENT_PROTOCOL.MD
+DEVELOPMENT_PROTOCOL.md
+
+# Claude Code
+.claude/
 
 ios
 android
