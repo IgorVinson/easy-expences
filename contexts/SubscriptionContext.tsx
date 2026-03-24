@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { Platform } from 'react-native';
 import Purchases, {
   LOG_LEVEL,
   CustomerInfo,
@@ -65,7 +66,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Configure RevenueCat once on mount
   useEffect(() => {
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    Purchases.configure({ apiKey: process.env.EXPO_PUBLIC_RC_API_KEY! });
+    const apiKey = Platform.OS === 'ios'
+      ? process.env.EXPO_PUBLIC_RC_API_KEY_IOS!
+      : process.env.EXPO_PUBLIC_RC_API_KEY_ANDROID!;
+    Purchases.configure({ apiKey });
   }, []);
 
   // Login/logout with Firebase UID, load customer info + voice usage, attach real-time listener
