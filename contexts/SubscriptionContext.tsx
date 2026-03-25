@@ -65,11 +65,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   // Configure RevenueCat once on mount
   useEffect(() => {
-    if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    const apiKey = Platform.OS === 'ios'
-      ? process.env.EXPO_PUBLIC_RC_API_KEY_IOS!
-      : process.env.EXPO_PUBLIC_RC_API_KEY_ANDROID!;
-    Purchases.configure({ apiKey });
+    try {
+      if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      const apiKey = Platform.OS === 'ios'
+        ? process.env.EXPO_PUBLIC_RC_API_KEY_IOS!
+        : process.env.EXPO_PUBLIC_RC_API_KEY_ANDROID!;
+      Purchases.configure({ apiKey });
+    } catch (err) {
+      console.warn('RevenueCat configure failed (not supported in Expo Go):', err);
+    }
   }, []);
 
   // Login/logout with Firebase UID, load customer info + voice usage, attach real-time listener

@@ -1,5 +1,5 @@
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import { httpsCallable } from 'firebase/functions';
 import { useCallback, useRef, useState } from 'react';
 import { functions } from '../firebaseConfig';

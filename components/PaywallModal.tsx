@@ -32,7 +32,18 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
   const annualPrice = annualPkg?.product.price ?? 39.99;
   const monthlyPriceLabel = monthlyPkg?.product.priceString ?? '$4.99';
   const annualPriceLabel = annualPkg?.product.priceString ?? '$39.99';
-  const annualMonthly = `$${(annualPrice / 12).toFixed(2)}`;
+  
+  const currencyCode = annualPkg?.product.currencyCode ?? 'USD';
+  let annualMonthly = `$${(annualPrice / 12).toFixed(2)}`;
+  try {
+    annualMonthly = new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(annualPrice / 12);
+  } catch {
+    annualMonthly = `${(annualPrice / 12).toFixed(2)} ${currencyCode}`;
+  }
+
   const savingsPercent = Math.round((1 - annualPrice / (monthlyPrice * 12)) * 100);
 
   const FEATURES = [
