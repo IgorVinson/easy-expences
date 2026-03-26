@@ -79,7 +79,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Login/logout with Firebase UID, load customer info + voice usage, attach real-time listener
   useEffect(() => {
     if (!user) {
-      Purchases.logOut().catch(() => {});
+      Purchases.isAnonymous().then((anon) => { if (!anon) Purchases.logOut().catch(() => {}); }).catch(() => {});
       setIsPro(false);
       setCustomerInfo(null);
       setLoading(false);
@@ -195,14 +195,24 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, [user, voiceUsage]);
 
   const subscribe = useCallback(async (pkg: PurchasesPackage) => {
-    await Purchases.purchasePackage(pkg);
-    // isPro updates automatically via the real-time listener
-  }, []);
+    const { customerInfo: updatedInfo } = await Purchases.purchasePackage(pkg);
+    const proActive = typeof updatedInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
+    setIsPro(proActive);
+    setCustomerInfo(updatedInfo);
+    if (user) {
+      syncProStatusToFirestore(user.uid, proActive).catch(console.error);
+    }
+  }, [user]);
 
   const restorePurchases = useCallback(async () => {
-    await Purchases.restorePurchases();
-    // listener updates state
-  }, []);
+    const updatedInfo = await Purchases.restorePurchases();
+    const proActive = typeof updatedInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
+    setIsPro(proActive);
+    setCustomerInfo(updatedInfo);
+    if (user) {
+      syncProStatusToFirestore(user.uid, proActive).catch(console.error);
+    }
+  }, [user]);
 
   const presentCustomerCenter = useCallback(async () => {
     await RevenueCatUI.presentCustomerCenter();
