@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "953973293469-ka28r08rklja5a2lp6eih4jt1p2872qb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sayspend.app",
+            "certificate_hash": "d3e35e7a8981374be10666ce1a66e2078bfb66d5"
+          }
+        },
+        {
           "client_id": "953973293469-qrdrdbvj2h1012pamjim51e6lpvgcetc.apps.googleusercontent.com",
           "client_type": 3
         }
