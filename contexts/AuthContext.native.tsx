@@ -1,19 +1,20 @@
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
     GoogleAuthProvider,
     User,
     createUserWithEmailAndPassword,
     onAuthStateChanged,
     signInWithCredential,
+    signInWithEmailAndPassword,
     signOut,
     updateProfile,
-    signInWithEmailAndPassword,
 } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../firebaseConfig';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+});
 
 interface AuthContextType {
   user: User | null;
@@ -30,17 +31,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-  const [, response, promptAsync] = Google.useAuthRequest(
-    androidClientId
-      ? {
-          iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-          androidClientId,
-          webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-        }
-      : null
-  );
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -48,14 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential);
-    }
-  }, [response]);
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
@@ -71,7 +53,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const googleSignIn = async () => {
-    await promptAsync();
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const idToken = response.data?.idToken || (response as any).idToken;
+      if (!idToken) {
+        throw new Error('Google Sign-In failed to return an ID token.');
+      }
+      const credential = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(auth, credential);
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+      throw error;
+    }
   };
 
   return (

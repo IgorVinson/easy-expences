@@ -11,7 +11,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
     ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -29,6 +30,7 @@
       "bundleIdentifier": "com.sayspend.app"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "package": "com.sayspend.app",
       "versionCode": 3,
       "adaptiveIcon": {
@@ -45,7 +47,10 @@
               "host": "oauth2redirect"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

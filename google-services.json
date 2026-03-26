@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "953973293469",
+    "project_id": "easybudget-9da69",
+    "storage_bucket": "easybudget-9da69.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:953973293469:android:5ca85495c0a9118f52af74",
+        "android_client_info": {
+          "package_name": "com.sayspend.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "953973293469-21hj1f120a7nglv3gttpfntibm9cjnot.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sayspend.app",
+            "certificate_hash": "b54ba767991f51107dc526ea504646cfa930776c"
+          }
+        },
+        {
+          "client_id": "953973293469-6c58d9ojkfccsk9pkir38n38r8rk8392.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sayspend.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "953973293469-ecldakv2un3imhh5i7cn3bb6mnaiihkr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sayspend.app",
+            "certificate_hash": "92757fcf5da9ecd22fdb8bc3a610bbab05e81390"
+          }
+        },
+        {
+          "client_id": "953973293469-qrdrdbvj2h1012pamjim51e6lpvgcetc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhP5PNClx--gxrBJ7JXBuQM8HLhH4N17U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "953973293469-qrdrdbvj2h1012pamjim51e6lpvgcetc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

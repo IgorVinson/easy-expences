@@ -2,8 +2,8 @@
   "name": "sayspend",
   "version": "1.0.0",
   "scripts": {
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "start": "expo start",
     "prebuild": "expo prebuild",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-google-signin/google-signin": "^16.1.2",
     "expo": "^54.0.0",
     "expo-auth-session": "~7.0.10",
     "expo-av": "^16.0.8",
@@ -54,8 +55,8 @@
     "typescript": "~5.9.2"
   },
   "optionalDependencies": {
-    "lightningcss-linux-x64-gnu": "1.27.0",
-    "lightningcss-linux-arm64-gnu": "1.27.0"
+    "lightningcss-linux-arm64-gnu": "1.27.0",
+    "lightningcss-linux-x64-gnu": "1.27.0"
   },
   "main": "expo-router/entry",
   "private": true
