@@ -1,31 +1,40 @@
 import { Ionicons } from '@expo/vector-icons';
 
-// ─── Expense ─────────────────────────────────────────────────────────────────
+// ─── Transaction (expense or income) ─────────────────────────────────────────
 
-export type Expense = {
+export type Transaction = {
   id: string;
+  type: 'expense' | 'income';
   title: string;
-  category: string;
-  categoryId?: string;
-  amount: number; // always positive (we treat all as spending)
-  budgetLeft: number;
+  amount: number; // always positive
   icon: keyof typeof Ionicons.glyphMap;
   colorLight: string;
   colorDark: string;
-  date: string; // ISO string, e.g. "2024-09-15T10:30:00.000Z"
-  userId?: string; // set by hooks, not required on creation
+  date: string; // ISO string
+  userId?: string;
+
+  // expense-only
+  category?: string;
+  categoryId?: string;
+  budgetLeft?: number;
+
+  // income-only
+  goalId?: string; // if set, this income counts toward that goal
 };
 
-// Omit generated fields when the user creates a new expense
-export type NewExpense = Omit<Expense, 'id' | 'userId'>;
+/** Backward-compat alias — existing code using Expense still compiles */
+export type Expense = Transaction;
+
+export type NewTransaction = Omit<Transaction, 'id' | 'userId'>;
+export type NewExpense = NewTransaction; // backward-compat alias
 
 // ─── Budget Category ──────────────────────────────────────────────────────────
 
 export type BudgetCategory = {
   id: string;
   name: string;
-  budget: number; // monthly limit
-  spent: number; // computed / stored
+  budget: number;
+  spent: number;
   periodStart?: string;
   icon: keyof typeof Ionicons.glyphMap;
   colorLight: string;
@@ -34,3 +43,22 @@ export type BudgetCategory = {
 };
 
 export type NewBudgetCategory = Omit<BudgetCategory, 'id' | 'userId' | 'spent'>;
+
+// ─── Goal ────────────────────────────────────────────────────────────────────
+
+export type Goal = {
+  id: string;
+  name: string;
+  targetAmount: number;
+  icon: keyof typeof Ionicons.glyphMap;
+  colorLight: string;
+  colorDark: string;
+  userId?: string;
+};
+
+export type GoalWithProgress = Goal & {
+  savedAmount: number;
+  progressPercent: number;
+};
+
+export type NewGoal = Omit<Goal, 'id' | 'userId'>;

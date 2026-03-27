@@ -188,7 +188,7 @@ export function useBudget(userId: string | null | undefined) {
           const matchesCategory =
             expense.categoryId === category.id ||
             (!expense.categoryId &&
-              expense.category.trim().toLowerCase() === category.name.trim().toLowerCase());
+              (expense.category ?? '').trim().toLowerCase() === category.name.trim().toLowerCase());
 
           if (!matchesCategory || expenseTime < periodStartTime) {
             return sum;

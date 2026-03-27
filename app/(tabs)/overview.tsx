@@ -87,7 +87,7 @@ export default function OverviewScreen() {
           const matchesCategory =
             expense.categoryId === category.id ||
             (!expense.categoryId &&
-              expense.category.trim().toLowerCase() === category.name.trim().toLowerCase());
+              (expense.category ?? '').trim().toLowerCase() === category.name.trim().toLowerCase());
 
           return matchesCategory && new Date(expense.date).getTime() >= periodStartTime;
         })

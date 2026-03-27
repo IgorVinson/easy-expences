@@ -81,7 +81,7 @@ export default function BudgetScreen() {
         (expense) =>
           expense.categoryId === editingCategory.id ||
           (!expense.categoryId &&
-            expense.category.trim().toLowerCase() === editingCategory.name.trim().toLowerCase())
+            (expense.category ?? '').trim().toLowerCase() === editingCategory.name.trim().toLowerCase())
       );
 
       const requiresExpenseSync = relatedExpenses.some(
@@ -129,7 +129,7 @@ export default function BudgetScreen() {
         (expense) =>
           expense.categoryId === editingCategory.id ||
           (!expense.categoryId &&
-            expense.category.trim().toLowerCase() === editingCategory.name.trim().toLowerCase())
+            (expense.category ?? '').trim().toLowerCase() === editingCategory.name.trim().toLowerCase())
       )
     : [];
 

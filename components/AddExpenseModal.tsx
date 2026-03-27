@@ -104,6 +104,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     try {
       setSaving(true);
       await addExpense({
+        type: 'expense',
         title: title.trim(),
         amount: parsedAmount,
         budgetLeft: selectedCategory.budget - selectedCategory.spent - parsedAmount,

@@ -19,6 +19,7 @@ import { Expense, NewExpense } from '../types';
 function docToExpense(id: string, data: Record<string, any>): Expense {
   return {
     id,
+    type: 'expense' as const,
     title: data.title ?? '',
     category: data.category ?? '',
     categoryId: data.categoryId,

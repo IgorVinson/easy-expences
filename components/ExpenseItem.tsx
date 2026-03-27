@@ -30,7 +30,7 @@ export const ExpenseItem = ({
   const { theme } = useTheme();
   const { currency } = useCurrency();
   const swipeableRef = useRef<Swipeable>(null);
-  const budgetLeftToShow = budgetLeftOverride ?? expense.budgetLeft;
+  const budgetLeftToShow = budgetLeftOverride ?? expense.budgetLeft ?? 0;
 
   const formattedDate = showDate
     ? new Date(expense.date).toLocaleDateString(undefined, {
