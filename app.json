@@ -27,7 +27,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sayspend.app"
+      "bundleIdentifier": "com.sayspend.app",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
