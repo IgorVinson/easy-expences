@@ -23,8 +23,12 @@ Go to **RevenueCat Dashboard → Project → API Keys**
 - Copy the **iOS public SDK key** (starts with `appl_`)
 - Copy the **Android public SDK key** (starts with `goog_`)
 
-## 2. Set Up Entitlement (if not done)
-In RevenueCat: **Entitlements → + New** → ID must be exactly: `SaySpend Pro`
+## 2. Set Up Entitlements (if not done)
+In RevenueCat: **Entitlements → + New** — create two entitlements:
+- ID: `SaySpend Basic`
+- ID: `SaySpend Premium`
+
+The legacy `SaySpend Pro` entitlement should be kept as-is for existing users (code maps it to Premium tier automatically).
 
 ## 3. Set Up Products & Offerings
 **App Store Connect (iOS):**
