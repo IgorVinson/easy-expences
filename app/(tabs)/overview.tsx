@@ -21,7 +21,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
-import { useExpenses } from '../../hooks/useExpenses';
+import { useGoals } from '../../hooks/useGoals';
+import { useTransactions } from '../../hooks/useTransactions';
 
 export default function OverviewScreen() {
   const { t } = useTranslation();
@@ -30,14 +31,16 @@ export default function OverviewScreen() {
   const { canUseVoice, voiceRecordingsLeft, tier, trialDaysLeft, incrementVoiceUsage } = useSubscription();
   const {
     expenses,
+    income,
     todayExpenses,
     yesterdayExpenses,
     olderExpenses,
     loading: expensesLoading,
     updateExpense,
     deleteExpense,
-  } = useExpenses(user?.uid);
+  } = useTransactions(user?.uid);
   const { categories, loading: budgetLoading } = useBudget(user?.uid);
+  const { goals } = useGoals(user?.uid, income);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [recModalVisible, setRecModalVisible] = useState(false);
@@ -334,6 +337,7 @@ export default function OverviewScreen() {
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           userId={user.uid}
+          goals={goals}
         />
       )}
 
