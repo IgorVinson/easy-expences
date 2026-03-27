@@ -1,7 +1,7 @@
 {
   "tabs": {
     "overview": "Огляд",
-    "budget": "Бюджет",
+    "goals": "Цілі",
     "profile": "Профіль"
   },
   "common": {
@@ -36,17 +36,49 @@
     "remaining": "Залишилось",
     "overBudget": "Перевищення",
     "budgetUsed": "Використано {{percent}}% бюджету",
-    "categories": "Категорії",
-    "loading": "Завантаження категорій…",
-    "noCategories": "Поки немає категорій",
-    "tapAdd": "Натисніть \"Додати\", щоб створити першу категорію.",
-    "deleteTitle": "Видалити категорію",
-    "deleteConfirm": "Ви впевнені, що хочете видалити цю категорію?",
+    "budgets": "Бюджети",
+    "loading": "Завантаження бюджетів…",
+    "noCategories": "Поки немає бюджетів",
+    "tapAdd": "Натисніть \"Додати\", щоб створити перший бюджет.",
+    "deleteTitle": "Видалити бюджет",
+    "deleteConfirm": "Ви впевнені, що хочете видалити цей бюджет?",
     "resetSpentTitle": "Скинути суму витрат?",
     "resetSpentConfirm": "Це скине витрачену суму для \"{{name}}\" до нуля. Корисно для початку нового циклу.",
     "resetToZero": "Скинути до нуля",
     "transactionsTitle": "Транзакції",
-    "noTransactions": "У цій категорії ще немає транзакцій."
+    "noTransactions": "У цьому бюджеті ще немає транзакцій."
+  },
+  "goals": {
+    "title": "Цілі",
+    "budgetsSection": "Бюджети",
+    "goalsSection": "Цілі",
+    "noGoals": "Цілей ще немає",
+    "tapAddGoal": "Натисніть \"+\", щоб створити першу ціль.",
+    "saved": "збережено",
+    "deleteTitle": "Видалити ціль",
+    "deleteConfirm": "Ви впевнені, що хочете видалити цю ціль?"
+  },
+  "addGoal": {
+    "addTitle": "Додати ціль",
+    "editTitle": "Редагувати ціль",
+    "nameLabel": "Назва цілі",
+    "namePlaceholder": "напр. Відпустка",
+    "targetLabel": "Цільова сума ({{currency}})",
+    "targetPlaceholder": "0.00",
+    "iconLabel": "Іконка",
+    "colorLabel": "Колір",
+    "save": "Зберегти ціль",
+    "missingName": "Відсутня назва",
+    "enterName": "Будь ласка, введіть назву цілі."
+  },
+  "addTransaction": {
+    "expenseTab": "Витрата",
+    "incomeTab": "Дохід",
+    "addIncomeTitle": "Додати дохід",
+    "incomeNamePlaceholder": "напр. Зарплата",
+    "assignToGoal": "Призначити цілі (необов'язково)",
+    "noGoal": "Без цілі",
+    "saveIncome": "Зберегти дохід"
   },
   "profile": {
     "title": "Мій профіль",

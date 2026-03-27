@@ -1,7 +1,7 @@
 {
   "tabs": {
     "overview": "Overview",
-    "budget": "Budget",
+    "goals": "Goals",
     "profile": "Profile"
   },
   "common": {
@@ -36,17 +36,49 @@
     "remaining": "Remaining",
     "overBudget": "Over Budget",
     "budgetUsed": "{{percent}}% of budget used",
-    "categories": "Categories",
-    "loading": "Loading categories…",
-    "noCategories": "No categories yet",
-    "tapAdd": "Tap \"Add\" to create your first budget category.",
-    "deleteTitle": "Delete Category",
-    "deleteConfirm": "Are you sure you want to delete this category?",
+    "budgets": "Budgets",
+    "loading": "Loading budgets…",
+    "noCategories": "No budgets yet",
+    "tapAdd": "Tap \"Add\" to create your first budget.",
+    "deleteTitle": "Delete Budget",
+    "deleteConfirm": "Are you sure you want to delete this budget?",
     "resetSpentTitle": "Reset Spent Amount?",
     "resetSpentConfirm": "This will reset the spent amount for \"{{name}}\" back to zero. Perfect for starting a new cycle early.",
     "resetToZero": "Reset to zero",
     "transactionsTitle": "Transactions",
-    "noTransactions": "No transactions in this category yet."
+    "noTransactions": "No transactions in this budget yet."
+  },
+  "goals": {
+    "title": "Goals",
+    "budgetsSection": "Budgets",
+    "goalsSection": "Goals",
+    "noGoals": "No goals yet",
+    "tapAddGoal": "Tap \"+\" to create your first savings goal.",
+    "saved": "saved",
+    "deleteTitle": "Delete Goal",
+    "deleteConfirm": "Are you sure you want to delete this goal?"
+  },
+  "addGoal": {
+    "addTitle": "Add Goal",
+    "editTitle": "Edit Goal",
+    "nameLabel": "Goal Name",
+    "namePlaceholder": "e.g. Vacation Fund",
+    "targetLabel": "Target Amount ({{currency}})",
+    "targetPlaceholder": "0.00",
+    "iconLabel": "Icon",
+    "colorLabel": "Color",
+    "save": "Save Goal",
+    "missingName": "Missing name",
+    "enterName": "Please enter a name for the goal."
+  },
+  "addTransaction": {
+    "expenseTab": "Expense",
+    "incomeTab": "Income",
+    "addIncomeTitle": "Add Income",
+    "incomeNamePlaceholder": "e.g. Salary",
+    "assignToGoal": "Assign to Goal (optional)",
+    "noGoal": "No goal",
+    "saveIncome": "Save Income"
   },
   "profile": {
     "title": "My Profile",

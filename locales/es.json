@@ -1,7 +1,7 @@
 {
   "tabs": {
     "overview": "Resumen",
-    "budget": "Presupuesto",
+    "goals": "Metas",
     "profile": "Perfil"
   },
   "common": {
@@ -36,17 +36,49 @@
     "remaining": "Restante",
     "overBudget": "Excedido",
     "budgetUsed": "{{percent}}% del presupuesto usado",
-    "categories": "Categorías",
-    "loading": "Cargando categorías…",
-    "noCategories": "Aún no hay categorías",
-    "tapAdd": "Toca \"Añadir\" para crear tu primera categoría.",
-    "deleteTitle": "Eliminar Categoría",
-    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?",
+    "budgets": "Presupuestos",
+    "loading": "Cargando presupuestos…",
+    "noCategories": "Aún no hay presupuestos",
+    "tapAdd": "Toca \"Añadir\" para crear tu primer presupuesto.",
+    "deleteTitle": "Eliminar Presupuesto",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este presupuesto?",
     "resetSpentTitle": "¿Restablecer gastos?",
     "resetSpentConfirm": "Esto restablecerá el gasto de \"{{name}}\" a cero. Ideal para empezar un nuevo ciclo.",
     "resetToZero": "Restablecer a cero",
     "transactionsTitle": "Transacciones",
-    "noTransactions": "Todavía no hay transacciones en esta categoría."
+    "noTransactions": "Todavía no hay transacciones en este presupuesto."
+  },
+  "goals": {
+    "title": "Metas",
+    "budgetsSection": "Presupuestos",
+    "goalsSection": "Metas",
+    "noGoals": "Aún no hay metas",
+    "tapAddGoal": "Toca \"+\" para crear tu primera meta.",
+    "saved": "guardado",
+    "deleteTitle": "Eliminar meta",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar esta meta?"
+  },
+  "addGoal": {
+    "addTitle": "Agregar meta",
+    "editTitle": "Editar meta",
+    "nameLabel": "Nombre de la meta",
+    "namePlaceholder": "ej. Fondo de vacaciones",
+    "targetLabel": "Monto objetivo ({{currency}})",
+    "targetPlaceholder": "0.00",
+    "iconLabel": "Ícono",
+    "colorLabel": "Color",
+    "save": "Guardar meta",
+    "missingName": "Falta el nombre",
+    "enterName": "Por favor ingresa un nombre para la meta."
+  },
+  "addTransaction": {
+    "expenseTab": "Gasto",
+    "incomeTab": "Ingreso",
+    "addIncomeTitle": "Agregar ingreso",
+    "incomeNamePlaceholder": "ej. Salario",
+    "assignToGoal": "Asignar a meta (opcional)",
+    "noGoal": "Sin meta",
+    "saveIncome": "Guardar ingreso"
   },
   "profile": {
     "title": "Mi Perfil",
