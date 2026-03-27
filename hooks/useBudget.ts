@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { db } from '../firebaseConfig';
-import { useExpenses } from './useExpenses';
+import { useTransactions } from './useTransactions';
 import { BudgetCategory, NewBudgetCategory } from '../types';
 
 // ─── Default categories (seeded for new users) ───────────────────────────────
@@ -66,7 +66,7 @@ export function useBudget(userId: string | null | undefined) {
   const [storedCategories, setStoredCategories] = useState<BudgetCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { expenses } = useExpenses(userId);
+  const { expenses } = useTransactions(userId);
 
   // ─── Real-time listener ───────────────────────────────────────────────────
   useEffect(() => {
