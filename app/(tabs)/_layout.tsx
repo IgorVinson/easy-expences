@@ -130,7 +130,7 @@ export default function TabsLayout() {
   const segments = useSegments();
 
   const currentTab = segments[segments.length - 1];
-  const tabOrder = ['overview', 'budget', 'profile'];
+  const tabOrder = ['overview', 'goals', 'profile'];
   const currentIndex = tabOrder.indexOf(currentTab);
 
   const navigateToTab = (direction: 'left' | 'right') => {
@@ -183,10 +183,10 @@ export default function TabsLayout() {
               }}
             />
             <Tabs.Screen
-              name="budget"
+              name="goals"
               options={{
-                title: t('tabs.budget'),
-                tabBarIcon: ({ color }) => <Ionicons name="calendar" size={32} color={color} />,
+                title: t('tabs.goals'),
+                tabBarIcon: ({ color }) => <Ionicons name="trophy" size={32} color={color} />,
               }}
             />
             <Tabs.Screen
