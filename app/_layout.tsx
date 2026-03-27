@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { TrialExpiredScreen } from '../components/TrialExpiredScreen';
+// import { TrialExpiredScreen } from '../components/TrialExpiredScreen';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { CurrencyProvider } from '../contexts/CurrencyContext';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
@@ -47,11 +47,13 @@ function RootLayoutNav() {
     return null;
   }
 
-  // Hard paywall: only block when RevenueCat is configured (offerings loaded)
-  // and user genuinely has no active subscription. Skip in dev mode.
-  if (user && tier === 'none' && !__DEV__) {
-    return <TrialExpiredScreen />;
-  }
+  // Hard paywall: block app when trial has genuinely expired.
+  // Only activate when RevenueCat offerings are loaded (products configured)
+  // AND the user's entitlement history shows they once had access.
+  // TODO: Enable once RevenueCat products are live and trial flow is tested
+  // if (user && tier === 'none' && offerings?.current) {
+  //   return <TrialExpiredScreen />;
+  // }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
