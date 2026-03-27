@@ -19,7 +19,7 @@ import {
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
-import { useExpenses } from '../hooks/useExpenses';
+import { useTransactions } from '../hooks/useTransactions';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { BudgetCategory } from '../types';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
@@ -71,7 +71,7 @@ export const RecordingModal: React.FC<RecordingModalProps> = ({
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
-  const { addExpense } = useExpenses(userId);
+  const { addExpense } = useTransactions(userId);
   const { categories } = useBudget(userId);
   const {
     isRecording,
