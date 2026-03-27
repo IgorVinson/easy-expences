@@ -160,9 +160,11 @@ export const processVoiceExpense = onCall(
       throw new HttpsError('unauthenticated', 'Must be signed in to use voice expenses.');
     }
 
-    await checkRateLimit(request.auth.uid);
-    await checkDailyLimit(request.auth.uid);
-    await checkVoiceLimit(request.auth.uid);
+    await Promise.all([
+      checkRateLimit(request.auth.uid),
+      checkDailyLimit(request.auth.uid),
+      checkVoiceLimit(request.auth.uid),
+    ]);
 
     const { audioBase64, mimeType, categories } = request.data as ProcessVoiceExpenseRequest;
 
