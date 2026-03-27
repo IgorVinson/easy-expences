@@ -17,7 +17,7 @@ import {
 import { PaywallModal } from '../../components/PaywallModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import { FREE_VOICE_LIMIT, useSubscription } from '../../contexts/SubscriptionContext';
+import { BASIC_VOICE_LIMIT, useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
@@ -26,8 +26,9 @@ export default function ProfileScreen() {
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, user } = useAuth();
   const { currency, currencies, loading: currencyLoading, setCurrency } = useCurrency();
-  const { isPro, customerInfo, voiceRecordingsLeft, presentCustomerCenter } = useSubscription();
-  const entitlementInfo = customerInfo?.entitlements.active['SaySpend Pro'];
+  const { tier, customerInfo, voiceRecordingsLeft, trialDaysLeft, presentCustomerCenter } = useSubscription();
+  const entitlementInfo = customerInfo?.entitlements.active['SaySpend Premium']
+    ?? customerInfo?.entitlements.active['SaySpend Pro'];
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = React.useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = React.useState(false);
@@ -170,31 +171,43 @@ export default function ProfileScreen() {
               <View
                 className="h-12 w-12 items-center justify-center rounded-xl"
                 style={{
-                  backgroundColor: isPro
+                  backgroundColor: (tier === 'premium' || tier === 'trial')
                     ? isDarkMode
                       ? 'rgba(139,92,246,0.15)'
                       : '#EDE9FE'
-                    : isDarkMode
-                      ? 'rgba(107,114,128,0.15)'
-                      : '#F3F4F6',
+                    : tier === 'basic'
+                      ? isDarkMode
+                        ? 'rgba(16,185,129,0.15)'
+                        : '#D1FAE5'
+                      : isDarkMode
+                        ? 'rgba(107,114,128,0.15)'
+                        : '#F3F4F6',
                 }}>
                 <Ionicons
-                  name={isPro ? 'diamond' : 'person-outline'}
+                  name={tier === 'premium' || tier === 'trial' ? 'diamond' : tier === 'basic' ? 'star-outline' : 'person-outline'}
                   size={24}
-                  color={isPro ? '#8B5CF6' : '#6B7280'}
+                  color={tier === 'premium' || tier === 'trial' ? '#8B5CF6' : tier === 'basic' ? '#10B981' : '#6B7280'}
                 />
               </View>
               <View className="ml-3 flex-1">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                  {isPro
-                    ? t('profile.proPlan', {
-                        name: entitlementInfo?.productIdentifier?.includes('annual')
-                          ? t('paywall.plans.annual')
-                          : t('paywall.plans.monthly'),
-                      })
-                    : t('profile.freePlan')}
+                  {tier === 'trial'
+                    ? t('profile.trialPlan', { days: trialDaysLeft })
+                    : tier === 'premium'
+                      ? t('profile.premiumPlan', {
+                          name: entitlementInfo?.productIdentifier?.includes('annual')
+                            ? t('paywall.plans.annual')
+                            : t('paywall.plans.monthly'),
+                        })
+                      : tier === 'basic'
+                        ? t('profile.basicPlan', {
+                            name: entitlementInfo?.productIdentifier?.includes('annual')
+                              ? t('paywall.plans.annual')
+                              : t('paywall.plans.monthly'),
+                          })
+                        : t('profile.noPlan')}
                 </Text>
-                {isPro && entitlementInfo?.expirationDate ? (
+                {tier === 'premium' && entitlementInfo?.expirationDate ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
                     {t('profile.renewsOn', {
                       date: new Date(entitlementInfo.expirationDate).toLocaleDateString(
@@ -211,18 +224,22 @@ export default function ProfileScreen() {
                       ),
                     })}
                   </Text>
-                ) : (
+                ) : tier === 'basic' ? (
                   <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
                     {t('profile.recordingsLeft', {
                       count: voiceRecordingsLeft,
-                      total: FREE_VOICE_LIMIT,
+                      total: BASIC_VOICE_LIMIT,
                     })}
                   </Text>
-                )}
+                ) : tier === 'trial' ? (
+                  <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                    {t('profile.unlimitedVoice')}
+                  </Text>
+                ) : null}
               </View>
             </View>
 
-            {isPro ? (
+            {tier === 'premium' ? (
               <TouchableOpacity
                 onPress={presentCustomerCenter}
                 className="w-full items-center justify-center rounded-xl py-3"
@@ -235,12 +252,26 @@ export default function ProfileScreen() {
                   {t('profile.manageSubscription')}
                 </Text>
               </TouchableOpacity>
+            ) : tier === 'basic' ? (
+              <TouchableOpacity
+                onPress={() => setIsPaywallOpen(true)}
+                className="w-full items-center justify-center rounded-xl py-3"
+                style={{ backgroundColor: '#8B5CF6' }}>
+                <Text className="text-sm font-bold text-white">{t('profile.upgradeToPremium')}</Text>
+              </TouchableOpacity>
+            ) : tier === 'trial' ? (
+              <TouchableOpacity
+                onPress={() => setIsPaywallOpen(true)}
+                className="w-full items-center justify-center rounded-xl py-3"
+                style={{ backgroundColor: '#8B5CF6' }}>
+                <Text className="text-sm font-bold text-white">{t('profile.choosePlan')}</Text>
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 onPress={() => setIsPaywallOpen(true)}
                 className="w-full items-center justify-center rounded-xl py-3"
                 style={{ backgroundColor: '#8B5CF6' }}>
-                <Text className="text-sm font-bold text-white">{t('profile.upgradeToPro')}</Text>
+                <Text className="text-sm font-bold text-white">{t('profile.subscribe')}</Text>
               </TouchableOpacity>
             )}
           </View>

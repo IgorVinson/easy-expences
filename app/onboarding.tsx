@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -6,6 +5,8 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   GestureResponderEvent,
+  Image,
+  ImageSourcePropType,
   Platform,
   StatusBar,
   Text,
@@ -16,34 +17,39 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const ONBOARDING_KEY = 'onboarding_completed';
 
-const slides = [
+const PLACEHOLDER_CATEGORIES: ImageSourcePropType = require('../assets/onboarding/screen1-categories.png');
+const PLACEHOLDER_VOICE: ImageSourcePropType = require('../assets/onboarding/screen2-voice.png');
+const PLACEHOLDER_BUDGET: ImageSourcePropType = require('../assets/onboarding/screen3-budget.png');
+
+interface Slide {
+  image: ImageSourcePropType;
+  accentColor: string;
+  gradientColors: [string, string];
+  titleKey: string;
+  descriptionKey: string;
+}
+
+const slides: Slide[] = [
   {
-    icon: 'wallet-outline' as const,
-    secondaryIcons: ['receipt-outline', 'card-outline', 'cash-outline'] as const,
-    gradientColors: ['#8B5CF6', '#6D28D9'] as [string, string],
-    titleKey: 'onboarding.expenses.title',
-    descriptionKey: 'onboarding.expenses.description',
+    image: PLACEHOLDER_CATEGORIES,
+    accentColor: '#8B5CF6',
+    gradientColors: ['#8B5CF6', '#6D28D9'],
+    titleKey: 'onboarding.usecases.title',
+    descriptionKey: 'onboarding.usecases.description',
   },
   {
-    icon: 'mic-outline' as const,
-    secondaryIcons: ['chatbubble-outline', 'sparkles-outline', 'volume-high-outline'] as const,
-    gradientColors: ['#EC4899', '#BE185D'] as [string, string],
+    image: PLACEHOLDER_VOICE,
+    accentColor: '#EC4899',
+    gradientColors: ['#EC4899', '#BE185D'],
     titleKey: 'onboarding.voice.title',
     descriptionKey: 'onboarding.voice.description',
   },
   {
-    icon: 'pie-chart-outline' as const,
-    secondaryIcons: ['trending-up-outline', 'bar-chart-outline', 'analytics-outline'] as const,
-    gradientColors: ['#10B981', '#047857'] as [string, string],
+    image: PLACEHOLDER_BUDGET,
+    accentColor: '#10B981',
+    gradientColors: ['#10B981', '#047857'],
     titleKey: 'onboarding.budget.title',
     descriptionKey: 'onboarding.budget.description',
-  },
-  {
-    icon: 'rocket-outline' as const,
-    secondaryIcons: ['star-outline', 'checkmark-circle-outline', 'heart-outline'] as const,
-    gradientColors: ['#F59E0B', '#D97706'] as [string, string],
-    titleKey: 'onboarding.ready.title',
-    descriptionKey: 'onboarding.ready.description',
   },
 ];
 
@@ -67,12 +73,10 @@ export default function OnboardingScreen() {
 
   const onTouchEnd = (e: GestureResponderEvent) => {
     const diff = touchStartX.current - e.nativeEvent.pageX;
-    if (Math.abs(diff) < 40) return; // ignore taps
+    if (Math.abs(diff) < 40) return;
     if (diff > 0 && activeIndex < slides.length - 1) {
-      // swipe left → next
       setActiveIndex((prev) => prev + 1);
     } else if (diff < 0 && activeIndex > 0) {
-      // swipe right → prev
       setActiveIndex((prev) => prev - 1);
     }
   };
@@ -103,35 +107,27 @@ export default function OnboardingScreen() {
       {/* ═══ MIDDLE: Slide content ═══ */}
       <View
         style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
+        {/* App screenshot with subtle gradient backdrop */}
         <LinearGradient
-          colors={slide.gradientColors}
+          colors={[slide.gradientColors[0] + '18', slide.gradientColors[1] + '08']}
           style={{
-            width: 130,
-            height: 130,
-            borderRadius: 36,
+            width: 260,
+            height: 340,
+            borderRadius: 24,
             justifyContent: 'center',
             alignItems: 'center',
-            marginBottom: 20,
+            marginBottom: 28,
           }}>
-          <Ionicons name={slide.icon} size={60} color="#FFFFFF" />
+          <Image
+            source={slide.image}
+            style={{
+              width: 230,
+              height: 310,
+              borderRadius: 18,
+            }}
+            resizeMode="cover"
+          />
         </LinearGradient>
-
-        <View style={{ flexDirection: 'row', gap: 16, marginBottom: 28 }}>
-          {slide.secondaryIcons.map((iconName, i) => (
-            <View
-              key={i}
-              style={{
-                width: 46,
-                height: 46,
-                borderRadius: 14,
-                backgroundColor: theme.iconBg,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-              <Ionicons name={iconName} size={20} color={slide.gradientColors[0]} />
-            </View>
-          ))}
-        </View>
 
         <Text
           style={{
@@ -156,9 +152,8 @@ export default function OnboardingScreen() {
         </Text>
       </View>
 
-      {/* ═══ BOTTOM: Dots + Get Started (last screen only) ═══ */}
+      {/* ═══ BOTTOM: Dots + CTA ═══ */}
       <View style={{ paddingHorizontal: 32, paddingBottom: 40, alignItems: 'center' }}>
-        {/* Dots */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
           {slides.map((_, i) => (
             <View
@@ -174,7 +169,6 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        {/* Get Started button — only on last slide */}
         {isLast && (
           <TouchableOpacity
             onPress={completeOnboarding}
@@ -187,7 +181,7 @@ export default function OnboardingScreen() {
               alignItems: 'center',
             }}>
             <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
-              {t('onboarding.getStarted')}
+              {t('onboarding.startTrial')}
             </Text>
           </TouchableOpacity>
         )}

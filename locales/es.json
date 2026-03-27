@@ -12,8 +12,9 @@
     "feature": "Función",
     "free": "Gratis",
     "pro": "Pro",
-    "month": "mes",
     "basic": "Básico",
+    "premium": "Premium",
+    "month": "mes",
     "full": "Completo",
     "tryAgain": "Por favor intenta de nuevo."
   },
@@ -25,7 +26,8 @@
     "noExpensesToday": "Aún no hay gastos hoy",
     "loading": "Cargando gastos…",
     "deleteTitle": "Eliminar gasto",
-    "deleteConfirm": "¿Estás seguro de que quieres eliminar este gasto?"
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este gasto?",
+    "trialBanner": "Prueba Premium · {{days}} días restantes"
   },
   "budget": {
     "title": "Presupuesto Mensual",
@@ -61,10 +63,19 @@
     "logoutConfirm": "¿Estás seguro de que quieres cerrar sesión?",
     "freePlan": "Plan Gratis",
     "proPlan": "Plan Pro - {{name}}",
+    "basicPlan": "Plan Básico - {{name}}",
+    "premiumPlan": "Plan Premium - {{name}}",
+    "trialPlan": "Prueba Premium ({{days}} días restantes)",
+    "noPlan": "Sin plan activo",
     "renewsOn": "Se renueva el {{date}}",
     "recordingsLeft": "Quedan {{count}} de {{total}} grabaciones este mes",
+    "unlimitedVoice": "Grabaciones de voz ilimitadas",
     "manageSubscription": "Gestionar Suscripción",
     "upgradeToPro": "Mejorar a Pro",
+    "upgradeToPremium": "Mejorar a Premium",
+    "choosePlan": "Elegir un Plan",
+    "subscribe": "Suscribirse",
+    "redeemPromo": "Canjear Código Promocional",
     "supportEmailMissing": "Falta email de soporte",
     "supportEmailError": "Configura EXPO_PUBLIC_SUPPORT_EMAIL en tu entorno.",
     "messageRequired": "Mensaje requerido",
@@ -124,10 +135,16 @@
     "couldNotTranscribe": "No se pudo transcribir la grabación. Inténtalo de nuevo."
   },
   "paywall": {
-    "title": "Mejorar a Pro",
-    "subtitle": "Voz ilimitada y mucho más",
+    "title": "Desbloquea SaySpend",
+    "subtitle": "Elige el plan que mejor se adapte a ti",
+    "trialTitle": "Prueba: {{days}} días restantes",
+    "trialSubtitle": "Elige tu plan antes de que termine la prueba",
+    "expiredTitle": "Tu prueba ha terminado",
+    "expiredSubtitle": "Elige un plan para seguir usando SaySpend",
     "features": {
-      "voice": "Grabación de voz ilimitada",
+      "voice": "Grabación de voz",
+      "manualExpenses": "Gastos manuales",
+      "categories": "Categorías y presupuestos",
       "analytics": "Análisis avanzados",
       "backup": "Copia en la nube",
       "export": "Exportar informes",
@@ -136,19 +153,30 @@
     "plans": {
       "annual": "Anual",
       "monthly": "Mensual",
+      "basic": "Básico",
+      "premium": "Premium",
+      "recommended": "RECOMENDADO",
       "savePercent": "AHORRA {{percent}}%",
       "annualDetail": "{{monthly}}/mes · Facturado {{annual}}/año",
       "monthlyDetail": "{{price}}/mes"
     },
-    "subscribe": "Empezar Pro · {{price}}",
+    "subscribe": "Empezar {{tier}} · {{price}}",
     "restore": "Restaurar compras",
-    "welcome": "¡Bienvenido a Pro! 🎉",
-    "welcomeDetail": "Ya tienes acceso ilimitado a todas las funciones.",
+    "welcome": "¡Bienvenido! 🎉",
+    "welcomeDetail": "Ya tienes acceso completo a las funciones de tu plan.",
     "awesome": "¡Genial!",
     "purchaseFailed": "Error en la compra",
     "restored": "Restaurado",
     "restoredDetail": "Tus compras han sido verificadas.",
-    "restoreError": "No se pudieron restaurar las compras."
+    "restoreError": "No se pudieron restaurar las compras.",
+    "promo": {
+      "haveCode": "¿Tienes un código promocional?",
+      "placeholder": "Ingresa el código",
+      "redeem": "Canjear",
+      "success": "¡Código canjeado!",
+      "successMessage": "Tu oferta promocional ha sido aplicada.",
+      "invalid": "Código inválido o expirado. Intenta de nuevo."
+    }
   },
   "expenseItem": {
     "left": "Quedan {{amount}}"
@@ -167,21 +195,18 @@
     "skip": "Omitir",
     "next": "Siguiente",
     "getStarted": "Comenzar",
-    "expenses": {
-      "title": "Registra gastos rápido",
-      "description": "Anota café, compras o transporte en segundos. Mantén cada gasto organizado para saber siempre a dónde va tu dinero."
+    "startTrial": "Iniciar Prueba Gratis",
+    "usecases": {
+      "title": "Registra lo que importa",
+      "description": "Deuda dental, viajes de fin de semana, compras mensuales — crea una categoría para cualquier cosa y sigue tu progreso."
     },
     "voice": {
-      "title": "Añade gastos sobre la marcha",
-      "description": "¿Vas con prisa? Solo di \"Café 5 dólares\" y la IA lo convierte en un gasto por ti."
+      "title": "Solo dilo",
+      "description": "Di \"Café 5 dólares\" y la IA lo registra al instante. Sin escribir, sin complicaciones."
     },
     "budget": {
-      "title": "Detecta riesgos antes",
-      "description": "Crea presupuestos por categoría, detecta excesos antes de fin de mes y toma mejores decisiones con indicadores claros."
-    },
-    "ready": {
-      "title": "Mantén el control cada día",
-      "description": "Guarda tus gastos, presupuestos y progreso en un solo lugar para revisar tu historial y mantenerte en camino cada día."
+      "title": "Mira a dónde va cada dólar",
+      "description": "Crea presupuestos, detecta excesos a tiempo y siempre sabe cuánto te queda."
     }
   },
   "auth": {

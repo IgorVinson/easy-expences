@@ -2,9 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { TrialExpiredScreen } from '../components/TrialExpiredScreen';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { CurrencyProvider } from '../contexts/CurrencyContext';
-import { SubscriptionProvider } from '../contexts/SubscriptionContext';
+import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
 import '../i18n';
@@ -12,12 +13,13 @@ import { ONBOARDING_KEY } from './onboarding';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
+  const { tier, loading: subLoading } = useSubscription();
   const segments = useSegments();
   const router = useRouter();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || subLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === 'onboarding';
@@ -39,10 +41,16 @@ function RootLayoutNav() {
       }
       setReady(true);
     });
-  }, [user, loading, segments, router]);
+  }, [user, loading, subLoading, segments, router, tier]);
 
-  if (loading || !ready) {
+  if (loading || subLoading || !ready) {
     return null;
+  }
+
+  // Hard paywall: only block when RevenueCat is configured (offerings loaded)
+  // and user genuinely has no active subscription. Skip in dev mode.
+  if (user && tier === 'none' && !__DEV__) {
+    return <TrialExpiredScreen />;
   }
 
   return (

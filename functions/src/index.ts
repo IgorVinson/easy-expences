@@ -8,7 +8,7 @@ const db = getFirestore();
 
 const RATE_LIMIT_PER_MINUTE = 5;
 const RATE_LIMIT_PER_HOUR = 50;
-const FREE_VOICE_LIMIT_PER_MONTH = 15;
+const BASIC_VOICE_LIMIT_PER_MONTH = 30;
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -45,27 +45,43 @@ async function checkDailyLimit(userId: string): Promise<void> {
   });
 }
 
-async function checkFreeTierLimit(userId: string): Promise<void> {
+async function checkVoiceLimit(userId: string): Promise<void> {
   const ref = db.collection('subscriptions').doc(userId);
   const snap = await ref.get();
 
-  if (!snap.exists) return; // new user, allow through
-
-  const data = snap.data()!;
-  const isPro: boolean = data.isPro === true;
-
-  if (isPro) return;
-
-  const currentMonth = getCurrentMonth();
-  const resetMonth: string = data.voiceRecordingsResetMonth ?? currentMonth;
-  const count: number = resetMonth === currentMonth ? (data.voiceRecordingsThisMonth ?? 0) : 0;
-
-  if (count >= FREE_VOICE_LIMIT_PER_MONTH) {
+  if (!snap.exists) {
     throw new HttpsError(
-      'resource-exhausted',
-      'Free tier monthly voice limit reached. Upgrade to Pro for unlimited recordings.'
+      'permission-denied',
+      'No subscription found. Please subscribe to use voice recording.'
     );
   }
+
+  const data = snap.data()!;
+  const tier: string = data.tier ?? (data.isPro === true ? 'premium' : 'none');
+
+  // Premium and trial users bypass limit
+  if (tier === 'premium' || tier === 'trial') return;
+
+  // Basic users have 30/month limit
+  if (tier === 'basic') {
+    const currentMonth = getCurrentMonth();
+    const resetMonth: string = data.voiceRecordingsResetMonth ?? currentMonth;
+    const count: number = resetMonth === currentMonth ? (data.voiceRecordingsThisMonth ?? 0) : 0;
+
+    if (count >= BASIC_VOICE_LIMIT_PER_MONTH) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'Basic tier monthly voice limit reached. Upgrade to Premium for unlimited recordings.'
+      );
+    }
+    return;
+  }
+
+  // No subscription
+  throw new HttpsError(
+    'permission-denied',
+    'Active subscription required. Please subscribe to use voice recording.'
+  );
 }
 
 async function checkRateLimit(userId: string): Promise<void> {
@@ -146,7 +162,7 @@ export const processVoiceExpense = onCall(
 
     await checkRateLimit(request.auth.uid);
     await checkDailyLimit(request.auth.uid);
-    await checkFreeTierLimit(request.auth.uid);
+    await checkVoiceLimit(request.auth.uid);
 
     const { audioBase64, mimeType, categories } = request.data as ProcessVoiceExpenseRequest;
 

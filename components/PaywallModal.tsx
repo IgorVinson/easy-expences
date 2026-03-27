@@ -7,10 +7,11 @@ import {
   Modal,
   Platform,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FREE_VOICE_LIMIT, useSubscription } from '../contexts/SubscriptionContext';
+import { BASIC_VOICE_LIMIT, useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface PaywallModalProps {
@@ -21,60 +22,91 @@ interface PaywallModalProps {
 export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
-  const { subscribe, restorePurchases, offerings } = useSubscription();
-  const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
+  const { subscribe, restorePurchases, redeemPromoCode, offerings, trialDaysLeft, tier } =
+    useSubscription();
+  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>('premium');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [purchasing, setPurchasing] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState('');
 
-  const monthlyPkg = offerings?.current?.monthly ?? null;
-  const annualPkg = offerings?.current?.annual ?? null;
+  // RevenueCat packages — offerings should include basic_monthly, basic_annual, premium_monthly, premium_annual
+  // Fallback: use "monthly" and "annual" from current offering for premium
+  const basicMonthlyPkg = offerings?.current?.availablePackages.find(
+    (p) => p.identifier === 'basic_monthly'
+  ) ?? null;
+  const basicAnnualPkg = offerings?.current?.availablePackages.find(
+    (p) => p.identifier === 'basic_annual'
+  ) ?? null;
+  const premiumMonthlyPkg = offerings?.current?.availablePackages.find(
+    (p) => p.identifier === 'premium_monthly'
+  ) ?? offerings?.current?.monthly ?? null;
+  const premiumAnnualPkg = offerings?.current?.availablePackages.find(
+    (p) => p.identifier === 'premium_annual'
+  ) ?? offerings?.current?.annual ?? null;
 
-  const monthlyPrice = monthlyPkg?.product.price ?? 4.99;
-  const annualPrice = annualPkg?.product.price ?? 39.99;
-  const monthlyPriceLabel = monthlyPkg?.product.priceString ?? '$4.99';
-  const annualPriceLabel = annualPkg?.product.priceString ?? '$39.99';
-  
-  const currencyCode = annualPkg?.product.currencyCode ?? 'USD';
-  let annualMonthly = `$${(annualPrice / 12).toFixed(2)}`;
-  try {
-    annualMonthly = new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: currencyCode,
-    }).format(annualPrice / 12);
-  } catch {
-    annualMonthly = `${(annualPrice / 12).toFixed(2)} ${currencyCode}`;
-  }
-
-  const savingsPercent = Math.round((1 - annualPrice / (monthlyPrice * 12)) * 100);
+  const basicMonthlyPrice = basicMonthlyPkg?.product.priceString ?? '$2.99';
+  const basicAnnualPrice = basicAnnualPkg?.product.priceString ?? '$28.70';
+  const premiumMonthlyPrice = premiumMonthlyPkg?.product.priceString ?? '$6.99';
+  const premiumAnnualPrice = premiumAnnualPkg?.product.priceString ?? '$67.10';
 
   const FEATURES = [
     {
       icon: 'mic' as const,
       title: t('paywall.features.voice'),
-      free: `${FREE_VOICE_LIMIT}/${t('common.month') || 'mo'}`,
-      pro: t('paywall.features.unlimited') || 'Unlim',
+      basic: `${BASIC_VOICE_LIMIT}/${t('common.month') || 'mo'}`,
+      premium: t('paywall.features.unlimited') || 'Unlim',
+    },
+    {
+      icon: 'create-outline' as const,
+      title: t('paywall.features.manualExpenses'),
+      basic: '✓',
+      premium: '✓',
+    },
+    {
+      icon: 'folder-outline' as const,
+      title: t('paywall.features.categories'),
+      basic: '✓',
+      premium: '✓',
     },
     {
       icon: 'analytics-outline' as const,
       title: t('paywall.features.analytics'),
-      free: t('common.basic') || 'Basic',
-      pro: t('common.full') || 'Full',
+      basic: '—',
+      premium: '✓',
     },
     {
       icon: 'cloud-upload-outline' as const,
       title: t('paywall.features.backup'),
-      free: '—',
-      pro: '✓',
+      basic: '—',
+      premium: '✓',
     },
     {
       icon: 'download-outline' as const,
       title: t('paywall.features.export'),
-      free: '—',
-      pro: '✓',
+      basic: '—',
+      premium: '✓',
     },
   ];
 
+  const getSelectedPkg = () => {
+    if (selectedTier === 'basic') {
+      return billingCycle === 'annual' ? basicAnnualPkg : basicMonthlyPkg;
+    }
+    return billingCycle === 'annual' ? premiumAnnualPkg : premiumMonthlyPkg;
+  };
+
+  const getSelectedPrice = () => {
+    if (selectedTier === 'basic') {
+      return billingCycle === 'annual' ? basicAnnualPrice : basicMonthlyPrice;
+    }
+    return billingCycle === 'annual' ? premiumAnnualPrice : premiumMonthlyPrice;
+  };
+
   const handlePurchase = async () => {
-    const pkg = selectedPlan === 'annual' ? annualPkg : monthlyPkg;
+    const pkg = getSelectedPkg();
     if (!pkg) {
       Alert.alert(t('common.error'), t('common.tryAgain') || 'Offerings not loaded yet.');
       return;
@@ -104,6 +136,33 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
     }
   };
 
+  const handleRedeemPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    try {
+      await redeemPromoCode(promoCode.trim().toUpperCase());
+      Alert.alert(t('paywall.promo.success'), t('paywall.promo.successMessage'));
+      onClose();
+    } catch {
+      setPromoError(t('paywall.promo.invalid'));
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const headerTitle = tier === 'trial'
+    ? t('paywall.trialTitle', { days: trialDaysLeft })
+    : tier === 'none'
+      ? t('paywall.expiredTitle')
+      : t('paywall.title');
+
+  const headerSubtitle = tier === 'trial'
+    ? t('paywall.trialSubtitle')
+    : tier === 'none'
+      ? t('paywall.expiredSubtitle')
+      : t('paywall.subtitle');
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -117,12 +176,12 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
 
           {/* Header */}
           <View className="mb-1 flex-row items-center justify-between">
-            <View>
+            <View className="flex-1">
               <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-                {t('paywall.title')}
+                {headerTitle}
               </Text>
               <Text className="mt-1 text-sm" style={{ color: theme.textSecondary }}>
-                {t('paywall.subtitle')}
+                {headerSubtitle}
               </Text>
             </View>
             <TouchableOpacity
@@ -156,12 +215,12 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                 <Text
                   className="text-xs font-semibold uppercase"
                   style={{ color: theme.textTertiary }}>
-                  {t('common.free')}
+                  {t('common.basic')}
                 </Text>
               </View>
               <View className="w-16 items-center">
                 <Text className="text-xs font-bold uppercase" style={{ color: '#8B5CF6' }}>
-                  {t('common.pro')}
+                  {t('common.premium')}
                 </Text>
               </View>
             </View>
@@ -184,12 +243,12 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                 </View>
                 <View className="w-16 items-center">
                   <Text className="text-xs" style={{ color: theme.textTertiary }}>
-                    {feature.free}
+                    {feature.basic}
                   </Text>
                 </View>
                 <View className="w-16 items-center">
                   <Text className="text-xs font-semibold" style={{ color: '#8B5CF6' }}>
-                    {feature.pro}
+                    {feature.premium}
                   </Text>
                 </View>
               </View>
@@ -197,91 +256,103 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
           </View>
 
           {/* Plan Selection */}
-          <View className="mb-5" style={{ gap: 10 }}>
-            {/* Annual Plan */}
+          <View className="mb-3" style={{ gap: 10 }}>
+            {/* Premium Plan */}
             <TouchableOpacity
-              onPress={() => setSelectedPlan('annual')}
+              onPress={() => setSelectedTier('premium')}
               className="flex-row items-center rounded-2xl p-4"
               style={{
                 backgroundColor:
-                  selectedPlan === 'annual'
-                    ? isDarkMode
-                      ? 'rgba(139,92,246,0.12)'
-                      : '#F3E8FF'
-                    : isDarkMode
-                      ? 'rgba(255,255,255,0.03)'
-                      : '#F8FAFC',
-                borderWidth: selectedPlan === 'annual' ? 2 : 1,
-                borderColor: selectedPlan === 'annual' ? '#8B5CF6' : theme.border,
+                  selectedTier === 'premium'
+                    ? isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF'
+                    : isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
+                borderWidth: selectedTier === 'premium' ? 2 : 1,
+                borderColor: selectedTier === 'premium' ? '#8B5CF6' : theme.border,
               }}>
               <View className="flex-1">
                 <View className="flex-row items-center">
                   <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                    {t('paywall.plans.annual')}
+                    {t('paywall.plans.premium')}
                   </Text>
                   <View
                     className="ml-2 rounded-full px-2 py-0.5"
                     style={{ backgroundColor: '#8B5CF6' }}>
                     <Text className="text-[10px] font-bold text-white">
-                      {t('paywall.plans.savePercent', { percent: savingsPercent })}
+                      {t('paywall.plans.recommended')}
                     </Text>
                   </View>
                 </View>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  {t('paywall.plans.annualDetail', {
-                    monthly: annualMonthly,
-                    annual: annualPriceLabel,
-                  })}
+                  {billingCycle === 'annual'
+                    ? t('paywall.plans.annualDetail', { monthly: premiumAnnualPrice, annual: premiumAnnualPrice })
+                    : t('paywall.plans.monthlyDetail', { price: premiumMonthlyPrice })}
                 </Text>
               </View>
               <View
                 className="h-6 w-6 items-center justify-center rounded-full"
                 style={{
                   borderWidth: 2,
-                  borderColor: selectedPlan === 'annual' ? '#8B5CF6' : theme.border,
-                  backgroundColor: selectedPlan === 'annual' ? '#8B5CF6' : 'transparent',
+                  borderColor: selectedTier === 'premium' ? '#8B5CF6' : theme.border,
+                  backgroundColor: selectedTier === 'premium' ? '#8B5CF6' : 'transparent',
                 }}>
-                {selectedPlan === 'annual' && (
+                {selectedTier === 'premium' && (
                   <Ionicons name="checkmark" size={14} color="#FFFFFF" />
                 )}
               </View>
             </TouchableOpacity>
 
-            {/* Monthly Plan */}
+            {/* Basic Plan */}
             <TouchableOpacity
-              onPress={() => setSelectedPlan('monthly')}
+              onPress={() => setSelectedTier('basic')}
               className="flex-row items-center rounded-2xl p-4"
               style={{
                 backgroundColor:
-                  selectedPlan === 'monthly'
-                    ? isDarkMode
-                      ? 'rgba(139,92,246,0.12)'
-                      : '#F3E8FF'
-                    : isDarkMode
-                      ? 'rgba(255,255,255,0.03)'
-                      : '#F8FAFC',
-                borderWidth: selectedPlan === 'monthly' ? 2 : 1,
-                borderColor: selectedPlan === 'monthly' ? '#8B5CF6' : theme.border,
+                  selectedTier === 'basic'
+                    ? isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF'
+                    : isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
+                borderWidth: selectedTier === 'basic' ? 2 : 1,
+                borderColor: selectedTier === 'basic' ? '#8B5CF6' : theme.border,
               }}>
               <View className="flex-1">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                  {t('paywall.plans.monthly')}
+                  {t('paywall.plans.basic')}
                 </Text>
                 <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  {t('paywall.plans.monthlyDetail', { price: monthlyPriceLabel })}
+                  {billingCycle === 'annual'
+                    ? t('paywall.plans.annualDetail', { monthly: basicAnnualPrice, annual: basicAnnualPrice })
+                    : t('paywall.plans.monthlyDetail', { price: basicMonthlyPrice })}
                 </Text>
               </View>
               <View
                 className="h-6 w-6 items-center justify-center rounded-full"
                 style={{
                   borderWidth: 2,
-                  borderColor: selectedPlan === 'monthly' ? '#8B5CF6' : theme.border,
-                  backgroundColor: selectedPlan === 'monthly' ? '#8B5CF6' : 'transparent',
+                  borderColor: selectedTier === 'basic' ? '#8B5CF6' : theme.border,
+                  backgroundColor: selectedTier === 'basic' ? '#8B5CF6' : 'transparent',
                 }}>
-                {selectedPlan === 'monthly' && (
+                {selectedTier === 'basic' && (
                   <Ionicons name="checkmark" size={14} color="#FFFFFF" />
                 )}
               </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Billing cycle toggle */}
+          <View className="mb-5 flex-row items-center justify-center" style={{ gap: 12 }}>
+            <TouchableOpacity onPress={() => setBillingCycle('monthly')}>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: billingCycle === 'monthly' ? '#8B5CF6' : theme.textTertiary }}>
+                {t('paywall.plans.monthly')}
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ color: theme.textTertiary }}>|</Text>
+            <TouchableOpacity onPress={() => setBillingCycle('annual')}>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: billingCycle === 'annual' ? '#8B5CF6' : theme.textTertiary }}>
+                {t('paywall.plans.annual')} ({t('paywall.plans.savePercent', { percent: 20 })})
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -299,11 +370,62 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
             ) : (
               <Text className="text-base font-bold text-white">
                 {t('paywall.subscribe', {
-                  price: selectedPlan === 'annual' ? annualPriceLabel : monthlyPriceLabel,
+                  tier: selectedTier === 'premium' ? t('common.premium') : t('common.basic'),
+                  price: getSelectedPrice(),
                 })}
               </Text>
             )}
           </TouchableOpacity>
+
+          {/* Promo Code Section */}
+          <TouchableOpacity
+            onPress={() => setShowPromo(!showPromo)}
+            className="mt-3 flex-row items-center justify-center">
+            <Text className="text-xs" style={{ color: theme.textTertiary }}>
+              {t('paywall.promo.haveCode')}
+            </Text>
+            <Ionicons
+              name={showPromo ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color={theme.textTertiary}
+              style={{ marginLeft: 4 }}
+            />
+          </TouchableOpacity>
+
+          {showPromo && (
+            <View className="mt-2 flex-row items-center" style={{ gap: 8 }}>
+              <TextInput
+                placeholder={t('paywall.promo.placeholder')}
+                placeholderTextColor={theme.textTertiary}
+                value={promoCode}
+                onChangeText={(text) => { setPromoCode(text); setPromoError(''); }}
+                autoCapitalize="characters"
+                className="flex-1 rounded-xl px-4 py-3 text-sm"
+                style={{
+                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
+                  color: theme.textPrimary,
+                  borderWidth: promoError ? 1 : 0,
+                  borderColor: '#EF4444',
+                }}
+              />
+              <TouchableOpacity
+                onPress={handleRedeemPromo}
+                disabled={promoLoading}
+                className="rounded-xl px-4 py-3"
+                style={{ backgroundColor: '#8B5CF6' }}>
+                {promoLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text className="text-sm font-bold text-white">{t('paywall.promo.redeem')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+          {promoError ? (
+            <Text className="mt-1 text-center text-xs" style={{ color: '#EF4444' }}>
+              {promoError}
+            </Text>
+          ) : null}
 
           {/* Restore + Terms */}
           <View

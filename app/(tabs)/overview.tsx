@@ -27,7 +27,7 @@ export default function OverviewScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { canUseVoice, voiceRecordingsLeft, isPro, incrementVoiceUsage } = useSubscription();
+  const { canUseVoice, voiceRecordingsLeft, tier, trialDaysLeft, incrementVoiceUsage } = useSubscription();
   const {
     expenses,
     todayExpenses,
@@ -145,6 +145,19 @@ export default function OverviewScreen() {
             colors={[theme.purple]}
           />
         }>
+        {/* Trial Banner */}
+        {tier === 'trial' && (
+          <TouchableOpacity
+            onPress={() => setPaywallVisible(true)}
+            className="mx-6 mb-2 flex-row items-center justify-center rounded-xl px-4 py-2.5"
+            style={{ backgroundColor: isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE' }}>
+            <Ionicons name="diamond-outline" size={16} color="#8B5CF6" style={{ marginRight: 6 }} />
+            <Text className="text-xs font-semibold" style={{ color: '#8B5CF6' }}>
+              {t('overview.trialBanner', { days: trialDaysLeft })}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
           <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
@@ -297,13 +310,20 @@ export default function OverviewScreen() {
           <Ionicons name="mic" size={32} color="#FFFFFF" />
         </TouchableOpacity>
         {/* Voice recordings badge */}
-        {!isPro && (
+        {tier === 'basic' && (
           <View
             className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full px-1"
             style={{
               backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444',
             }}>
             <Text className="text-[10px] font-bold text-white">{voiceRecordingsLeft}</Text>
+          </View>
+        )}
+        {tier === 'none' && (
+          <View
+            className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full px-1"
+            style={{ backgroundColor: '#EF4444' }}>
+            <Ionicons name="lock-closed" size={10} color="#FFFFFF" />
           </View>
         )}
       </Animated.View>

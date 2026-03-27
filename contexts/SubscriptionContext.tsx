@@ -13,8 +13,14 @@ import { useAuth } from './AuthContext';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const ENTITLEMENT_ID = 'SaySpend Pro';
-export const FREE_VOICE_LIMIT = 15;
+const ENTITLEMENT_BASIC = 'SaySpend Basic';
+const ENTITLEMENT_PREMIUM = 'SaySpend Premium';
+// Legacy entitlement — maps existing Pro users to Premium tier
+const ENTITLEMENT_LEGACY_PRO = 'SaySpend Pro';
+
+export const BASIC_VOICE_LIMIT = 30;
+
+export type SubscriptionTier = 'none' | 'trial' | 'basic' | 'premium';
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -24,16 +30,21 @@ function getCurrentMonth(): string {
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface SubscriptionContextType {
+  tier: SubscriptionTier;
+  /** @deprecated Use `tier === 'premium' || tier === 'trial'` instead */
   isPro: boolean;
   loading: boolean;
   customerInfo: CustomerInfo | null;
   offerings: PurchasesOfferings | null;
   canUseVoice: boolean;
   voiceRecordingsLeft: number;
+  trialDaysLeft: number;
+  isTrialExpired: boolean;
   incrementVoiceUsage: () => Promise<void>;
   subscribe: (pkg: PurchasesPackage) => Promise<void>;
   restorePurchases: () => Promise<void>;
   presentCustomerCenter: () => Promise<void>;
+  redeemPromoCode: (code: string) => Promise<void>;
 }
 
 interface VoiceUsage {
@@ -43,9 +54,37 @@ interface VoiceUsage {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function syncProStatusToFirestore(userId: string, isPro: boolean): Promise<void> {
+function determineTier(info: CustomerInfo): SubscriptionTier {
+  const premiumEnt = info.entitlements.active[ENTITLEMENT_PREMIUM];
+  const legacyProEnt = info.entitlements.active[ENTITLEMENT_LEGACY_PRO];
+  const basicEnt = info.entitlements.active[ENTITLEMENT_BASIC];
+
+  const activeEnt = premiumEnt ?? legacyProEnt;
+
+  if (activeEnt) {
+    if (activeEnt.periodType === 'TRIAL') return 'trial';
+    return 'premium';
+  }
+  if (basicEnt) return 'basic';
+  return 'none';
+}
+
+function getTrialDaysLeft(info: CustomerInfo): number {
+  const premiumEnt = info.entitlements.active[ENTITLEMENT_PREMIUM]
+    ?? info.entitlements.active[ENTITLEMENT_LEGACY_PRO];
+  if (!premiumEnt || premiumEnt.periodType !== 'TRIAL') return 0;
+  if (!premiumEnt.expirationDate) return 0;
+  const expDate = new Date(premiumEnt.expirationDate);
+  const now = new Date();
+  return Math.max(0, Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+async function syncTierToFirestore(userId: string, tier: SubscriptionTier): Promise<void> {
   const ref = doc(db, 'subscriptions', userId);
-  await setDoc(ref, { isPro }, { merge: true });
+  await setDoc(ref, {
+    tier,
+    isPro: tier === 'premium' || tier === 'trial',
+  }, { merge: true });
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -54,14 +93,18 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const [isPro, setIsPro] = useState(false);
+  const [tier, setTier] = useState<SubscriptionTier>('none');
   const [loading, setLoading] = useState(true);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
+  const [trialDaysLeft, setTrialDaysLeft] = useState(0);
   const [voiceUsage, setVoiceUsage] = useState<VoiceUsage>({
     voiceRecordingsThisMonth: 0,
     voiceRecordingsResetMonth: getCurrentMonth(),
   });
+
+  const isPro = tier === 'premium' || tier === 'trial';
+  const isTrialExpired = tier === 'none';
 
   // Configure RevenueCat once on mount
   useEffect(() => {
@@ -80,7 +123,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!user) {
       Purchases.isAnonymous().then((anon) => { if (!anon) Purchases.logOut().catch(() => {}); }).catch(() => {});
-      setIsPro(false);
+      setTier('none');
       setCustomerInfo(null);
       setLoading(false);
       return;
@@ -95,14 +138,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         await Purchases.logIn(user.uid);
 
         const info = await Purchases.getCustomerInfo();
-        const proActive = typeof info.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
-        setIsPro(proActive);
+        const detectedTier = determineTier(info);
+        setTier(detectedTier);
         setCustomerInfo(info);
+        setTrialDaysLeft(getTrialDaysLeft(info));
 
-        // Best-effort sync to Firestore — Cloud Function reads this field.
-        // Do not let a Firestore permission error abort the rest of init.
-        syncProStatusToFirestore(user.uid, proActive).catch((e) =>
-          console.warn('syncProStatus failed:', e)
+        syncTierToFirestore(user.uid, detectedTier).catch((e) =>
+          console.warn('syncTier failed:', e)
         );
 
         const offs = await Purchases.getOfferings();
@@ -150,13 +192,14 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     init();
 
-    // Real-time listener — keeps isPro in sync across purchase, renewal, expiration
+    // Real-time listener — keeps tier in sync across purchase, renewal, expiration
     const listener = (info: CustomerInfo) => {
       if (removed) return;
-      const proActive = typeof info.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
-      setIsPro(proActive);
+      const detectedTier = determineTier(info);
+      setTier(detectedTier);
       setCustomerInfo(info);
-      syncProStatusToFirestore(user.uid, proActive).catch(console.error);
+      setTrialDaysLeft(getTrialDaysLeft(info));
+      syncTierToFirestore(user.uid, detectedTier).catch(console.error);
     };
 
     Purchases.addCustomerInfoUpdateListener(listener);
@@ -166,11 +209,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user]);
 
-  const voiceRecordingsLeft = isPro
+  const voiceRecordingsLeft = (tier === 'premium' || tier === 'trial')
     ? Infinity
-    : Math.max(0, FREE_VOICE_LIMIT - voiceUsage.voiceRecordingsThisMonth);
+    : tier === 'basic'
+      ? Math.max(0, BASIC_VOICE_LIMIT - voiceUsage.voiceRecordingsThisMonth)
+      : 0;
 
-  const canUseVoice = isPro || voiceRecordingsLeft > 0;
+  const canUseVoice = tier === 'premium' || tier === 'trial' || (tier === 'basic' && voiceRecordingsLeft > 0);
 
   const incrementVoiceUsage = useCallback(async () => {
     if (!user) return;
@@ -196,21 +241,23 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   const subscribe = useCallback(async (pkg: PurchasesPackage) => {
     const { customerInfo: updatedInfo } = await Purchases.purchasePackage(pkg);
-    const proActive = typeof updatedInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
-    setIsPro(proActive);
+    const newTier = determineTier(updatedInfo);
+    setTier(newTier);
     setCustomerInfo(updatedInfo);
+    setTrialDaysLeft(getTrialDaysLeft(updatedInfo));
     if (user) {
-      syncProStatusToFirestore(user.uid, proActive).catch(console.error);
+      syncTierToFirestore(user.uid, newTier).catch(console.error);
     }
   }, [user]);
 
   const restorePurchases = useCallback(async () => {
     const updatedInfo = await Purchases.restorePurchases();
-    const proActive = typeof updatedInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
-    setIsPro(proActive);
+    const newTier = determineTier(updatedInfo);
+    setTier(newTier);
     setCustomerInfo(updatedInfo);
+    setTrialDaysLeft(getTrialDaysLeft(updatedInfo));
     if (user) {
-      syncProStatusToFirestore(user.uid, proActive).catch(console.error);
+      syncTierToFirestore(user.uid, newTier).catch(console.error);
     }
   }, [user]);
 
@@ -218,19 +265,41 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     await RevenueCatUI.presentCustomerCenter();
   }, []);
 
+  const redeemPromoCode = useCallback(async (_code: string) => {
+    if (Platform.OS === 'android') {
+      // @ts-expect-error — redeemCode is available on Android
+      await Purchases.redeemCode(_code);
+    } else {
+      // iOS: Open system redemption sheet (iOS 14+)
+      await Purchases.presentCodeRedemptionSheet();
+    }
+    const info = await Purchases.getCustomerInfo();
+    const newTier = determineTier(info);
+    setTier(newTier);
+    setCustomerInfo(info);
+    setTrialDaysLeft(getTrialDaysLeft(info));
+    if (user) {
+      syncTierToFirestore(user.uid, newTier).catch(console.error);
+    }
+  }, [user]);
+
   return (
     <SubscriptionContext.Provider
       value={{
+        tier,
         isPro,
         loading,
         customerInfo,
         offerings,
         canUseVoice,
         voiceRecordingsLeft,
+        trialDaysLeft,
+        isTrialExpired,
         incrementVoiceUsage,
         subscribe,
         restorePurchases,
         presentCustomerCenter,
+        redeemPromoCode,
       }}>
       {children}
     </SubscriptionContext.Provider>
