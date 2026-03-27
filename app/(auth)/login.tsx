@@ -157,7 +157,7 @@ export default function LoginScreen() {
                 colors={loading ? ['#9CA3AF', '#6B7280'] : ['#8B5CF6', '#6D28D9']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="items-center justify-center py-4"
+                style={{ width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 16 }}
               >
               {loading ? (
                 <ActivityIndicator color="white" />
