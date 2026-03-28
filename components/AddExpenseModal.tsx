@@ -58,6 +58,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     isRecording,
     isProcessing,
     error: voiceError,
+    prewarmRecorder,
     startRecording,
     stopRecordingAndProcess,
     cancelRecording,
@@ -80,6 +81,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       if (initialCategory) setSelectedCategory(initialCategory);
     }
   }, [visible, initialCategory, defaultTab]);
+
+  React.useEffect(() => {
+    if (!visible || !canUseVoice) return;
+    prewarmRecorder().catch(() => {});
+  }, [canUseVoice, prewarmRecorder, visible]);
 
   React.useEffect(() => {
     const loop = Animated.loop(

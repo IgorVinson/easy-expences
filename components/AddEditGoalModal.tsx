@@ -69,6 +69,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
     isRecording,
     isProcessing,
     error: voiceError,
+    prewarmRecorder,
     startRecording,
     stopRecordingAndProcess,
     cancelRecording,
@@ -98,6 +99,11 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
       }
     }
   }, [visible, goal]);
+
+  useEffect(() => {
+    if (!visible || goal || !canUseVoice) return;
+    prewarmRecorder().catch(() => {});
+  }, [canUseVoice, goal, prewarmRecorder, visible]);
 
   useEffect(() => {
     const loop = Animated.loop(

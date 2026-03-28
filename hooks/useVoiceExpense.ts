@@ -1,4 +1,7 @@
 import {
+  AudioQuality,
+  getRecordingPermissionsAsync,
+  IOSOutputFormat,
   RecordingPresets,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
@@ -37,13 +40,31 @@ const processVoiceExpenseFn = httpsCallable<ProcessVoiceExpenseRequest, VoiceExp
 );
 
 const RECORDING_LIMIT_MS = 30_000;
+const VOICE_RECORDING_PRESET = {
+  ...RecordingPresets.LOW_QUALITY,
+  sampleRate: 24_000,
+  numberOfChannels: 1,
+  bitRate: 32_000,
+  ios: {
+    ...RecordingPresets.LOW_QUALITY.ios,
+    sampleRate: 24_000,
+    outputFormat: IOSOutputFormat.MPEG4AAC,
+    audioQuality: AudioQuality.LOW,
+  },
+  web: {
+    ...RecordingPresets.LOW_QUALITY.web,
+    bitsPerSecond: 64_000,
+  },
+} as const;
 
 export function useVoiceExpense() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorder = useAudioRecorder(VOICE_RECORDING_PRESET);
   const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasRecordingPermissionRef = useRef(false);
+  const isPreparedRef = useRef(false);
 
   const clearAutoStopTimer = () => {
     if (autoStopTimerRef.current) {
@@ -52,21 +73,42 @@ export function useVoiceExpense() {
     }
   };
 
+  const ensurePermission = useCallback(async () => {
+    if (hasRecordingPermissionRef.current) return;
+
+    const permission = await requestRecordingPermissionsAsync();
+    if (permission.status !== 'granted') {
+      throw new Error('Microphone permission was denied.');
+    }
+
+    hasRecordingPermissionRef.current = true;
+  }, []);
+
+  const prewarmRecorder = useCallback(async () => {
+    if (isRecording || isProcessing || isPreparedRef.current) return;
+    const permission = await getRecordingPermissionsAsync();
+    if (permission.status !== 'granted') return;
+    hasRecordingPermissionRef.current = true;
+    await setAudioModeAsync({
+      allowsRecording: true,
+      playsInSilentMode: true,
+    });
+    await recorder.prepareToRecordAsync();
+    isPreparedRef.current = true;
+  }, [isProcessing, isRecording, recorder]);
+
   const startRecording = useCallback(async (onAutoStop?: () => void) => {
     try {
       setError(null);
-
-      const permission = await requestRecordingPermissionsAsync();
-      if (permission.status !== 'granted') {
-        throw new Error('Microphone permission was denied.');
+      if (!isPreparedRef.current) {
+        await ensurePermission();
+        await setAudioModeAsync({
+          allowsRecording: true,
+          playsInSilentMode: true,
+        });
+        await recorder.prepareToRecordAsync();
+        isPreparedRef.current = true;
       }
-
-      await setAudioModeAsync({
-        allowsRecording: true,
-        playsInSilentMode: true,
-      });
-
-      await recorder.prepareToRecordAsync();
       recorder.record();
       setIsRecording(true);
 
@@ -81,7 +123,7 @@ export function useVoiceExpense() {
       setError(err instanceof Error ? err.message : 'Failed to start recording.');
       return false;
     }
-  }, [recorder]);
+  }, [ensurePermission, recorder]);
 
   const stopRecordingAndProcess = useCallback(
     async (categories: string[] = []): Promise<VoiceExpenseResult | null> => {
@@ -92,9 +134,7 @@ export function useVoiceExpense() {
         if (!recorder.isRecording) return null;
 
         await recorder.stop();
-        await setAudioModeAsync({
-          allowsRecording: false,
-        });
+        isPreparedRef.current = false;
 
         const uri = recorder.uri ?? recorder.getStatus().url;
         if (!uri) return null;
@@ -117,6 +157,9 @@ export function useVoiceExpense() {
         setError(err instanceof Error ? err.message : 'Failed to process voice expense.');
         return null;
       } finally {
+        await setAudioModeAsync({
+          allowsRecording: false,
+        });
         setIsProcessing(false);
       }
     },
@@ -127,10 +170,11 @@ export function useVoiceExpense() {
     clearAutoStopTimer();
     if (recorder.isRecording) {
       await recorder.stop();
-      await setAudioModeAsync({
-        allowsRecording: false,
-      });
     }
+    isPreparedRef.current = false;
+    await setAudioModeAsync({
+      allowsRecording: false,
+    });
     setIsRecording(false);
     setIsProcessing(false);
   }, [recorder]);
@@ -139,6 +183,7 @@ export function useVoiceExpense() {
     isRecording,
     isProcessing,
     error,
+    prewarmRecorder,
     startRecording,
     stopRecordingAndProcess,
     cancelRecording,

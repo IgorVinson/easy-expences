@@ -18,10 +18,12 @@ import {
 } from 'react-native';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { BudgetCategory, Expense, NewBudgetCategory } from '../types';
 import ListeningIndicator from './ListeningIndicator';
+import { PaywallModal } from './PaywallModal';
 
 // ─── Icon picker options ──────────────────────────────────────────────────────
 
@@ -89,12 +91,14 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
+  const { canUseVoice, incrementVoiceUsage } = useSubscription();
   const isEdit = Boolean(category);
   const [deleting, setDeleting] = useState(false);
   const {
     isRecording,
     isProcessing,
     error: voiceError,
+    prewarmRecorder,
     startRecording,
     stopRecordingAndProcess,
     cancelRecording,
@@ -105,6 +109,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof Ionicons.glyphMap>('cash');
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
   const [saving, setSaving] = useState(false);
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -118,6 +123,11 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
       resetForm();
     }
   }, [category, visible]);
+
+  useEffect(() => {
+    if (!visible || !canUseVoice) return;
+    prewarmRecorder().catch(() => {});
+  }, [canUseVoice, prewarmRecorder, visible]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -143,6 +153,10 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   }
 
   async function handleStartRecording() {
+    if (!canUseVoice) {
+      setPaywallVisible(true);
+      return;
+    }
     await startRecording(handleStopAndTranscribe);
   }
 
@@ -154,6 +168,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
     }
     if (result.title) setName(result.title);
     if (result.amount > 0) setBudget(result.amount.toString());
+    incrementVoiceUsage();
   }
 
   async function handleSave() {
@@ -594,6 +609,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
           </View>
         </View>
       </KeyboardAvoidingView>
+      <PaywallModal visible={paywallVisible} onClose={() => setPaywallVisible(false)} />
     </Modal>
   );
 };

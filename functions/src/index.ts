@@ -117,8 +117,8 @@ async function checkRateLimit(userId: string): Promise<void> {
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
 const GEMINI_MODEL_CANDIDATES = [
-  'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
   'gemini-flash-latest',
 ];
 
@@ -185,10 +185,9 @@ export const processVoiceExpense = onCall(
         {
           parts: [
             {
-              text: `You are an expense tracker assistant.
-Transcribe this audio and extract a single expense.
+              text: `Transcribe this audio and extract one expense.
 Available categories: ${categoryList}
-Return strictly valid JSON only in this shape:
+Return valid JSON only:
 {
   "transcript": "full user speech transcript",
   "title": "short expense title",
@@ -196,10 +195,10 @@ Return strictly valid JSON only in this shape:
   "category": "best matching category name from the available list"
 }
 Rules:
-- amount must be a positive number with no currency symbols.
-- category must exactly match one of the available categories.
-- If unclear, infer best effort values.
-- Never return markdown or extra text.`,
+- Use a positive numeric amount with no currency symbols.
+- Category must exactly match one of the available categories.
+- Infer best-effort values when needed.
+- No markdown or extra text.`,
             },
             {
               inlineData: {
@@ -212,6 +211,7 @@ Rules:
       ],
       generationConfig: {
         responseMimeType: 'application/json',
+        temperature: 0,
       },
     };
 
