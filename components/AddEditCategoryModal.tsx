@@ -506,20 +506,17 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 <TouchableOpacity
                   onPress={handleDeletePress}
                   disabled={saving || deleting}
-                  className="mb-4 flex-row items-center justify-center gap-1.5 self-center rounded-xl border px-4 py-2"
+                  className="mb-4 items-center justify-center rounded-2xl py-4"
                   style={{
-                    borderColor: '#F87171',
+                    backgroundColor: '#EF444415',
                     opacity: saving || deleting ? 0.5 : 1,
                   }}>
                   {deleting ? (
-                    <ActivityIndicator color="#F87171" size="small" />
+                    <ActivityIndicator color="#EF4444" size="small" />
                   ) : (
-                    <>
-                      <Ionicons name="trash-outline" size={15} color="#F87171" />
-                      <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
-                        {t('budget.deleteTitle')}
-                      </Text>
-                    </>
+                    <Text style={{ color: '#EF4444', fontWeight: '600', fontSize: 15 }}>
+                      {t('budget.deleteTitle')}
+                    </Text>
                   )}
                 </TouchableOpacity>
               )}

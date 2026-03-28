@@ -16,6 +16,8 @@ type ExpenseItemProps = {
   onEdit?: (expense: Expense) => void;
   showDate?: boolean;
   budgetLeftOverride?: number | null;
+  flat?: boolean;
+  isLast?: boolean;
 };
 
 export const ExpenseItem = ({
@@ -25,6 +27,8 @@ export const ExpenseItem = ({
   onEdit,
   showDate,
   budgetLeftOverride,
+  flat = false,
+  isLast = false,
 }: ExpenseItemProps) => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -112,25 +116,35 @@ export const ExpenseItem = ({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => onPress?.(expense)}
-        style={[
+        style={flat ? {
+          padding: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: 'transparent',
+          borderBottomWidth: isLast ? 0 : 1,
+          borderBottomColor: theme.border,
+        } : [
           styles.expenseItem,
           { backgroundColor: theme.cardBg, borderColor: theme.border },
           !theme.isDark && styles.expenseItemShadow,
         ]}>
         <View className="flex-1 flex-row items-center">
           <View
-            className="h-12 w-12 items-center justify-center rounded-xl"
+            className="items-center justify-center rounded-xl"
             style={{
+              width: flat ? 40 : 48,
+              height: flat ? 40 : 48,
               backgroundColor: theme.isDark ? expense.colorDark + '33' : expense.colorLight,
             }}>
             <Ionicons
               name={expense.icon}
-              size={24}
+              size={flat ? 20 : 24}
               color={theme.isDark ? expense.colorDark : expense.colorDark.replace('33', '')}
             />
           </View>
           <View className="ml-3 flex-1">
-            <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
+            <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>
               {expense.title}
             </Text>
             <Text className="text-sm" style={{ color: theme.textTertiary }}>
@@ -143,8 +157,8 @@ export const ExpenseItem = ({
             )}
           </View>
         </View>
-        <View className="flex-col items-center">
-          <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
+        <View className="ml-3 flex-col items-end">
+          <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
             {formattedAmount}
           </Text>
           {budgetLeftToShow !== null && budgetLeftToShow !== undefined && (

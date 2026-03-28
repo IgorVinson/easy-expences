@@ -56,7 +56,10 @@ export const BudgetCategoryItem = ({
     const trans = dragX.interpolate({ inputRange: [-80, 0], outputRange: [0, 80] });
     return (
       <TouchableOpacity
-        onPress={() => { swipeableRef.current?.close(); onEdit?.(category); }}
+        onPress={() => {
+          swipeableRef.current?.close();
+          onEdit?.(category);
+        }}
         style={{
           marginBottom: flat ? 0 : 12,
           marginLeft: 8,
@@ -81,7 +84,10 @@ export const BudgetCategoryItem = ({
     const trans = dragX.interpolate({ inputRange: [0, 80], outputRange: [-80, 0] });
     return (
       <TouchableOpacity
-        onPress={() => { swipeableRef.current?.close(); onDelete?.(category.id); }}
+        onPress={() => {
+          swipeableRef.current?.close();
+          onDelete?.(category.id);
+        }}
         style={{
           marginBottom: flat ? 0 : 12,
           marginRight: 8,
@@ -104,35 +110,46 @@ export const BudgetCategoryItem = ({
       ref={swipeableRef}
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
-      onSwipeableRightOpen={() => { onEdit?.(category); setTimeout(() => swipeableRef.current?.close(), 100); }}
-      onSwipeableLeftOpen={() => { onDelete?.(category.id); setTimeout(() => swipeableRef.current?.close(), 100); }}
+      onSwipeableRightOpen={() => {
+        onEdit?.(category);
+        setTimeout(() => swipeableRef.current?.close(), 100);
+      }}
+      onSwipeableLeftOpen={() => {
+        onDelete?.(category.id);
+        setTimeout(() => swipeableRef.current?.close(), 100);
+      }}
       friction={2}
       rightThreshold={40}
       leftThreshold={40}>
       <TouchableOpacity
         activeOpacity={0.75}
         onPress={() => onPress?.(category)}
-        style={flat ? {
-          padding: 16,
-          backgroundColor: 'transparent',
-          borderBottomWidth: isLast ? 0 : 1,
-          borderBottomColor: theme.border,
-        } : {
-          marginBottom: 12,
-          borderRadius: 18,
-          padding: 18,
-          backgroundColor: theme.cardBg,
-          borderWidth: 1,
-          borderColor: theme.border,
-          ...(theme.isDark ? {} : {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 3,
-            elevation: 2,
-          }),
-        }}>
-
+        style={
+          flat
+            ? {
+                padding: 16,
+                backgroundColor: 'transparent',
+                borderBottomWidth: isLast ? 0 : 1,
+                borderBottomColor: theme.border,
+              }
+            : {
+                marginBottom: 12,
+                borderRadius: 18,
+                padding: 18,
+                backgroundColor: theme.cardBg,
+                borderWidth: 1,
+                borderColor: theme.border,
+                ...(theme.isDark
+                  ? {}
+                  : {
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 3,
+                      elevation: 2,
+                    }),
+              }
+        }>
         {/* Top row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
           {/* Icon */}
@@ -151,16 +168,25 @@ export const BudgetCategoryItem = ({
 
           {/* Name + spent/budget */}
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: flat ? 16 : 15, fontWeight: flat ? '500' : '700', color: theme.textPrimary, marginBottom: 2 }}>
+            <Text
+              style={{
+                fontSize: flat ? 16 : 15,
+                fontWeight: flat ? '500' : '700',
+                color: theme.textPrimary,
+                marginBottom: 2,
+              }}>
               {category.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: isOverBudget ? '#EF4444' : category.colorDark }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '700',
+                  color: isOverBudget ? '#EF4444' : theme.textTertiary,
+                }}>
                 {formattedSpent}
               </Text>
-              <Text style={{ fontSize: 12, color: theme.textTertiary }}>
-                / {formattedBudget}
-              </Text>
+              <Text style={{ fontSize: 12, color: theme.textTertiary }}>/ {formattedBudget}</Text>
             </View>
           </View>
 
@@ -175,7 +201,7 @@ export const BudgetCategoryItem = ({
               style={{
                 fontSize: 12,
                 fontWeight: '700',
-                color: isOverBudget ? '#EF4444' : category.colorDark,
+                color: theme.textPrimary,
                 letterSpacing: -0.2,
               }}>
               {isOverBudget

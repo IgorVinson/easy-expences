@@ -1,10 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   RefreshControl,
   ScrollView,
   StatusBar,
@@ -27,7 +26,7 @@ export default function OverviewScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { canUseVoice, voiceRecordingsLeft, tier, trialDaysLeft, incrementVoiceUsage } = useSubscription();
+  const { tier, trialDaysLeft } = useSubscription();
   const {
     expenses,
     income,
@@ -46,9 +45,7 @@ export default function OverviewScreen() {
   const [editingExpense, setEditingExpense] = useState<import('../../types').Expense | null>(null);
   const [paywallVisible, setPaywallVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const micPulse = useRef(new Animated.Value(0)).current;
   const fabShadowColor = isDarkMode ? '#FFFFFF' : '#000000';
-  const micPulseColor = isDarkMode ? '#FFFFFF' : theme.purple;
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -57,24 +54,6 @@ export default function OverviewScreen() {
       setRefreshing(false);
     }, 1000);
   }, []);
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(micPulse, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-
-    return () => {
-      loop.stop();
-      micPulse.setValue(0);
-    };
-  }, [micPulse]);
 
   const loading = expensesLoading || budgetLoading;
 
@@ -185,26 +164,42 @@ export default function OverviewScreen() {
         {/* Today Section */}
         {!loading && (
           <View className="mb-4 px-6">
-            <View className="mb-3 flex-row items-center justify-between">
+            <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
                 {t('overview.today')}
               </Text>
             </View>
             {todayExpenses.length === 0 ? (
-              <Text className="py-4 text-center text-sm" style={{ color: theme.textTertiary }}>
-                {t('overview.noExpensesToday')}
-              </Text>
+              <View
+                className="rounded-2xl px-6 py-6"
+                style={[
+                  { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                  !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
+                ]}>
+                <Text className="text-center text-sm" style={{ color: theme.textTertiary }}>
+                  {t('overview.noExpensesToday')}
+                </Text>
+              </View>
             ) : (
-              todayExpenses.map((expense) => (
-                <ExpenseItem
-                  key={expense.id}
-                  expense={expense}
-                  budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
-                  onPress={openEditExpense}
-                  onDelete={handleDeleteExpense}
-                  onEdit={openEditExpense}
-                />
-              ))
+              <View
+                className="overflow-hidden rounded-2xl"
+                style={[
+                  { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                  !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
+                ]}>
+                {todayExpenses.map((expense, index) => (
+                  <ExpenseItem
+                    key={expense.id}
+                    expense={expense}
+                    flat
+                    isLast={index === todayExpenses.length - 1}
+                    budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
+                    onPress={openEditExpense}
+                    onDelete={handleDeleteExpense}
+                    onEdit={openEditExpense}
+                  />
+                ))}
+              </View>
             )}
           </View>
         )}
@@ -212,39 +207,57 @@ export default function OverviewScreen() {
         {/* Yesterday Section */}
         {!loading && yesterdayExpenses.length > 0 && (
           <View className="mb-4 px-6">
-            <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
+            <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('overview.yesterday')}
             </Text>
-            {yesterdayExpenses.map((expense) => (
-              <ExpenseItem
-                key={expense.id}
-                expense={expense}
-                budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
-                onPress={openEditExpense}
-                onDelete={handleDeleteExpense}
-                onEdit={openEditExpense}
-              />
-            ))}
+            <View
+              className="overflow-hidden rounded-2xl"
+              style={[
+                { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
+              ]}>
+              {yesterdayExpenses.map((expense, index) => (
+                <ExpenseItem
+                  key={expense.id}
+                  expense={expense}
+                  flat
+                  isLast={index === yesterdayExpenses.length - 1}
+                  budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
+                  onPress={openEditExpense}
+                  onDelete={handleDeleteExpense}
+                  onEdit={openEditExpense}
+                />
+              ))}
+            </View>
           </View>
         )}
 
         {/* Past Section */}
         {!loading && olderExpenses.length > 0 && (
           <View className="mb-4 px-6">
-            <Text className="mb-3 text-xl font-bold" style={{ color: theme.textPrimary }}>
+            <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('overview.past')}
             </Text>
-            {olderExpenses.map((expense) => (
-              <ExpenseItem
-                key={expense.id}
-                expense={expense}
-                budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
-                onPress={openEditExpense}
-                onDelete={handleDeleteExpense}
-                onEdit={openEditExpense}
-                showDate
-              />
-            ))}
+            <View
+              className="overflow-hidden rounded-2xl"
+              style={[
+                { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
+              ]}>
+              {olderExpenses.map((expense, index) => (
+                <ExpenseItem
+                  key={expense.id}
+                  expense={expense}
+                  flat
+                  isLast={index === olderExpenses.length - 1}
+                  budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
+                  onPress={openEditExpense}
+                  onDelete={handleDeleteExpense}
+                  onEdit={openEditExpense}
+                  showDate
+                />
+              ))}
+            </View>
           </View>
         )}
 
@@ -275,7 +288,6 @@ export default function OverviewScreen() {
           userId={user.uid}
           categories={categories}
           goals={goals}
-          onVoiceSaved={incrementVoiceUsage}
         />
       )}
 

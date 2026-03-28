@@ -14,7 +14,6 @@ import {
 import { AddEditCategoryModal } from '../../components/AddEditCategoryModal';
 import { AddEditGoalModal } from '../../components/AddEditGoalModal';
 import { BudgetCategoryItem } from '../../components/BudgetCategoryItem';
-import { GoalDetailModal } from '../../components/GoalDetailModal';
 import { GoalItem } from '../../components/GoalItem';
 import { formatCurrencyAmount } from '../../config/currencies';
 import { useAuth } from '../../contexts/AuthContext';
@@ -58,8 +57,6 @@ export default function GoalsScreen() {
 
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GoalWithProgress | null>(null);
-  const [detailGoal, setDetailGoal] = useState<GoalWithProgress | null>(null);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [fabExpanded, setFabExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -133,11 +130,6 @@ export default function GoalsScreen() {
     setGoalModalVisible(true);
   }
 
-  function openGoalDetail(goal: GoalWithProgress) {
-    setDetailGoal(goal);
-    setDetailModalVisible(true);
-  }
-
   async function handleSaveGoal(data: NewGoal) {
     if (editingGoal) {
       await updateGoal(editingGoal.id, data);
@@ -166,8 +158,8 @@ export default function GoalsScreen() {
       )
     : [];
 
-  const detailContributions = detailGoal
-    ? income.filter((txn) => txn.goalId === detailGoal.id)
+  const goalContributions = editingGoal
+    ? income.filter((txn) => txn.goalId === editingGoal.id)
     : [];
 
   const budgetBarColor = isOverBudget ? '#EF4444' : theme.purple;
@@ -424,7 +416,7 @@ export default function GoalsScreen() {
                   goal={goal}
                   flat
                   isLast={index === goals.length - 1}
-                  onPress={openGoalDetail}
+                  onPress={openEditGoal}
                   onDelete={handleDeleteGoal}
                   onEdit={openEditGoal}
                 />
@@ -450,15 +442,9 @@ export default function GoalsScreen() {
         visible={goalModalVisible}
         onClose={() => { setGoalModalVisible(false); setEditingGoal(null); }}
         goal={editingGoal}
+        contributions={goalContributions}
         onSave={handleSaveGoal}
         onDelete={handleDeleteGoal}
-      />
-
-      <GoalDetailModal
-        visible={detailModalVisible}
-        onClose={() => { setDetailModalVisible(false); setDetailGoal(null); }}
-        goal={detailGoal}
-        contributions={detailContributions}
       />
 
       {fabExpanded && (

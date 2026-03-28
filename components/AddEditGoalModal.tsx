@@ -14,11 +14,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
-import { GoalWithProgress, NewGoal } from '../types';
+import { GoalWithProgress, NewGoal, Transaction } from '../types';
 import ListeningIndicator from './ListeningIndicator';
 import { PaywallModal } from './PaywallModal';
 
@@ -47,6 +48,7 @@ type AddEditGoalModalProps = {
   visible: boolean;
   onClose: () => void;
   goal: GoalWithProgress | null;
+  contributions?: Transaction[];
   onSave: (data: NewGoal) => Promise<void>;
   onDelete?: (id: string) => void;
 };
@@ -55,10 +57,11 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   visible,
   onClose,
   goal,
+  contributions = [],
   onSave,
   onDelete,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
   const { canUseVoice, voiceRecordingsLeft, tier, incrementVoiceUsage } = useSubscription();
@@ -271,6 +274,84 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                     ))}
                   </View>
 
+                  {goal && (
+                    <View style={{ marginBottom: 24 }}>
+                      <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={[labelStyle, { marginBottom: 0 }]}>
+                          {t('budget.transactionsTitle')}
+                        </Text>
+                        <View
+                          style={{
+                            borderRadius: 999,
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            backgroundColor: theme.iconBg,
+                          }}>
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: theme.textTertiary }}>
+                            {contributions.length}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {contributions.length === 0 ? (
+                        <View
+                          style={{
+                            borderRadius: 16,
+                            paddingHorizontal: 16,
+                            paddingVertical: 16,
+                            backgroundColor: theme.cardBg,
+                            borderWidth: 1,
+                            borderColor: theme.border,
+                          }}>
+                          <Text style={{ fontSize: 14, color: theme.textTertiary }}>
+                            No contributions yet.
+                          </Text>
+                        </View>
+                      ) : (
+                        <View
+                          style={{
+                            overflow: 'hidden',
+                            borderRadius: 16,
+                            backgroundColor: theme.cardBg,
+                            borderWidth: 1,
+                            borderColor: theme.border,
+                          }}>
+                          {contributions.map((txn, index) => (
+                            <View
+                              key={txn.id}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                paddingHorizontal: 16,
+                                paddingVertical: 12,
+                                borderBottomWidth: index === contributions.length - 1 ? 0 : 1,
+                                borderBottomColor: theme.border,
+                              }}>
+                              <View style={{ flex: 1, marginRight: 12 }}>
+                                <Text
+                                  numberOfLines={1}
+                                  style={{ fontSize: 14, fontWeight: '600', color: theme.textPrimary }}>
+                                  {txn.title}
+                                </Text>
+                                <Text style={{ marginTop: 4, fontSize: 12, color: theme.textTertiary }}>
+                                  {new Date(txn.date).toLocaleDateString(i18n.language, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </Text>
+                              </View>
+                              <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textPrimary }}>
+                                +{formatCurrencyAmount(txn.amount, currency, i18n.language)}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  )}
+
                   {/* Delete (edit mode only) */}
                   {goal && onDelete && (
                     <TouchableOpacity
@@ -324,16 +405,6 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                           ? <ActivityIndicator size="large" color={theme.textPrimary} />
                           : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
-                      {tier === 'basic' && (
-                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 4, backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444' }}>
-                          <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#fff' }}>{voiceRecordingsLeft}</Text>
-                        </View>
-                      )}
-                      {tier === 'none' && (
-                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#EF4444' }}>
-                          <Ionicons name="lock-closed" size={10} color="#fff" />
-                        </View>
-                      )}
                     </View>
                   </View>
                   <TouchableOpacity
