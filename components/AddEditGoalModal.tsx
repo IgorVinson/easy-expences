@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,7 +16,9 @@ import {
 } from 'react-native';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { GoalWithProgress, NewGoal } from '../types';
+import ListeningIndicator from './ListeningIndicator';
 
 const GOAL_ICONS: Array<keyof typeof Ionicons.glyphMap> = [
   'flag', 'trophy', 'star', 'heart', 'home', 'car', 'airplane', 'school',
@@ -52,14 +55,26 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
+  const {
+    isRecording,
+    isProcessing,
+    error: voiceError,
+    startRecording,
+    stopRecordingAndProcess,
+    cancelRecording,
+  } = useVoiceExpense();
 
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof Ionicons.glyphMap>('flag');
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [voiceStep, setVoiceStep] = useState<'form' | 'recording'>('form');
+  const [animationSession, setAnimationSession] = useState(0);
+  const pulse = useRef(new Animated.Value(1)).current;
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -77,6 +92,34 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
       }
     }
   }, [visible, goal]);
+
+  useEffect(() => {
+    const shouldAnimate = voiceStep === 'recording' && !isProcessing;
+
+    const stopPulse = () => {
+      pulseLoopRef.current?.stop();
+      pulseLoopRef.current = null;
+      pulse.stopAnimation();
+      pulse.setValue(1);
+    };
+
+    if (!shouldAnimate) {
+      stopPulse();
+      return;
+    }
+
+    pulse.setValue(1);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+      ])
+    );
+    pulseLoopRef.current = loop;
+    loop.start();
+
+    return () => { stopPulse(); };
+  }, [animationSession, isProcessing, pulse, voiceStep]);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -105,6 +148,27 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
     }
   }
 
+  async function handleClose() {
+    await cancelRecording();
+    setVoiceStep('form');
+    onClose();
+  }
+
+  async function handleStartRecording() {
+    await startRecording(handleStopAndTranscribe);
+  }
+
+  async function handleStopAndTranscribe() {
+    const result = await stopRecordingAndProcess([]);
+    if (!result) {
+      Alert.alert(t('recording.transcriptionFailed'), voiceError ?? t('recording.couldNotTranscribe'));
+      return;
+    }
+    if (result.title) setName(result.title);
+    if (result.amount > 0) setTargetAmount(result.amount.toString());
+    setVoiceStep('form');
+  }
+
   const inputStyle = {
     backgroundColor: theme.cardBg,
     borderColor: theme.border,
@@ -129,7 +193,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
       animationType="slide"
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
-      onRequestClose={onClose}>
+      onRequestClose={handleClose}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <View
@@ -150,99 +214,153 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                 {goal ? t('addGoal.editTitle') : t('addGoal.addTitle')}
               </Text>
               <TouchableOpacity
-                onPress={onClose}
+                onPress={handleClose}
                 style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: theme.iconBg }}>
                 <Ionicons name="close" size={20} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
-              {/* Name */}
-              <Text style={labelStyle}>{t('addGoal.nameLabel')}</Text>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder={t('addGoal.namePlaceholder')}
-                placeholderTextColor={theme.textTertiary}
-                style={[inputStyle, { marginBottom: 20 }]}
-              />
-
-              {/* Target amount */}
-              <Text style={labelStyle}>{t('addGoal.targetLabel', { currency })}</Text>
-              <TextInput
-                value={targetAmount}
-                onChangeText={setTargetAmount}
-                placeholder={t('addGoal.targetPlaceholder')}
-                placeholderTextColor={theme.textTertiary}
-                keyboardType="decimal-pad"
-                style={[inputStyle, { marginBottom: 20 }]}
-              />
-
-              {/* Icon picker */}
-              <Text style={[labelStyle, { marginBottom: 12 }]}>{t('addGoal.iconLabel')}</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-                {GOAL_ICONS.map((iconName) => {
-                  const isSelected = selectedIcon === iconName;
-                  const color = GOAL_COLORS[selectedColorIdx];
-                  return (
-                    <TouchableOpacity
-                      key={iconName}
-                      onPress={() => setSelectedIcon(iconName)}
-                      style={{
-                        width: 48, height: 48,
-                        borderRadius: 14,
-                        alignItems: 'center', justifyContent: 'center',
-                        backgroundColor: isSelected ? (theme.isDark ? color.dark + '33' : color.light) : theme.cardBg,
-                        borderWidth: isSelected ? 2 : 1,
-                        borderColor: isSelected ? color.dark : theme.border,
-                      }}>
-                      <Ionicons name={iconName} size={22} color={isSelected ? color.dark : theme.textTertiary} />
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Color picker */}
-              <Text style={[labelStyle, { marginBottom: 12 }]}>{t('addGoal.colorLabel')}</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
-                {GOAL_COLORS.map((color, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => setSelectedColorIdx(idx)}
-                    style={{
-                      width: 36, height: 36,
-                      borderRadius: 18,
-                      backgroundColor: color.dark,
-                      borderWidth: selectedColorIdx === idx ? 3 : 0,
-                      borderColor: theme.textPrimary,
-                    }}
-                  />
-                ))}
-              </View>
-
-              {/* Delete (edit mode only) */}
-              {goal && onDelete && (
-                <TouchableOpacity
-                  onPress={() => { onClose(); onDelete(goal.id); }}
-                  style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 16, backgroundColor: '#EF444415', marginBottom: 8 }}>
-                  <Text style={{ color: '#EF4444', fontWeight: '600', fontSize: 15 }}>
-                    {t('goals.deleteTitle')}
+            {voiceStep === 'recording' ? (
+              <>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, minHeight: 320 }}>
+                  <Text style={{ color: theme.textSecondary, fontSize: 18, lineHeight: 28, textAlign: 'center', marginBottom: 28, maxWidth: 320 }}>
+                    {t('recording.instruction')}
                   </Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
 
-            {/* Footer */}
-            <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={saving}
-                style={{ backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
-                {saving ? <ActivityIndicator color="#fff" /> : (
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{t('addGoal.save')}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+                  {isRecording && (
+                    <View style={{ marginBottom: 16 }} key={`indicator-${animationSession}`}>
+                      <ListeningIndicator />
+                    </View>
+                  )}
+
+                  <Animated.View key={`pulse-${animationSession}`} style={{ transform: [{ scale: pulse }] }}>
+                    <TouchableOpacity
+                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                      disabled={isProcessing}
+                      style={{
+                        width: 112, height: 112, borderRadius: 56,
+                        alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                        opacity: isProcessing ? 0.7 : 1,
+                      }}>
+                      {isProcessing ? (
+                        <ActivityIndicator size="large" color="#fff" />
+                      ) : (
+                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+
+                  {Boolean(voiceError) && (
+                    <View style={{ marginTop: 18, borderRadius: 12, borderWidth: 1, padding: 12, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                      <Text style={{ fontSize: 13, color: theme.textPrimary }}>{voiceError}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  <Text style={{ textAlign: 'center', fontSize: 13, color: theme.textSecondary }}>
+                    {t('recording.footer')}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <ScrollView style={{ paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
+                  {/* Name */}
+                  <Text style={labelStyle}>{t('addGoal.nameLabel')}</Text>
+                  <TextInput
+                    value={name}
+                    onChangeText={setName}
+                    placeholder={t('addGoal.namePlaceholder')}
+                    placeholderTextColor={theme.textTertiary}
+                    style={[inputStyle, { marginBottom: 20 }]}
+                  />
+
+                  {/* Target amount */}
+                  <Text style={labelStyle}>{t('addGoal.targetLabel', { currency })}</Text>
+                  <TextInput
+                    value={targetAmount}
+                    onChangeText={setTargetAmount}
+                    placeholder={t('addGoal.targetPlaceholder')}
+                    placeholderTextColor={theme.textTertiary}
+                    keyboardType="decimal-pad"
+                    style={[inputStyle, { marginBottom: 20 }]}
+                  />
+
+                  {/* Icon picker */}
+                  <Text style={[labelStyle, { marginBottom: 12 }]}>{t('addGoal.iconLabel')}</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                    {GOAL_ICONS.map((iconName) => {
+                      const isSelected = selectedIcon === iconName;
+                      const color = GOAL_COLORS[selectedColorIdx];
+                      return (
+                        <TouchableOpacity
+                          key={iconName}
+                          onPress={() => setSelectedIcon(iconName)}
+                          style={{
+                            width: 48, height: 48, borderRadius: 14,
+                            alignItems: 'center', justifyContent: 'center',
+                            backgroundColor: isSelected ? (isDarkMode ? color.dark + '33' : color.light) : theme.cardBg,
+                            borderWidth: isSelected ? 2 : 1,
+                            borderColor: isSelected ? color.dark : theme.border,
+                          }}>
+                          <Ionicons name={iconName} size={22} color={isSelected ? color.dark : theme.textTertiary} />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
+                  {/* Color picker */}
+                  <Text style={[labelStyle, { marginBottom: 12 }]}>{t('addGoal.colorLabel')}</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
+                    {GOAL_COLORS.map((color, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        onPress={() => setSelectedColorIdx(idx)}
+                        style={{
+                          width: 36, height: 36, borderRadius: 18,
+                          backgroundColor: color.dark,
+                          borderWidth: selectedColorIdx === idx ? 3 : 0,
+                          borderColor: theme.textPrimary,
+                        }}
+                      />
+                    ))}
+                  </View>
+
+                  {/* Delete (edit mode only) */}
+                  {goal && onDelete && (
+                    <TouchableOpacity
+                      onPress={() => { handleClose(); onDelete(goal.id); }}
+                      style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 16, backgroundColor: '#EF444415', marginBottom: 8 }}>
+                      <Text style={{ color: '#EF4444', fontWeight: '600', fontSize: 15 }}>
+                        {t('goals.deleteTitle')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </ScrollView>
+
+                {/* Footer */}
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  <TouchableOpacity
+                    onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
+                    disabled={saving}
+                    style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginBottom: 12, opacity: saving ? 0.7 : 1 }}>
+                    <Text style={{ color: theme.textSecondary, fontSize: 15, fontWeight: '600' }}>
+                      {t('recording.title')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSave}
+                    disabled={saving}
+                    style={{ backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+                    {saving ? <ActivityIndicator color="#fff" /> : (
+                      <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{t('addGoal.save')}</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>
