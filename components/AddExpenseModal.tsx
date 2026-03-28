@@ -71,11 +71,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
-  const [voiceStep, setVoiceStep] = useState<'form' | 'recording'>('form');
-  const [animationSession, setAnimationSession] = useState(0);
   const [usedVoice, setUsedVoice] = useState(false);
-  const pulse = useRef(new Animated.Value(1)).current;
-  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+  const pulse = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     if (visible) {
@@ -85,32 +82,14 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   }, [visible, initialCategory, defaultTab]);
 
   React.useEffect(() => {
-    const shouldAnimate = visible && voiceStep === 'recording' && !isProcessing;
-
-    const stopPulse = () => {
-      pulseLoopRef.current?.stop();
-      pulseLoopRef.current = null;
-      pulse.stopAnimation();
-      pulse.setValue(1);
-    };
-
-    if (!shouldAnimate) {
-      stopPulse();
-      return;
-    }
-
-    pulse.setValue(1);
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.08, duration: 650, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 1200, useNativeDriver: true }),
       ])
     );
-    pulseLoopRef.current = loop;
     loop.start();
-
-    return () => { stopPulse(); };
-  }, [animationSession, isProcessing, pulse, voiceStep, visible]);
+    return () => { loop.stop(); pulse.setValue(0); };
+  }, [pulse]);
 
   function resetFields() {
     setTitle('');
@@ -119,7 +98,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     setIsCalculatorVisible(false);
     setSelectedCategory(null);
     setSelectedGoal(null);
-    setVoiceStep('form');
     setUsedVoice(false);
   }
 
@@ -160,7 +138,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       setSelectedGoal(findBestNameMatch(goals, result.category));
     }
     setUsedVoice(true);
-    setVoiceStep('form');
   }
 
   async function handleSave() {
@@ -256,7 +233,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
           </TouchableWithoutFeedback>
 
-          <View style={{ height: voiceStep === 'recording' ? Dimensions.get('window').height * 0.85 : undefined, maxHeight: Dimensions.get('window').height * 0.9, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
+          <View style={{ maxHeight: Dimensions.get('window').height * 0.9, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
             {/* Drag handle */}
             <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
               <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border }} />
@@ -286,53 +263,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               ))}
             </View>
 
-            {voiceStep === 'recording' ? (
-              <>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-                  <Text style={{ color: theme.textSecondary, fontSize: 18, lineHeight: 28, textAlign: 'center', marginBottom: 28, maxWidth: 320 }}>
-                    {t('recording.instruction')}
-                  </Text>
-
-                  {isRecording && (
-                    <View style={{ marginBottom: 16 }} key={`indicator-${animationSession}`}>
-                      <ListeningIndicator />
-                    </View>
-                  )}
-
-                  <Animated.View key={`pulse-${animationSession}`} style={{ transform: [{ scale: pulse }] }}>
-                    <TouchableOpacity
-                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
-                      disabled={isProcessing}
-                      style={{
-                        width: 112, height: 112, borderRadius: 56,
-                        alignItems: 'center', justifyContent: 'center',
-                        backgroundColor: isRecording ? '#EF4444' : theme.purple,
-                        opacity: isProcessing ? 0.7 : 1,
-                      }}>
-                      {isProcessing ? (
-                        <ActivityIndicator size="large" color="#fff" />
-                      ) : (
-                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-
-                  {Boolean(voiceError) && (
-                    <View style={{ marginTop: 18, borderRadius: 12, borderWidth: 1, padding: 12, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
-                      <Text style={{ fontSize: 13, color: theme.textPrimary }}>{voiceError}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-                  <Text style={{ textAlign: 'center', fontSize: 13, color: theme.textSecondary }}>
-                    {t('recording.footer')}
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <>
-                <ScrollView style={{ width: '100%', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            <ScrollView style={{ width: '100%', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
                   {/* Title */}
                   <Text style={amountLabelStyle}>{t('addExpense.nameLabel')}</Text>
                   <TextInput
@@ -423,17 +354,52 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-                  <TouchableOpacity
-                    onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
-                    disabled={saving}
-                    style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.iconBg, opacity: saving ? 0.7 : 1 }}>
-                    <Ionicons name="mic" size={24} color={theme.purple} />
-                  </TouchableOpacity>
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  {/* Listening indicator */}
+                  {isRecording && (
+                    <View style={{ alignItems: 'center', marginBottom: 12 }}>
+                      <ListeningIndicator />
+                    </View>
+                  )}
+                  {/* Error */}
+                  {Boolean(voiceError) && (
+                    <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                      <Text style={{ fontSize: 12, color: theme.textPrimary }}>{voiceError}</Text>
+                    </View>
+                  )}
+                  {/* Mic button */}
+                  <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                    <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
+                      <Animated.View
+                        pointerEvents="none"
+                        style={{
+                          position: 'absolute',
+                          width: 72, height: 72, borderRadius: 36,
+                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
+                          transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                        disabled={isProcessing}
+                        style={{
+                          width: 72, height: 72, borderRadius: 36,
+                          alignItems: 'center', justifyContent: 'center',
+                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          opacity: isProcessing ? 0.7 : 1,
+                        }}>
+                        {isProcessing
+                          ? <ActivityIndicator size="large" color="#fff" />
+                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color="#fff" />}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {/* Save button */}
                   <TouchableOpacity
                     onPress={handleSave}
                     disabled={saving}
-                    style={{ flex: 1, backgroundColor: activeTab === 'income' ? INCOME_GREEN : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+                    style={{ backgroundColor: activeTab === 'income' ? INCOME_GREEN : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
                     {saving ? <ActivityIndicator color="#fff" /> : (
                       <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
                         {activeTab === 'expense' ? t('addExpense.save') : t('addTransaction.saveIncome')}
@@ -441,8 +407,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     )}
                   </TouchableOpacity>
                 </View>
-              </>
-            )}
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
-  Dimensions,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -72,14 +71,10 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof Ionicons.glyphMap>('flag');
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [voiceStep, setVoiceStep] = useState<'form' | 'recording'>('form');
-  const [animationSession, setAnimationSession] = useState(0);
-  const pulse = useRef(new Animated.Value(1)).current;
-  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+  const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      setVoiceStep('form');
       if (goal) {
         setName(goal.name);
         setTargetAmount(String(goal.targetAmount));
@@ -96,32 +91,14 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   }, [visible, goal]);
 
   useEffect(() => {
-    const shouldAnimate = voiceStep === 'recording' && !isProcessing;
-
-    const stopPulse = () => {
-      pulseLoopRef.current?.stop();
-      pulseLoopRef.current = null;
-      pulse.stopAnimation();
-      pulse.setValue(1);
-    };
-
-    if (!shouldAnimate) {
-      stopPulse();
-      return;
-    }
-
-    pulse.setValue(1);
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.08, duration: 650, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 1200, useNativeDriver: true }),
       ])
     );
-    pulseLoopRef.current = loop;
     loop.start();
-
-    return () => { stopPulse(); };
-  }, [animationSession, isProcessing, pulse, voiceStep]);
+    return () => { loop.stop(); pulse.setValue(0); };
+  }, [pulse]);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -152,7 +129,6 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
 
   async function handleClose() {
     await cancelRecording();
-    setVoiceStep('form');
     onClose();
   }
 
@@ -168,7 +144,6 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
     }
     if (result.title) setName(result.title);
     if (result.amount > 0) setTargetAmount(result.amount.toString());
-    setVoiceStep('form');
   }
 
   const inputStyle = {
@@ -203,7 +178,6 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
               backgroundColor: theme.bg,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              height: voiceStep === 'recording' ? Dimensions.get('window').height * 0.85 : undefined,
               maxHeight: '90%',
             }}>
             {/* Drag handle */}
@@ -223,52 +197,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
               </TouchableOpacity>
             </View>
 
-            {voiceStep === 'recording' ? (
-              <>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, minHeight: 320 }}>
-                  <Text style={{ color: theme.textSecondary, fontSize: 18, lineHeight: 28, textAlign: 'center', marginBottom: 28, maxWidth: 320 }}>
-                    {t('recording.instruction')}
-                  </Text>
-
-                  {isRecording && (
-                    <View style={{ marginBottom: 16 }} key={`indicator-${animationSession}`}>
-                      <ListeningIndicator />
-                    </View>
-                  )}
-
-                  <Animated.View key={`pulse-${animationSession}`} style={{ transform: [{ scale: pulse }] }}>
-                    <TouchableOpacity
-                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
-                      disabled={isProcessing}
-                      style={{
-                        width: 112, height: 112, borderRadius: 56,
-                        alignItems: 'center', justifyContent: 'center',
-                        backgroundColor: isRecording ? '#EF4444' : theme.purple,
-                        opacity: isProcessing ? 0.7 : 1,
-                      }}>
-                      {isProcessing ? (
-                        <ActivityIndicator size="large" color="#fff" />
-                      ) : (
-                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
-                      )}
-                    </TouchableOpacity>
-                  </Animated.View>
-
-                  {Boolean(voiceError) && (
-                    <View style={{ marginTop: 18, borderRadius: 12, borderWidth: 1, padding: 12, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
-                      <Text style={{ fontSize: 13, color: theme.textPrimary }}>{voiceError}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-                  <Text style={{ textAlign: 'center', fontSize: 13, color: theme.textSecondary }}>
-                    {t('recording.footer')}
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <>
+            <>
                 <ScrollView style={{ paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
                   {/* Name */}
                   <Text style={labelStyle}>{t('addGoal.nameLabel')}</Text>
@@ -344,24 +273,54 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-                  <TouchableOpacity
-                    onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
-                    disabled={saving}
-                    style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.iconBg, opacity: saving ? 0.7 : 1 }}>
-                    <Ionicons name="mic" size={24} color={theme.purple} />
-                  </TouchableOpacity>
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  {isRecording && (
+                    <View style={{ alignItems: 'center', marginBottom: 12 }}>
+                      <ListeningIndicator />
+                    </View>
+                  )}
+                  {Boolean(voiceError) && (
+                    <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                      <Text style={{ fontSize: 12, color: theme.textPrimary }}>{voiceError}</Text>
+                    </View>
+                  )}
+                  <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                    <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
+                      <Animated.View
+                        pointerEvents="none"
+                        style={{
+                          position: 'absolute',
+                          width: 72, height: 72, borderRadius: 36,
+                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
+                          transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                        disabled={isProcessing}
+                        style={{
+                          width: 72, height: 72, borderRadius: 36,
+                          alignItems: 'center', justifyContent: 'center',
+                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          opacity: isProcessing ? 0.7 : 1,
+                        }}>
+                        {isProcessing
+                          ? <ActivityIndicator size="large" color="#fff" />
+                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color="#fff" />}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   <TouchableOpacity
                     onPress={handleSave}
                     disabled={saving}
-                    style={{ flex: 1, backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+                    style={{ backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
                     {saving ? <ActivityIndicator color="#fff" /> : (
                       <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{t('addGoal.save')}</Text>
                     )}
                   </TouchableOpacity>
                 </View>
-              </>
-            )}
+            </>
           </View>
         </View>
       </KeyboardAvoidingView>
