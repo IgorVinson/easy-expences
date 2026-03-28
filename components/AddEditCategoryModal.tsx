@@ -530,47 +530,49 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 paddingBottom: Platform.OS === 'ios' ? 40 : 24,
                 backgroundColor: theme.bg,
               }}>
-              {isRecording && (
+              {!isEdit && isRecording && (
                 <View style={{ alignItems: 'center', marginBottom: 12 }}>
                   <ListeningIndicator />
                 </View>
               )}
-              {Boolean(voiceError) && (
+              {!isEdit && Boolean(voiceError) && (
                 <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
                   <Text style={{ fontSize: 12, color: theme.textPrimary }}>{voiceError}</Text>
                 </View>
               )}
-              <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                <View style={{ width: MIC_BUTTON_SIZE, height: MIC_BUTTON_SIZE, alignItems: 'center', justifyContent: 'center' }}>
-                  <Animated.View
-                    pointerEvents="none"
-                    style={{
-                      position: 'absolute',
-                      width: MIC_BUTTON_SIZE,
-                      height: MIC_BUTTON_SIZE,
-                      borderRadius: MIC_BUTTON_SIZE / 2,
-                      backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
-                      opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
-                      transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
-                    }}
-                  />
-                  <TouchableOpacity
-                    onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
-                    disabled={isProcessing}
-                    style={{
-                      width: MIC_BUTTON_SIZE,
-                      height: MIC_BUTTON_SIZE,
-                      borderRadius: MIC_BUTTON_SIZE / 2,
-                      alignItems: 'center', justifyContent: 'center',
-                      backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
-                      opacity: isProcessing ? 0.7 : 1,
-                    }}>
-                    {isProcessing
-                      ? <ActivityIndicator size="large" color={theme.textPrimary} />
-                      : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
-                  </TouchableOpacity>
+              {!isEdit && (
+                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                  <View style={{ width: MIC_BUTTON_SIZE, height: MIC_BUTTON_SIZE, alignItems: 'center', justifyContent: 'center' }}>
+                    <Animated.View
+                      pointerEvents="none"
+                      style={{
+                        position: 'absolute',
+                        width: MIC_BUTTON_SIZE,
+                        height: MIC_BUTTON_SIZE,
+                        borderRadius: MIC_BUTTON_SIZE / 2,
+                        backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
+                        opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
+                        transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
+                      }}
+                    />
+                    <TouchableOpacity
+                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                      disabled={isProcessing}
+                      style={{
+                        width: MIC_BUTTON_SIZE,
+                        height: MIC_BUTTON_SIZE,
+                        borderRadius: MIC_BUTTON_SIZE / 2,
+                        alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
+                        opacity: isProcessing ? 0.7 : 1,
+                      }}>
+                      {isProcessing
+                        ? <ActivityIndicator size="large" color={theme.textPrimary} />
+                        : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={saving || deleting}
