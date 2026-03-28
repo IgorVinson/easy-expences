@@ -12,6 +12,12 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ],
       "@react-native-google-signin/google-signin"
     ],
     "orientation": "portrait",

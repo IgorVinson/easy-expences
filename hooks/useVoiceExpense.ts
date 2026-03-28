@@ -1,4 +1,9 @@
-import { Audio } from 'expo-av';
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from 'expo-audio';
 import * as FileSystem from 'expo-file-system/legacy';
 import { httpsCallable } from 'firebase/functions';
 import { useCallback, useRef, useState } from 'react';
@@ -37,7 +42,7 @@ export function useVoiceExpense() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recordingRef = useRef<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearAutoStopTimer = () => {
@@ -51,20 +56,18 @@ export function useVoiceExpense() {
     try {
       setError(null);
 
-      const permission = await Audio.requestPermissionsAsync();
+      const permission = await requestRecordingPermissionsAsync();
       if (permission.status !== 'granted') {
         throw new Error('Microphone permission was denied.');
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       });
 
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      recordingRef.current = recording;
+      await recorder.prepareToRecordAsync();
+      recorder.record();
       setIsRecording(true);
 
       if (onAutoStop) {
@@ -78,7 +81,7 @@ export function useVoiceExpense() {
       setError(err instanceof Error ? err.message : 'Failed to start recording.');
       return false;
     }
-  }, []);
+  }, [recorder]);
 
   const stopRecordingAndProcess = useCallback(
     async (categories: string[] = []): Promise<VoiceExpenseResult | null> => {
@@ -86,16 +89,14 @@ export function useVoiceExpense() {
         setError(null);
         setIsRecording(false);
         clearAutoStopTimer();
-        const recording = recordingRef.current;
-        if (!recording) return null;
+        if (!recorder.isRecording) return null;
 
-        await recording.stopAndUnloadAsync();
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
+        await recorder.stop();
+        await setAudioModeAsync({
+          allowsRecording: false,
         });
-        recordingRef.current = null;
 
-        const uri = recording.getURI();
+        const uri = recorder.uri ?? recorder.getStatus().url;
         if (!uri) return null;
 
         setIsProcessing(true);
@@ -119,18 +120,20 @@ export function useVoiceExpense() {
         setIsProcessing(false);
       }
     },
-    []
+    [recorder]
   );
 
   const cancelRecording = useCallback(async () => {
     clearAutoStopTimer();
-    if (recordingRef.current) {
-      await recordingRef.current.stopAndUnloadAsync();
-      recordingRef.current = null;
+    if (recorder.isRecording) {
+      await recorder.stop();
+      await setAudioModeAsync({
+        allowsRecording: false,
+      });
     }
     setIsRecording(false);
     setIsProcessing(false);
-  }, []);
+  }, [recorder]);
 
   return {
     isRecording,
