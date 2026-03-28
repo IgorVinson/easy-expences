@@ -85,7 +85,7 @@ export function useVoiceExpense() {
   }, []);
 
   const prewarmRecorder = useCallback(async () => {
-    if (isRecording || isProcessing || isPreparedRef.current) return;
+    if (isRecording || isProcessing) return;
     const permission = await getRecordingPermissionsAsync();
     if (permission.status !== 'granted') return;
     hasRecordingPermissionRef.current = true;
@@ -93,37 +93,51 @@ export function useVoiceExpense() {
       allowsRecording: true,
       playsInSilentMode: true,
     });
-    await recorder.prepareToRecordAsync();
-    isPreparedRef.current = true;
+    try {
+      await recorder.prepareToRecordAsync();
+      isPreparedRef.current = true;
+    } catch (err: any) {
+      if (!err?.message?.includes('already been prepared')) throw err;
+      isPreparedRef.current = true;
+    }
   }, [isProcessing, isRecording, recorder]);
 
-  const startRecording = useCallback(async (onAutoStop?: () => void) => {
-    try {
-      setError(null);
-      if (!isPreparedRef.current) {
-        await ensurePermission();
-        await setAudioModeAsync({
-          allowsRecording: true,
-          playsInSilentMode: true,
-        });
-        await recorder.prepareToRecordAsync();
-        isPreparedRef.current = true;
-      }
-      recorder.record();
-      setIsRecording(true);
+  const startRecording = useCallback(
+    async (onAutoStop?: () => void) => {
+      try {
+        setError(null);
+        if (!isPreparedRef.current) {
+          await ensurePermission();
+          await setAudioModeAsync({
+            allowsRecording: true,
+            playsInSilentMode: true,
+          });
+          try {
+            await recorder.prepareToRecordAsync();
+            isPreparedRef.current = true;
+          } catch (err: any) {
+            if (err?.message?.includes('already been prepared')) {
+              isPreparedRef.current = true;
+            } else throw err;
+          }
+        }
+        recorder.record();
+        setIsRecording(true);
 
-      if (onAutoStop) {
-        autoStopTimerRef.current = setTimeout(onAutoStop, RECORDING_LIMIT_MS);
-      }
+        if (onAutoStop) {
+          autoStopTimerRef.current = setTimeout(onAutoStop, RECORDING_LIMIT_MS);
+        }
 
-      return true;
-    } catch (err) {
-      console.error('Failed to start recording', err);
-      setIsRecording(false);
-      setError(err instanceof Error ? err.message : 'Failed to start recording.');
-      return false;
-    }
-  }, [ensurePermission, recorder]);
+        return true;
+      } catch (err) {
+        console.error('Failed to start recording', err);
+        setIsRecording(false);
+        setError(err instanceof Error ? err.message : 'Failed to start recording.');
+        return false;
+      }
+    },
+    [ensurePermission, recorder]
+  );
 
   const stopRecordingAndProcess = useCallback(
     async (categories: string[] = []): Promise<VoiceExpenseResult | null> => {
