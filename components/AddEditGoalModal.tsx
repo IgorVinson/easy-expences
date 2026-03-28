@@ -344,19 +344,17 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
                   <TouchableOpacity
                     onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
                     disabled={saving}
-                    style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginBottom: 12, opacity: saving ? 0.7 : 1 }}>
-                    <Text style={{ color: theme.textSecondary, fontSize: 15, fontWeight: '600' }}>
-                      {t('recording.title')}
-                    </Text>
+                    style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.iconBg, opacity: saving ? 0.7 : 1 }}>
+                    <Ionicons name="mic" size={24} color={theme.purple} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSave}
                     disabled={saving}
-                    style={{ backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+                    style={{ flex: 1, backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
                     {saving ? <ActivityIndicator color="#fff" /> : (
                       <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{t('addGoal.save')}</Text>
                     )}

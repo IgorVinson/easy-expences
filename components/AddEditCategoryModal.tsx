@@ -596,6 +596,9 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
             <View
               className="px-6 pt-3"
               style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
                 paddingBottom: Platform.OS === 'ios' ? 40 : 24,
                 borderTopWidth: 1,
                 borderTopColor: theme.border,
@@ -604,16 +607,13 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               <TouchableOpacity
                 onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
                 disabled={saving || deleting}
-                className="mb-3 items-center rounded-2xl border py-3.5"
-                style={{ borderColor: theme.border, opacity: saving || deleting ? 0.7 : 1 }}>
-                <Text className="text-[15px] font-semibold" style={{ color: theme.textSecondary }}>
-                  {t('recording.title')}
-                </Text>
+                style={{ width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.iconBg, opacity: saving || deleting ? 0.7 : 1 }}>
+                <Ionicons name="mic" size={24} color={theme.purple} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={saving || deleting}
-                className="items-center rounded-2xl py-4"
+                className="flex-1 items-center rounded-2xl py-4"
                 style={{
                   backgroundColor: theme.purple,
                   opacity: saving || deleting ? 0.7 : 1,
