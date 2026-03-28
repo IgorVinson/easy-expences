@@ -16,7 +16,6 @@ import { AddExpenseModal } from '../../components/AddExpenseModal';
 import { EditExpenseModal } from '../../components/EditExpenseModal';
 import { ExpenseItem } from '../../components/ExpenseItem';
 import { PaywallModal } from '../../components/PaywallModal';
-import { RecordingModal } from '../../components/RecordingModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -43,7 +42,6 @@ export default function OverviewScreen() {
   const { goals } = useGoals(user?.uid, income);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [recModalVisible, setRecModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingExpense, setEditingExpense] = useState<import('../../types').Expense | null>(null);
   const [paywallVisible, setPaywallVisible] = useState(false);
@@ -299,7 +297,7 @@ export default function OverviewScreen() {
               setPaywallVisible(true);
               return;
             }
-            setRecModalVisible(true);
+            setModalVisible(true);
           }}
           className="h-16 w-16 items-center justify-center rounded-full shadow-lg"
           style={{
@@ -339,15 +337,7 @@ export default function OverviewScreen() {
           userId={user.uid}
           categories={categories}
           goals={goals}
-        />
-      )}
-
-      {user && (
-        <RecordingModal
-          visible={recModalVisible}
-          onClose={() => setRecModalVisible(false)}
-          userId={user.uid}
-          onExpenseSaved={incrementVoiceUsage}
+          onVoiceSaved={incrementVoiceUsage}
         />
       )}
 
