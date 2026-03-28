@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
   KeyboardAvoidingView,
   Modal,
@@ -18,8 +19,11 @@ import {
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactions } from '../hooks/useTransactions';
+import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { BudgetCategory, GoalWithProgress } from '../types';
+import { findBestNameMatch } from '../utils/voiceMatch';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
+import ListeningIndicator from './ListeningIndicator';
 
 type Tab = 'expense' | 'income';
 
@@ -33,6 +37,7 @@ interface AddExpenseModalProps {
   initialCategory?: BudgetCategory | null;
   goals?: GoalWithProgress[];
   defaultTab?: Tab;
+  onVoiceSaved?: () => void;
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
@@ -43,11 +48,20 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   initialCategory,
   goals = [],
   defaultTab = 'expense',
+  onVoiceSaved,
 }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
   const { addTransaction } = useTransactions(userId);
+  const {
+    isRecording,
+    isProcessing,
+    error: voiceError,
+    startRecording,
+    stopRecordingAndProcess,
+    cancelRecording,
+  } = useVoiceExpense();
 
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [title, setTitle] = useState('');
@@ -57,6 +71,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
+  const [voiceStep, setVoiceStep] = useState<'form' | 'recording'>('form');
+  const [animationSession, setAnimationSession] = useState(0);
+  const [usedVoice, setUsedVoice] = useState(false);
+  const pulse = useRef(new Animated.Value(1)).current;
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   React.useEffect(() => {
     if (visible) {
@@ -65,6 +84,34 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     }
   }, [visible, initialCategory, defaultTab]);
 
+  React.useEffect(() => {
+    const shouldAnimate = visible && voiceStep === 'recording' && !isProcessing;
+
+    const stopPulse = () => {
+      pulseLoopRef.current?.stop();
+      pulseLoopRef.current = null;
+      pulse.stopAnimation();
+      pulse.setValue(1);
+    };
+
+    if (!shouldAnimate) {
+      stopPulse();
+      return;
+    }
+
+    pulse.setValue(1);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+      ])
+    );
+    pulseLoopRef.current = loop;
+    loop.start();
+
+    return () => { stopPulse(); };
+  }, [animationSession, isProcessing, pulse, voiceStep, visible]);
+
   function resetFields() {
     setTitle('');
     setAmount('');
@@ -72,6 +119,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     setIsCalculatorVisible(false);
     setSelectedCategory(null);
     setSelectedGoal(null);
+    setVoiceStep('form');
+    setUsedVoice(false);
   }
 
   function resetForm() {
@@ -79,13 +128,39 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     setActiveTab(defaultTab);
   }
 
-  function handleClose() {
+  async function handleClose() {
+    await cancelRecording();
     resetForm();
     onClose();
   }
 
   function hideCalculator() {
     setIsCalculatorVisible(false);
+  }
+
+  async function handleStartRecording() {
+    await startRecording(handleStopAndTranscribe);
+  }
+
+  async function handleStopAndTranscribe() {
+    const hints =
+      activeTab === 'expense' ? categories.map((c) => c.name) : goals.map((g) => g.name);
+    const result = await stopRecordingAndProcess(hints);
+    if (!result) {
+      Alert.alert(t('recording.transcriptionFailed'), voiceError ?? t('recording.couldNotTranscribe'));
+      return;
+    }
+    setTitle(result.title);
+    const nextAmount = result.amount > 0 ? result.amount.toString() : '';
+    setAmount(nextAmount);
+    setCalculatorExpression(nextAmount);
+    if (activeTab === 'expense') {
+      setSelectedCategory(findBestNameMatch(categories, result.category));
+    } else {
+      setSelectedGoal(findBestNameMatch(goals, result.category));
+    }
+    setUsedVoice(true);
+    setVoiceStep('form');
   }
 
   async function handleSave() {
@@ -142,6 +217,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       }
       resetForm();
       onClose();
+      if (usedVoice) onVoiceSaved?.();
     } catch (e: any) {
       Alert.alert(t('common.error'), e.message ?? t('addExpense.failedSave'));
     } finally {
@@ -210,106 +286,165 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               ))}
             </View>
 
-            <ScrollView style={{ width: '100%', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-              {/* Title */}
-              <Text style={amountLabelStyle}>{t('addExpense.nameLabel')}</Text>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                onFocus={hideCalculator}
-                placeholder={activeTab === 'expense' ? t('addExpense.namePlaceholder') : t('addTransaction.incomeNamePlaceholder')}
-                placeholderTextColor={theme.textTertiary}
-                style={[inputStyle, { marginBottom: 20 }]}
-              />
-
-              {/* Amount */}
-              <ExpenseAmountInput
-                value={amount}
-                expression={calculatorExpression}
-                onValueChange={setAmount}
-                onExpressionChange={setCalculatorExpression}
-                onShowCalculator={() => setIsCalculatorVisible(true)}
-                label={t('addExpense.amountLabel', { currency })}
-                placeholder={t('addExpense.amountPlaceholder')}
-                isCalculatorVisible={isCalculatorVisible}
-                inputStyle={inputStyle}
-                labelStyle={amountLabelStyle}
-                accentColor={activeTab === 'income' ? INCOME_GREEN : theme.purple}
-              />
-
-              {/* Expense: category selector */}
-              {activeTab === 'expense' && (
-                <>
-                  <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
-                    {t('addExpense.categoryLabel')}
+            {voiceStep === 'recording' ? (
+              <>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+                  <Text style={{ color: theme.textSecondary, fontSize: 18, lineHeight: 28, textAlign: 'center', marginBottom: 28, maxWidth: 320 }}>
+                    {t('recording.instruction')}
                   </Text>
-                  {categories.length === 0 ? (
-                    <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
-                      {t('addExpense.noCategories')}
-                    </Text>
-                  ) : (
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                      {categories.map((cat) => {
-                        const isSelected = selectedCategory?.id === cat.id;
-                        return (
-                          <TouchableOpacity
-                            key={cat.id}
-                            onPress={() => { hideCalculator(); setSelectedCategory(cat); }}
-                            style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? cat.colorDark + '33' : cat.colorLight) : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? cat.colorDark : theme.border }}>
-                            <Ionicons name={cat.icon as any} size={15} color={isSelected ? cat.colorDark : theme.textTertiary} />
-                            <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? cat.colorDark : theme.textSecondary }}>
-                              {cat.name}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
+
+                  {isRecording && (
+                    <View style={{ marginBottom: 16 }} key={`indicator-${animationSession}`}>
+                      <ListeningIndicator />
                     </View>
                   )}
-                </>
-              )}
 
-              {/* Income: required goal selector */}
-              {activeTab === 'income' && (
-                <>
-                  <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
-                    {t('addTransaction.assignToGoal')}
-                  </Text>
-                  {goals.length === 0 ? (
-                    <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
-                      {t('addTransaction.noGoalsYet')}
-                    </Text>
-                  ) : (
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                      {goals.map((goal) => {
-                        const isSelected = selectedGoal?.id === goal.id;
-                        return (
-                          <TouchableOpacity
-                            key={goal.id}
-                            onPress={() => setSelectedGoal(goal)}
-                            style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? INCOME_GREEN + '33' : '#D1FAE5') : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? INCOME_GREEN : theme.border }}>
-                            <Ionicons name={goal.icon as any} size={15} color={isSelected ? INCOME_GREEN : theme.textTertiary} />
-                            <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? INCOME_GREEN : theme.textSecondary }}>
-                              {goal.name}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
+                  <Animated.View key={`pulse-${animationSession}`} style={{ transform: [{ scale: pulse }] }}>
+                    <TouchableOpacity
+                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                      disabled={isProcessing}
+                      style={{
+                        width: 112, height: 112, borderRadius: 56,
+                        alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                        opacity: isProcessing ? 0.7 : 1,
+                      }}>
+                      {isProcessing ? (
+                        <ActivityIndicator size="large" color="#fff" />
+                      ) : (
+                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+
+                  {Boolean(voiceError) && (
+                    <View style={{ marginTop: 18, borderRadius: 12, borderWidth: 1, padding: 12, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                      <Text style={{ fontSize: 13, color: theme.textPrimary }}>{voiceError}</Text>
                     </View>
                   )}
-                </>
-              )}
-            </ScrollView>
+                </View>
 
-            {/* Footer */}
-            <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-              <TouchableOpacity onPress={handleSave} disabled={saving} style={{ backgroundColor: activeTab === 'income' ? INCOME_GREEN : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
-                {saving ? <ActivityIndicator color="#fff" /> : (
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
-                    {activeTab === 'expense' ? t('addExpense.save') : t('addTransaction.saveIncome')}
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  <Text style={{ textAlign: 'center', fontSize: 13, color: theme.textSecondary }}>
+                    {t('recording.footer')}
                   </Text>
-                )}
-              </TouchableOpacity>
-            </View>
+                </View>
+              </>
+            ) : (
+              <>
+                <ScrollView style={{ width: '100%', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+                  {/* Title */}
+                  <Text style={amountLabelStyle}>{t('addExpense.nameLabel')}</Text>
+                  <TextInput
+                    value={title}
+                    onChangeText={setTitle}
+                    onFocus={hideCalculator}
+                    placeholder={activeTab === 'expense' ? t('addExpense.namePlaceholder') : t('addTransaction.incomeNamePlaceholder')}
+                    placeholderTextColor={theme.textTertiary}
+                    style={[inputStyle, { marginBottom: 20 }]}
+                  />
+
+                  {/* Amount */}
+                  <ExpenseAmountInput
+                    value={amount}
+                    expression={calculatorExpression}
+                    onValueChange={setAmount}
+                    onExpressionChange={setCalculatorExpression}
+                    onShowCalculator={() => setIsCalculatorVisible(true)}
+                    label={t('addExpense.amountLabel', { currency })}
+                    placeholder={t('addExpense.amountPlaceholder')}
+                    isCalculatorVisible={isCalculatorVisible}
+                    inputStyle={inputStyle}
+                    labelStyle={amountLabelStyle}
+                    accentColor={activeTab === 'income' ? INCOME_GREEN : theme.purple}
+                  />
+
+                  {/* Expense: category selector */}
+                  {activeTab === 'expense' && (
+                    <>
+                      <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
+                        {t('addExpense.categoryLabel')}
+                      </Text>
+                      {categories.length === 0 ? (
+                        <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                          {t('addExpense.noCategories')}
+                        </Text>
+                      ) : (
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                          {categories.map((cat) => {
+                            const isSelected = selectedCategory?.id === cat.id;
+                            return (
+                              <TouchableOpacity
+                                key={cat.id}
+                                onPress={() => { hideCalculator(); setSelectedCategory(cat); }}
+                                style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? cat.colorDark + '33' : cat.colorLight) : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? cat.colorDark : theme.border }}>
+                                <Ionicons name={cat.icon as any} size={15} color={isSelected ? cat.colorDark : theme.textTertiary} />
+                                <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? cat.colorDark : theme.textSecondary }}>
+                                  {cat.name}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      )}
+                    </>
+                  )}
+
+                  {/* Income: required goal selector */}
+                  {activeTab === 'income' && (
+                    <>
+                      <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
+                        {t('addTransaction.assignToGoal')}
+                      </Text>
+                      {goals.length === 0 ? (
+                        <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                          {t('addTransaction.noGoalsYet')}
+                        </Text>
+                      ) : (
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                          {goals.map((goal) => {
+                            const isSelected = selectedGoal?.id === goal.id;
+                            return (
+                              <TouchableOpacity
+                                key={goal.id}
+                                onPress={() => setSelectedGoal(goal)}
+                                style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? INCOME_GREEN + '33' : '#D1FAE5') : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? INCOME_GREEN : theme.border }}>
+                                <Ionicons name={goal.icon as any} size={15} color={isSelected ? INCOME_GREEN : theme.textTertiary} />
+                                <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? INCOME_GREEN : theme.textSecondary }}>
+                                  {goal.name}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      )}
+                    </>
+                  )}
+                </ScrollView>
+
+                {/* Footer */}
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  <TouchableOpacity
+                    onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
+                    disabled={saving}
+                    style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginBottom: 12, opacity: saving ? 0.7 : 1 }}>
+                    <Text style={{ color: theme.textSecondary, fontSize: 15, fontWeight: '600' }}>
+                      {t('recording.title')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSave}
+                    disabled={saving}
+                    style={{ backgroundColor: activeTab === 'income' ? INCOME_GREEN : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+                    {saving ? <ActivityIndicator color="#fff" /> : (
+                      <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                        {activeTab === 'expense' ? t('addExpense.save') : t('addTransaction.saveIncome')}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>
