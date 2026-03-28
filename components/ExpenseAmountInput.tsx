@@ -147,6 +147,7 @@ type ExpenseAmountInputProps = {
   inputMarginBottomWhenHidden?: number;
   inputMarginBottomWhenVisible?: number;
   calculatorMarginBottom?: number;
+  accentColor?: string;
 };
 
 export const ExpenseAmountInput: React.FC<ExpenseAmountInputProps> = ({
@@ -164,8 +165,10 @@ export const ExpenseAmountInput: React.FC<ExpenseAmountInputProps> = ({
   inputMarginBottomWhenHidden = 24,
   inputMarginBottomWhenVisible = 12,
   calculatorMarginBottom = 24,
+  accentColor,
 }) => {
   const { theme } = useTheme();
+  const operatorColor = accentColor ?? theme.purple;
 
   const calculatorPreview = React.useMemo(() => {
     if (!/[+\-×÷]/.test(expression)) {
@@ -347,7 +350,7 @@ export const ExpenseAmountInput: React.FC<ExpenseAmountInputProps> = ({
                       borderWidth: isOperatorButton ? 0 : 1,
                       borderColor: theme.border,
                       backgroundColor: isOperatorButton
-                        ? theme.purple
+                        ? operatorColor
                         : isUtilityButton
                           ? theme.cardBg
                           : theme.bg,

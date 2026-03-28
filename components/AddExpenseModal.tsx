@@ -17,35 +17,39 @@ import {
 } from 'react-native';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useBudget } from '../hooks/useBudget';
 import { useTransactions } from '../hooks/useTransactions';
 import { BudgetCategory, GoalWithProgress } from '../types';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 
 type Tab = 'expense' | 'income';
 
+const INCOME_GREEN = '#10B981';
+
 interface AddExpenseModalProps {
   visible: boolean;
   onClose: () => void;
   userId: string;
+  categories: BudgetCategory[];
   initialCategory?: BudgetCategory | null;
   goals?: GoalWithProgress[];
+  defaultTab?: Tab;
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   visible,
   onClose,
   userId,
+  categories,
   initialCategory,
   goals = [],
+  defaultTab = 'expense',
 }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
   const { addTransaction } = useTransactions(userId);
-  const { categories } = useBudget(userId);
 
-  const [activeTab, setActiveTab] = useState<Tab>('expense');
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [calculatorExpression, setCalculatorExpression] = useState('');
@@ -55,19 +59,24 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [saving, setSaving] = useState(false);
 
   React.useEffect(() => {
-    if (visible && initialCategory) {
-      setSelectedCategory(initialCategory);
+    if (visible) {
+      setActiveTab(defaultTab);
+      if (initialCategory) setSelectedCategory(initialCategory);
     }
-  }, [visible, initialCategory]);
+  }, [visible, initialCategory, defaultTab]);
 
-  function resetForm() {
+  function resetFields() {
     setTitle('');
     setAmount('');
     setCalculatorExpression('');
     setIsCalculatorVisible(false);
     setSelectedCategory(null);
     setSelectedGoal(null);
-    setActiveTab('expense');
+  }
+
+  function resetForm() {
+    resetFields();
+    setActiveTab(defaultTab);
   }
 
   function handleClose() {
@@ -116,11 +125,15 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           date: new Date().toISOString(),
         });
       } else {
+        if (!selectedGoal) {
+          Alert.alert(t('addTransaction.noGoalTitle'), t('addTransaction.selectGoal'));
+          return;
+        }
         await addTransaction({
           type: 'income',
           title: title.trim(),
           amount: parsedAmount,
-          goalId: selectedGoal?.id,
+          goalId: selectedGoal.id,
           icon: 'cash',
           colorLight: '#D1FAE5',
           colorDark: '#10B981',
@@ -167,7 +180,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
           </TouchableWithoutFeedback>
 
-          <View style={{ flexShrink: 1, height: Dimensions.get('window').height * 0.85, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
+          <View style={{ maxHeight: Dimensions.get('window').height * 0.9, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
             {/* Drag handle */}
             <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
               <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border }} />
@@ -188,8 +201,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               {(['expense', 'income'] as Tab[]).map((tab) => (
                 <TouchableOpacity
                   key={tab}
-                  onPress={() => { setActiveTab(tab); resetForm(); }}
-                  style={{ flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: activeTab === tab ? theme.purple : 'transparent' }}>
+                  onPress={() => { setActiveTab(tab); resetFields(); }}
+                  style={{ flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: activeTab === tab ? (tab === 'income' ? INCOME_GREEN : theme.purple) : 'transparent' }}>
                   <Text style={{ color: activeTab === tab ? '#fff' : theme.textSecondary, fontWeight: '600', fontSize: 14 }}>
                     {tab === 'expense' ? t('addTransaction.expenseTab') : t('addTransaction.incomeTab')}
                   </Text>
@@ -197,7 +210,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               ))}
             </View>
 
-            <ScrollView style={{ flexShrink: 1, width: '100%', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            <ScrollView style={{ width: '100%', paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
               {/* Title */}
               <Text style={amountLabelStyle}>{t('addExpense.nameLabel')}</Text>
               <TextInput
@@ -221,6 +234,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 isCalculatorVisible={isCalculatorVisible}
                 inputStyle={inputStyle}
                 labelStyle={amountLabelStyle}
+                accentColor={activeTab === 'income' ? INCOME_GREEN : theme.purple}
               />
 
               {/* Expense: category selector */}
@@ -254,42 +268,41 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 </>
               )}
 
-              {/* Income: optional goal selector */}
-              {activeTab === 'income' && goals.length > 0 && (
+              {/* Income: required goal selector */}
+              {activeTab === 'income' && (
                 <>
                   <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
                     {t('addTransaction.assignToGoal')}
                   </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                    <TouchableOpacity
-                      onPress={() => setSelectedGoal(null)}
-                      style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: !selectedGoal ? theme.iconBg : theme.cardBg, borderWidth: !selectedGoal ? 2 : 1, borderColor: !selectedGoal ? theme.purple : theme.border }}>
-                      <Text style={{ fontSize: 13, fontWeight: '500', color: !selectedGoal ? theme.purple : theme.textSecondary }}>
-                        {t('addTransaction.noGoal')}
-                      </Text>
-                    </TouchableOpacity>
-                    {goals.map((goal) => {
-                      const isSelected = selectedGoal?.id === goal.id;
-                      return (
-                        <TouchableOpacity
-                          key={goal.id}
-                          onPress={() => setSelectedGoal(goal)}
-                          style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? goal.colorDark + '33' : goal.colorLight) : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? goal.colorDark : theme.border }}>
-                          <Ionicons name={goal.icon as any} size={15} color={isSelected ? goal.colorDark : theme.textTertiary} />
-                          <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? goal.colorDark : theme.textSecondary }}>
-                            {goal.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                  {goals.length === 0 ? (
+                    <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                      {t('addTransaction.noGoalsYet')}
+                    </Text>
+                  ) : (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                      {goals.map((goal) => {
+                        const isSelected = selectedGoal?.id === goal.id;
+                        return (
+                          <TouchableOpacity
+                            key={goal.id}
+                            onPress={() => setSelectedGoal(goal)}
+                            style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? INCOME_GREEN + '33' : '#D1FAE5') : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? INCOME_GREEN : theme.border }}>
+                            <Ionicons name={goal.icon as any} size={15} color={isSelected ? INCOME_GREEN : theme.textTertiary} />
+                            <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? INCOME_GREEN : theme.textSecondary }}>
+                              {goal.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </>
               )}
             </ScrollView>
 
             {/* Footer */}
             <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
-              <TouchableOpacity onPress={handleSave} disabled={saving} style={{ backgroundColor: theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+              <TouchableOpacity onPress={handleSave} disabled={saving} style={{ backgroundColor: activeTab === 'income' ? INCOME_GREEN : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
                 {saving ? <ActivityIndicator color="#fff" /> : (
                   <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
                     {activeTab === 'expense' ? t('addExpense.save') : t('addTransaction.saveIncome')}

@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { db } from '../firebaseConfig';
 import { NewTransaction, Transaction } from '../types';
 
@@ -127,22 +127,32 @@ export function useTransactions(userId: string | null | undefined) {
     await deleteDoc(doc(db, 'transactions', id));
   }
 
-  // ─── Derived ───────────────────────────────────────────────────────────────
+  // ─── Derived (memoized to keep stable references) ──────────────────────────
 
-  const expenses = allTransactions.filter((t) => t.type === 'expense');
-  const income = allTransactions.filter((t) => t.type === 'income');
+  const expenses = useMemo(
+    () => allTransactions.filter((t) => t.type === 'expense'),
+    [allTransactions]
+  );
+  const income = useMemo(
+    () => allTransactions.filter((t) => t.type === 'income'),
+    [allTransactions]
+  );
 
-  const todayExpenses = expenses.filter((e) => isToday(e.date));
-  const yesterdayExpenses = expenses.filter((e) => isYesterday(e.date));
-  const olderExpenses = expenses.filter((e) => !isToday(e.date) && !isYesterday(e.date));
+  const todayExpenses = useMemo(() => expenses.filter((e) => isToday(e.date)), [expenses]);
+  const yesterdayExpenses = useMemo(() => expenses.filter((e) => isYesterday(e.date)), [expenses]);
+  const olderExpenses = useMemo(
+    () => expenses.filter((e) => !isToday(e.date) && !isYesterday(e.date)),
+    [expenses]
+  );
 
-  const monthlyTotal = expenses
-    .filter((e) => isThisMonth(e.date))
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const monthlyIncome = income
-    .filter((t) => isThisMonth(t.date))
-    .reduce((sum, t) => sum + t.amount, 0);
+  const monthlyTotal = useMemo(
+    () => expenses.filter((e) => isThisMonth(e.date)).reduce((sum, e) => sum + e.amount, 0),
+    [expenses]
+  );
+  const monthlyIncome = useMemo(
+    () => income.filter((t) => isThisMonth(t.date)).reduce((sum, t) => sum + t.amount, 0),
+    [income]
+  );
 
   // Backward-compat aliases
   const addExpense = (expense: NewTransaction) => addTransaction({ ...expense, type: 'expense' });

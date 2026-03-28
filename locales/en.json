@@ -76,8 +76,11 @@
     "incomeTab": "Income",
     "addIncomeTitle": "Add Income",
     "incomeNamePlaceholder": "e.g. Salary",
-    "assignToGoal": "Assign to Goal (optional)",
+    "assignToGoal": "Assign to Goal",
     "noGoal": "No goal",
+    "noGoalsYet": "No goals yet. Add a goal first.",
+    "noGoalTitle": "No goal selected",
+    "selectGoal": "Please select a goal for this income.",
     "saveIncome": "Save Income"
   },
   "profile": {
@@ -124,15 +127,15 @@
     "namePlaceholder": "e.g. Lunch at Café",
     "amountLabel": "Amount ({{currency}})",
     "amountPlaceholder": "0.00",
-    "categoryLabel": "Category",
+    "categoryLabel": "Budget",
     "noCategories": "No categories yet. Check the Budget tab.",
     "save": "Save Expense",
     "missingTitle": "Missing title",
     "enterTitle": "Please enter a title for the expense.",
     "invalidAmount": "Invalid amount",
     "enterAmount": "Please enter a valid positive amount.",
-    "noCategory": "No category",
-    "selectCategory": "Please select a category.",
+    "noCategory": "No budget",
+    "selectCategory": "Please select a budget.",
     "failedSave": "Failed to save expense.",
     "calculatorLabel": "Calculator",
     "calculatorHint": "Build the amount with quick math."
@@ -144,17 +147,17 @@
     "deleteConfirmSpecific": "Are you sure you want to delete \"{{title}}\"?"
   },
   "addCategory": {
-    "addTitle": "Add Category",
-    "editTitle": "Edit Category",
-    "nameLabel": "Category Name",
+    "addTitle": "Add Budget",
+    "editTitle": "Edit Budget",
+    "nameLabel": "Budget Name",
     "namePlaceholder": "e.g. Food & Dining",
     "budgetLabel": "Monthly Budget ({{currency}})",
     "budgetPlaceholder": "0.00",
     "iconLabel": "Icon",
     "colorLabel": "Color",
-    "save": "Save Category",
+    "save": "Save Budget",
     "missingName": "Missing name",
-    "enterName": "Please enter a name for the category.",
+    "enterName": "Please enter a name for the budget.",
     "resetSpent": "Reset spent"
   },
   "recording": {
@@ -220,7 +223,7 @@
   },
   "monthlyReview": {
     "title": "New Month Review",
-    "subtitle": "Review your budget for {{month}}. This will reset all current spending to zero.",
+    "subtitle": "Review your budgets for {{month}}. This will reset all current spending to zero.",
     "save": "Save & Start {{month}}"
   },
   "onboarding": {
@@ -230,7 +233,7 @@
     "startTrial": "Start Free Trial",
     "usecases": {
       "title": "Track What Matters to You",
-      "description": "Dental debt, weekend trips, monthly groceries — create a category for anything and watch your progress."
+      "description": "Dental debt, weekend trips, monthly groceries — create a budget for anything and watch your progress."
     },
     "voice": {
       "title": "Just Say It",

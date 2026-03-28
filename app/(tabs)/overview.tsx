@@ -337,6 +337,7 @@ export default function OverviewScreen() {
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           userId={user.uid}
+          categories={categories}
           goals={goals}
         />
       )}

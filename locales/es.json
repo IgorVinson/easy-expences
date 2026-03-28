@@ -76,8 +76,11 @@
     "incomeTab": "Ingreso",
     "addIncomeTitle": "Agregar ingreso",
     "incomeNamePlaceholder": "ej. Salario",
-    "assignToGoal": "Asignar a meta (opcional)",
+    "assignToGoal": "Asignar a meta",
     "noGoal": "Sin meta",
+    "noGoalsYet": "Sin metas. Agrega una meta primero.",
+    "noGoalTitle": "Sin meta seleccionada",
+    "selectGoal": "Por favor selecciona una meta para este ingreso.",
     "saveIncome": "Guardar ingreso"
   },
   "profile": {

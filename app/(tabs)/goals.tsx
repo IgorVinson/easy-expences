@@ -63,6 +63,7 @@ export default function GoalsScreen() {
   const [detailGoal, setDetailGoal] = useState<GoalWithProgress | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
+  const [fabExpanded, setFabExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(() => {
@@ -246,9 +247,6 @@ export default function GoalsScreen() {
               {t('goals.budgetsSection')}
             </Text>
             <View className="flex-row items-center gap-2">
-              <TouchableOpacity onPress={openAddBudget} style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.purple }}>
-                <Ionicons name="add" size={20} color="#fff" />
-              </TouchableOpacity>
               <Ionicons name={budgetsExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textTertiary} />
             </View>
           </TouchableOpacity>
@@ -286,9 +284,6 @@ export default function GoalsScreen() {
               {t('goals.goalsSection')}
             </Text>
             <View className="flex-row items-center gap-2">
-              <TouchableOpacity onPress={openAddGoal} style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.purple }}>
-                <Ionicons name="add" size={20} color="#fff" />
-              </TouchableOpacity>
               <Ionicons name={goalsExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textTertiary} />
             </View>
           </TouchableOpacity>
@@ -345,6 +340,64 @@ export default function GoalsScreen() {
         goal={detailGoal}
         contributions={detailContributions}
       />
+
+      {/* FAB menu */}
+      {fabExpanded && (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setFabExpanded(false)}
+          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.3)' }}
+        />
+      )}
+
+      {fabExpanded && (
+        <View style={{ position: 'absolute', bottom: 96, right: 24, alignItems: 'flex-end', gap: 12 }}>
+          <TouchableOpacity
+            onPress={() => { setFabExpanded(false); openAddBudget(); }}
+            style={{
+              flexDirection: 'row', alignItems: 'center', gap: 10,
+              backgroundColor: theme.bg, borderRadius: 20,
+              paddingHorizontal: 16, paddingVertical: 12,
+              shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15, shadowRadius: 4, elevation: 4,
+            }}>
+            <Text style={{ color: theme.purple, fontWeight: '700', fontSize: 15 }}>Budget</Text>
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: theme.purple, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="wallet-outline" size={18} color="#fff" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => { setFabExpanded(false); openAddGoal(); }}
+            style={{
+              flexDirection: 'row', alignItems: 'center', gap: 10,
+              backgroundColor: theme.bg, borderRadius: 20,
+              paddingHorizontal: 16, paddingVertical: 12,
+              shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15, shadowRadius: 4, elevation: 4,
+            }}>
+            <Text style={{ color: '#10B981', fontWeight: '700', fontSize: 15 }}>Goal</Text>
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="flag-outline" size={18} color="#fff" />
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* FAB */}
+      <TouchableOpacity
+        onPress={() => setFabExpanded((v) => !v)}
+        className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full"
+        style={{
+          backgroundColor: '#10B981',
+          shadowColor: '#10B981',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDarkMode ? 0.26 : 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}>
+        <Ionicons name={fabExpanded ? 'close' : 'add'} size={32} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 }

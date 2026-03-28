@@ -76,8 +76,11 @@
     "incomeTab": "Дохід",
     "addIncomeTitle": "Додати дохід",
     "incomeNamePlaceholder": "напр. Зарплата",
-    "assignToGoal": "Призначити цілі (необов'язково)",
+    "assignToGoal": "Призначити ціль",
     "noGoal": "Без цілі",
+    "noGoalsYet": "Немає цілей. Спочатку додайте ціль.",
+    "noGoalTitle": "Ціль не обрана",
+    "selectGoal": "Будь ласка, оберіть ціль для цього доходу.",
     "saveIncome": "Зберегти дохід"
   },
   "profile": {
