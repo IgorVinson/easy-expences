@@ -41,6 +41,8 @@ const GOAL_COLORS: Array<{ light: string; dark: string }> = [
   { light: '#E0E7FF', dark: '#6366F1' },
 ];
 
+const MIC_BUTTON_SIZE = 72;
+
 type AddEditGoalModalProps = {
   visible: boolean;
   onClose: () => void;
@@ -294,12 +296,14 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                     </View>
                   )}
                   <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                    <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: MIC_BUTTON_SIZE, height: MIC_BUTTON_SIZE, alignItems: 'center', justifyContent: 'center' }}>
                       <Animated.View
                         pointerEvents="none"
                         style={{
                           position: 'absolute',
-                          width: 72, height: 72, borderRadius: 36,
+                          width: MIC_BUTTON_SIZE,
+                          height: MIC_BUTTON_SIZE,
+                          borderRadius: MIC_BUTTON_SIZE / 2,
                           backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                           opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                           transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
@@ -309,7 +313,9 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                         onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
                         disabled={isProcessing}
                         style={{
-                          width: 72, height: 72, borderRadius: 36,
+                          width: MIC_BUTTON_SIZE,
+                          height: MIC_BUTTON_SIZE,
+                          borderRadius: MIC_BUTTON_SIZE / 2,
                           alignItems: 'center', justifyContent: 'center',
                           backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
                           opacity: isProcessing ? 0.7 : 1,
@@ -318,6 +324,16 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                           ? <ActivityIndicator size="large" color={theme.textPrimary} />
                           : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
+                      {tier === 'basic' && (
+                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 4, backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444' }}>
+                          <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#fff' }}>{voiceRecordingsLeft}</Text>
+                        </View>
+                      )}
+                      {tier === 'none' && (
+                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#EF4444' }}>
+                          <Ionicons name="lock-closed" size={10} color="#fff" />
+                        </View>
+                      )}
                     </View>
                   </View>
                   <TouchableOpacity

@@ -63,6 +63,8 @@ const COLOR_OPTIONS: { light: string; dark: string; label: string }[] = [
   { light: '#FEF3C7', dark: '#F59E0B', label: 'Amber' },
 ];
 
+const MIC_BUTTON_SIZE = 72;
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface AddEditCategoryModalProps {
@@ -542,12 +544,14 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 </View>
               )}
               <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                <View style={{ width: 72, height: 72, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: MIC_BUTTON_SIZE, height: MIC_BUTTON_SIZE, alignItems: 'center', justifyContent: 'center' }}>
                   <Animated.View
                     pointerEvents="none"
                     style={{
                       position: 'absolute',
-                      width: 72, height: 72, borderRadius: 36,
+                      width: MIC_BUTTON_SIZE,
+                      height: MIC_BUTTON_SIZE,
+                      borderRadius: MIC_BUTTON_SIZE / 2,
                       backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                       opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                       transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
@@ -557,7 +561,9 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                     onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
                     disabled={isProcessing}
                     style={{
-                      width: 72, height: 72, borderRadius: 36,
+                      width: MIC_BUTTON_SIZE,
+                      height: MIC_BUTTON_SIZE,
+                      borderRadius: MIC_BUTTON_SIZE / 2,
                       alignItems: 'center', justifyContent: 'center',
                       backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
                       opacity: isProcessing ? 0.7 : 1,
