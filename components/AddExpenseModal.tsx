@@ -256,7 +256,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
           </TouchableWithoutFeedback>
 
-          <View style={{ maxHeight: Dimensions.get('window').height * 0.9, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
+          <View style={{ height: voiceStep === 'recording' ? Dimensions.get('window').height * 0.85 : undefined, maxHeight: Dimensions.get('window').height * 0.9, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
             {/* Drag handle */}
             <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
               <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border }} />

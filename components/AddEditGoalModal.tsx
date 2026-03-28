@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Dimensions,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -78,6 +79,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
 
   useEffect(() => {
     if (visible) {
+      setVoiceStep('form');
       if (goal) {
         setName(goal.name);
         setTargetAmount(String(goal.targetAmount));
@@ -201,6 +203,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
               backgroundColor: theme.bg,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
+              height: voiceStep === 'recording' ? Dimensions.get('window').height * 0.85 : undefined,
               maxHeight: '90%',
             }}>
             {/* Drag handle */}

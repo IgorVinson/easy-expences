@@ -109,6 +109,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
+    setVoiceStep('form');
     if (category) {
       setName(category.name);
       setBudget(String(category.budget));
