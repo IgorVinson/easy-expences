@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
   KeyboardAvoidingView,
   Modal,
@@ -18,7 +19,9 @@ import {
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { BudgetCategory, Expense, NewBudgetCategory } from '../types';
+import ListeningIndicator from './ListeningIndicator';
 
 // ─── Icon picker options ──────────────────────────────────────────────────────
 
@@ -86,12 +89,24 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
   const { currency } = useCurrency();
   const isEdit = Boolean(category);
   const [deleting, setDeleting] = useState(false);
+  const {
+    isRecording,
+    isProcessing,
+    error: voiceError,
+    startRecording,
+    stopRecordingAndProcess,
+    cancelRecording,
+  } = useVoiceExpense();
 
   const [name, setName] = useState('');
   const [budget, setBudget] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof Ionicons.glyphMap>('cash');
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
   const [saving, setSaving] = useState(false);
+  const [voiceStep, setVoiceStep] = useState<'form' | 'recording'>('form');
+  const [animationSession, setAnimationSession] = useState(0);
+  const pulse = useRef(new Animated.Value(1)).current;
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
     if (category) {
@@ -105,6 +120,34 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
     }
   }, [category, visible]);
 
+  useEffect(() => {
+    const shouldAnimate = voiceStep === 'recording' && !isProcessing;
+
+    const stopPulse = () => {
+      pulseLoopRef.current?.stop();
+      pulseLoopRef.current = null;
+      pulse.stopAnimation();
+      pulse.setValue(1);
+    };
+
+    if (!shouldAnimate) {
+      stopPulse();
+      return;
+    }
+
+    pulse.setValue(1);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+      ])
+    );
+    pulseLoopRef.current = loop;
+    loop.start();
+
+    return () => { stopPulse(); };
+  }, [animationSession, isProcessing, pulse, voiceStep]);
+
   function resetForm() {
     setName('');
     setBudget('');
@@ -112,9 +155,26 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
     setSelectedColor(COLOR_OPTIONS[0]);
   }
 
-  function handleClose() {
+  async function handleClose() {
+    await cancelRecording();
+    setVoiceStep('form');
     resetForm();
     onClose();
+  }
+
+  async function handleStartRecording() {
+    await startRecording(handleStopAndTranscribe);
+  }
+
+  async function handleStopAndTranscribe() {
+    const result = await stopRecordingAndProcess([]);
+    if (!result) {
+      Alert.alert(t('recording.transcriptionFailed'), voiceError ?? t('recording.couldNotTranscribe'));
+      return;
+    }
+    if (result.title) setName(result.title);
+    if (result.amount > 0) setBudget(result.amount.toString());
+    setVoiceStep('form');
   }
 
   async function handleSave() {
@@ -220,6 +280,52 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               </TouchableOpacity>
             </View>
 
+            {voiceStep === 'recording' ? (
+              <>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, minHeight: 320 }}>
+                  <Text style={{ color: theme.textSecondary, fontSize: 18, lineHeight: 28, textAlign: 'center', marginBottom: 28, maxWidth: 320 }}>
+                    {t('recording.instruction')}
+                  </Text>
+
+                  {isRecording && (
+                    <View style={{ marginBottom: 16 }} key={`indicator-${animationSession}`}>
+                      <ListeningIndicator />
+                    </View>
+                  )}
+
+                  <Animated.View key={`pulse-${animationSession}`} style={{ transform: [{ scale: pulse }] }}>
+                    <TouchableOpacity
+                      onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                      disabled={isProcessing}
+                      style={{
+                        width: 112, height: 112, borderRadius: 56,
+                        alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                        opacity: isProcessing ? 0.7 : 1,
+                      }}>
+                      {isProcessing ? (
+                        <ActivityIndicator size="large" color="#fff" />
+                      ) : (
+                        <Ionicons name={isRecording ? 'stop' : 'mic'} size={38} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+
+                  {Boolean(voiceError) && (
+                    <View style={{ marginTop: 18, borderRadius: 12, borderWidth: 1, padding: 12, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                      <Text style={{ fontSize: 13, color: theme.textPrimary }}>{voiceError}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                  <Text style={{ textAlign: 'center', fontSize: 13, color: theme.textSecondary }}>
+                    {t('recording.footer')}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
             {/* Scrollable form */}
             <ScrollView
               className="w-full shrink px-6"
@@ -495,6 +601,15 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 backgroundColor: theme.bg,
               }}>
               <TouchableOpacity
+                onPress={() => { setVoiceStep('recording'); setAnimationSession((s) => s + 1); }}
+                disabled={saving || deleting}
+                className="mb-3 items-center rounded-2xl border py-3.5"
+                style={{ borderColor: theme.border, opacity: saving || deleting ? 0.7 : 1 }}>
+                <Text className="text-[15px] font-semibold" style={{ color: theme.textSecondary }}>
+                  {t('recording.title')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={handleSave}
                 disabled={saving || deleting}
                 className="items-center rounded-2xl py-4"
@@ -511,6 +626,8 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
                 )}
               </TouchableOpacity>
             </View>
+              </>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>
