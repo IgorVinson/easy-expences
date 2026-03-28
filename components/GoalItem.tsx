@@ -13,9 +13,11 @@ type GoalItemProps = {
   onPress?: (goal: GoalWithProgress) => void;
   onDelete?: (id: string) => void;
   onEdit?: (goal: GoalWithProgress) => void;
+  flat?: boolean;
+  isLast?: boolean;
 };
 
-export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => {
+export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast = false }: GoalItemProps) => {
   const { i18n } = useTranslation();
   const { theme } = useTheme();
   const { currency } = useCurrency();
@@ -42,12 +44,12 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => 
       <TouchableOpacity
         onPress={() => { swipeableRef.current?.close(); onEdit?.(goal); }}
         style={{
-          marginBottom: 12,
+          marginBottom: flat ? 0 : 12,
           marginLeft: 8,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'flex-end',
-          borderRadius: 18,
+          borderRadius: flat ? 0 : 18,
           paddingHorizontal: 24,
           backgroundColor: theme.purple,
         }}>
@@ -67,12 +69,12 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => 
       <TouchableOpacity
         onPress={() => { swipeableRef.current?.close(); onDelete?.(goal.id); }}
         style={{
-          marginBottom: 12,
+          marginBottom: flat ? 0 : 12,
           marginRight: 8,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          borderRadius: 18,
+          borderRadius: flat ? 0 : 18,
           paddingHorizontal: 24,
           backgroundColor: '#EF4444',
         }}>
@@ -96,7 +98,12 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => 
       <TouchableOpacity
         activeOpacity={0.75}
         onPress={() => onPress?.(goal)}
-        style={{
+        style={flat ? {
+          padding: 16,
+          backgroundColor: 'transparent',
+          borderBottomWidth: isLast ? 0 : 1,
+          borderBottomColor: theme.border,
+        } : {
           marginBottom: 12,
           borderRadius: 18,
           padding: 18,
@@ -117,20 +124,20 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => 
           {/* Icon */}
           <View
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 14,
+              width: flat ? 40 : 46,
+              height: flat ? 40 : 46,
+              borderRadius: flat ? 12 : 14,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: theme.isDark ? goal.colorDark + '22' : goal.colorLight,
-              marginRight: 12,
+              marginRight: flat ? 16 : 12,
             }}>
-            <Ionicons name={goal.icon} size={22} color={goal.colorDark} />
+            <Ionicons name={goal.icon} size={flat ? 20 : 22} color={goal.colorDark} />
           </View>
 
           {/* Name + amounts */}
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 2 }}>
+            <Text style={{ fontSize: flat ? 16 : 15, fontWeight: flat ? '500' : '700', color: theme.textPrimary, marginBottom: 2 }}>
               {goal.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>

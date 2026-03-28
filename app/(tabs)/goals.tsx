@@ -23,6 +23,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useBudget } from '../../hooks/useBudget';
 import { useGoals } from '../../hooks/useGoals';
 import { useTransactions } from '../../hooks/useTransactions';
+import { styles } from '../../styles';
 import { BudgetCategory, GoalWithProgress, NewBudgetCategory, NewGoal } from '../../types';
 
 export default function GoalsScreen() {
@@ -157,8 +158,6 @@ export default function GoalsScreen() {
   const overBudgetAmount = Math.max(0, totalSpent - totalBudget);
   const overallPercentage = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
   const isOverBudget = totalSpent > totalBudget;
-  const now = new Date();
-  const monthLabel = now.toLocaleString(i18n.language, { month: 'long', year: 'numeric' });
 
   const categoryTransactions = editingCategory
     ? expenses.filter(
@@ -187,207 +186,119 @@ export default function GoalsScreen() {
         }>
 
         {/* ─── Header ────────────────────────────────────────────────────────── */}
-        <View className="px-6 pb-4 pt-16">
-          <View className="flex-row items-start justify-between">
-            <View>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
-                  color: theme.textTertiary,
-                  marginBottom: 4,
-                }}>
-                {t('goals.title')}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 30,
-                  fontWeight: '800',
-                  letterSpacing: -0.5,
-                  color: theme.textPrimary,
-                }}>
-                {monthLabel}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={toggleTheme}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: theme.iconBg,
-                marginTop: 8,
-              }}>
-              <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={20} color={theme.textPrimary} />
-            </TouchableOpacity>
-          </View>
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-16">
+          <Text className="text-3xl font-bold" style={{ color: theme.textPrimary }}>
+            {t('goals.title')}
+          </Text>
+          <TouchableOpacity
+            onPress={toggleTheme}
+            className="h-12 w-12 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.iconBg }}>
+            <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={22} color={theme.textPrimary} />
+          </TouchableOpacity>
         </View>
 
         {/* ─── Budget Summary Card ─────────────────────────────────────────── */}
         <View className="mb-6 px-6">
           <View
-            style={{
-              borderRadius: 28,
-              overflow: 'hidden',
-              backgroundColor: isDarkMode ? '#0F172A' : '#FFFFFF',
-              borderWidth: 1,
-              borderColor: theme.border,
-            }}>
-            {/* Top accent strip */}
-            <View style={{ height: 4, backgroundColor: budgetBarColor, opacity: 0.8 }} />
+            className="rounded-2xl p-4"
+            style={[
+              { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+              !isDarkMode && styles.cardShadow,
+            ]}>
+            {/* Central stat */}
+            <View style={{ alignItems: 'center', marginBottom: 12 }}>
+              <Text className="mb-1 text-xs font-semibold" style={{ color: theme.textTertiary, letterSpacing: 0.5 }}>
+                {t('budget.totalSpent')}
+              </Text>
+              <Text className="text-4xl font-black tracking-tight" style={{ color: theme.textPrimary }}>
+                {formatCurrencyAmount(totalSpent, currency, i18n.language)}
+              </Text>
+            </View>
 
-            <View style={{ padding: 24 }}>
-              {/* Central stat */}
-              <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: theme.textTertiary, marginBottom: 6, letterSpacing: 0.5 }}>
-                  {t('budget.totalSpent')}
+            {/* Progress bar */}
+            <View style={{ marginBottom: 12 }}>
+              <View
+                className="h-2 overflow-hidden rounded-full"
+                style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
+                <View
+                  className="h-full rounded-full"
+                  style={{ width: `${overallPercentage}%`, backgroundColor: budgetBarColor }}
+                />
+              </View>
+              <Text className="mt-1.5 text-center text-[10px] font-semibold" style={{ color: theme.textTertiary }}>
+                {t('budget.budgetUsed', { percent: Math.round(overallPercentage) })}
+              </Text>
+            </View>
+
+            {/* Stats grid */}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View
+                className="flex-1 items-center rounded-xl py-3"
+                style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}>
+                <Text className="mb-1 text-[10px] font-semibold" style={{ color: theme.textTertiary, letterSpacing: 0.5 }}>
+                  {t('budget.totalBudget').toUpperCase()}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 44,
-                    fontWeight: '900',
-                    letterSpacing: -2,
-                    color: theme.textPrimary,
-                    lineHeight: 48,
-                  }}>
-                  {formatCurrencyAmount(totalSpent, currency, i18n.language)}
+                <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
+                  {formatCurrencyAmount(totalBudget, currency, i18n.language, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </Text>
               </View>
 
-              {/* Progress bar */}
-              <View style={{ marginBottom: 16 }}>
-                <View
-                  style={{
-                    height: 10,
-                    borderRadius: 10,
-                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-                    overflow: 'hidden',
-                  }}>
-                  <View
-                    style={{
-                      height: '100%',
-                      borderRadius: 10,
-                      width: `${overallPercentage}%`,
-                      backgroundColor: budgetBarColor,
-                    }}
-                  />
-                </View>
-                <Text
-                  style={{
-                    marginTop: 6,
-                    textAlign: 'center',
-                    fontSize: 12,
-                    fontWeight: '600',
-                    color: theme.textTertiary,
-                    letterSpacing: 0.3,
-                  }}>
-                  {t('budget.budgetUsed', { percent: Math.round(overallPercentage) })}
+              <View
+                className="flex-1 items-center rounded-xl py-3"
+                style={{
+                  backgroundColor: isOverBudget
+                    ? 'rgba(239,68,68,0.08)'
+                    : isDarkMode ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)',
+                }}>
+                <Text className="mb-1 text-[10px] font-semibold" style={{ color: remainingColor, letterSpacing: 0.5, opacity: 0.85 }}>
+                  {(isOverBudget ? t('budget.overBudget') : t('budget.remaining')).toUpperCase()}
                 </Text>
-              </View>
-
-              {/* Stats grid */}
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <View
-                  style={{
-                    flex: 1,
-                    borderRadius: 16,
-                    padding: 14,
-                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                    alignItems: 'center',
-                  }}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: theme.textTertiary, letterSpacing: 0.5, marginBottom: 4 }}>
-                    {t('budget.totalBudget').toUpperCase()}
-                  </Text>
-                  <Text style={{ fontSize: 18, fontWeight: '800', color: theme.textPrimary, letterSpacing: -0.5 }}>
-                    {formatCurrencyAmount(totalBudget, currency, i18n.language, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                  </Text>
-                </View>
-
-                <View
-                  style={{
-                    flex: 1,
-                    borderRadius: 16,
-                    padding: 14,
-                    backgroundColor: isOverBudget
-                      ? 'rgba(239,68,68,0.08)'
-                      : isDarkMode ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.06)',
-                    alignItems: 'center',
-                  }}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: remainingColor, letterSpacing: 0.5, marginBottom: 4, opacity: 0.8 }}>
-                    {(isOverBudget ? t('budget.overBudget') : t('budget.remaining')).toUpperCase()}
-                  </Text>
-                  <Text style={{ fontSize: 18, fontWeight: '800', color: remainingColor, letterSpacing: -0.5 }}>
-                    {formatCurrencyAmount(isOverBudget ? overBudgetAmount : totalRemaining, currency, i18n.language, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                  </Text>
-                </View>
+                <Text className="text-base font-bold" style={{ color: remainingColor }}>
+                  {formatCurrencyAmount(isOverBudget ? overBudgetAmount : totalRemaining, currency, i18n.language, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </Text>
               </View>
             </View>
           </View>
         </View>
 
         {/* ─── Budgets Section ─────────────────────────────────────────────── */}
-        <View style={{ marginBottom: 8, paddingHorizontal: 24 }}>
+        <View className="mb-6 px-6">
           {/* Section header */}
           <TouchableOpacity
             onPress={() => setBudgetsExpanded((v) => !v)}
-            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
-            {/* Left accent */}
-            <View style={{ width: 4, height: 22, borderRadius: 2, backgroundColor: theme.purple, marginRight: 10 }} />
-            <Text style={{ flex: 1, fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: theme.textPrimary }}>
+            className="mb-4 flex-row items-center">
+            <Text className="flex-1 text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('goals.budgetsSection')}
             </Text>
-            {categories.length > 0 && (
-              <View
-                style={{
-                  backgroundColor: isDarkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)',
-                  borderRadius: 12,
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  marginRight: 8,
-                }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: theme.purple }}>
-                  {categories.length}
-                </Text>
-              </View>
-            )}
-            <Ionicons
-              name={budgetsExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={theme.textTertiary}
-            />
+           <Ionicons name={budgetsExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={theme.textTertiary} style={{ marginRight: 8 }} />
           </TouchableOpacity>
 
-          {budgetsExpanded && (
-            budgetLoading ? (
-              <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                <ActivityIndicator size="large" color={theme.purple} />
-              </View>
-            ) : categories.length === 0 ? (
+          {budgetsExpanded && (budgetLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+              <ActivityIndicator size="large" color={theme.purple} />
+            </View>
+          ) : categories.length === 0 ? (
+            <View
+              className="rounded-2xl"
+              style={[
+                { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                !isDarkMode && styles.cardShadow,
+              ]}>
               <TouchableOpacity
                 onPress={openAddBudget}
-                style={{
-                  alignItems: 'center',
-                  paddingVertical: 28,
-                  borderRadius: 20,
-                  borderWidth: 1.5,
-                  borderStyle: 'dashed',
-                  borderColor: theme.border,
-                }}>
+                style={{ alignItems: 'center', paddingVertical: 28 }}>
                 <View
                   style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
-                    backgroundColor: isDarkMode ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.08)',
+                    width: 48,
+                    height: 48,
+                    borderRadius: 14,
+                    backgroundColor: isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
                   }}>
-                  <Ionicons name="wallet-outline" size={26} color={theme.purple} />
+                  <Ionicons name="wallet-outline" size={24} color={theme.purple} />
                 </View>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textSecondary }}>
                   {t('budget.noCategories')}
@@ -396,89 +307,66 @@ export default function GoalsScreen() {
                   Tap to add your first budget
                 </Text>
               </TouchableOpacity>
-            ) : (
-              categories.map((cat) => (
+            </View>
+          ) : (
+            <View
+              className="rounded-2xl"
+              style={[
+                { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                !isDarkMode && styles.cardShadow,
+              ]}>
+              {categories.map((cat, index) => (
                 <BudgetCategoryItem
                   key={cat.id}
                   category={cat}
+                  flat
+                  isLast={index === categories.length - 1}
                   onPress={openEditBudget}
                   onDelete={handleDeleteBudget}
                   onEdit={openEditBudget}
                 />
-              ))
-            )
-          )}
+              ))}
+            </View>
+          ))}
         </View>
 
-        {/* ─── Divider ─────────────────────────────────────────────────────── */}
-        <View
-          style={{
-            height: 1,
-            marginHorizontal: 24,
-            marginVertical: 16,
-            backgroundColor: theme.border,
-          }}
-        />
-
         {/* ─── Goals Section ───────────────────────────────────────────────── */}
-        <View style={{ marginBottom: 32, paddingHorizontal: 24 }}>
+        <View className="mb-8 px-6">
           {/* Section header */}
           <TouchableOpacity
             onPress={() => setGoalsExpanded((v) => !v)}
-            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
-            {/* Left accent */}
-            <View style={{ width: 4, height: 22, borderRadius: 2, backgroundColor: '#10B981', marginRight: 10 }} />
-            <Text style={{ flex: 1, fontSize: 18, fontWeight: '800', letterSpacing: -0.3, color: theme.textPrimary }}>
+            className="mb-4 flex-row items-center">
+            <Text className="flex-1 text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('goals.goalsSection')}
             </Text>
-            {goals.length > 0 && (
-              <View
-                style={{
-                  backgroundColor: 'rgba(16,185,129,0.1)',
-                  borderRadius: 12,
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  marginRight: 8,
-                }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#10B981' }}>
-                  {goals.length}
-                </Text>
-              </View>
-            )}
-            <Ionicons
-              name={goalsExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={theme.textTertiary}
-            />
+            <Ionicons name={goalsExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={theme.textTertiary} style={{ marginRight: 8 }} />
           </TouchableOpacity>
 
-          {goalsExpanded && (
-            goalsLoading ? (
-              <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-                <ActivityIndicator size="large" color="#10B981" />
-              </View>
-            ) : goals.length === 0 ? (
+          {goalsExpanded && (goalsLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+              <ActivityIndicator size="large" color="#10B981" />
+            </View>
+          ) : goals.length === 0 ? (
+            <View
+              className="rounded-2xl"
+              style={[
+                { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                !isDarkMode && styles.cardShadow,
+              ]}>
               <TouchableOpacity
                 onPress={openAddGoal}
-                style={{
-                  alignItems: 'center',
-                  paddingVertical: 28,
-                  borderRadius: 20,
-                  borderWidth: 1.5,
-                  borderStyle: 'dashed',
-                  borderColor: theme.border,
-                }}>
+                style={{ alignItems: 'center', paddingVertical: 28 }}>
                 <View
                   style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
+                    width: 48,
+                    height: 48,
+                    borderRadius: 14,
                     backgroundColor: 'rgba(16,185,129,0.1)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
                   }}>
-                  <Ionicons name="flag-outline" size={26} color="#10B981" />
+                  <Ionicons name="flag-outline" size={24} color="#10B981" />
                 </View>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textSecondary }}>
                   {t('goals.noGoals')}
@@ -487,21 +375,30 @@ export default function GoalsScreen() {
                   {t('goals.tapAddGoal')}
                 </Text>
               </TouchableOpacity>
-            ) : (
-              goals.map((goal) => (
+            </View>
+          ) : (
+            <View
+              className="rounded-2xl"
+              style={[
+                { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
+                !isDarkMode && styles.cardShadow,
+              ]}>
+              {goals.map((goal, index) => (
                 <GoalItem
                   key={goal.id}
                   goal={goal}
+                  flat
+                  isLast={index === goals.length - 1}
                   onPress={openGoalDetail}
                   onDelete={handleDeleteGoal}
                   onEdit={openEditGoal}
                 />
-              ))
-            )
-          )}
+              ))}
+            </View>
+          ))}
         </View>
 
-        <View style={{ height: 100 }} />
+        <View className="h-24" />
       </ScrollView>
 
       {/* Modals */}
@@ -557,7 +454,7 @@ export default function GoalsScreen() {
               shadowRadius: 8,
               elevation: 6,
             }}>
-            <Text style={{ color: theme.purple, fontWeight: '800', fontSize: 15 }}>Budget</Text>
+            <Text style={{ color: theme.purple, fontWeight: '800', fontSize: 15 }}>{t('goals.budgetsSection')}</Text>
             <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: theme.purple, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="wallet-outline" size={18} color="#fff" />
             </View>
@@ -579,7 +476,7 @@ export default function GoalsScreen() {
               shadowRadius: 8,
               elevation: 6,
             }}>
-            <Text style={{ color: '#10B981', fontWeight: '800', fontSize: 15 }}>Goal</Text>
+            <Text style={{ color: '#10B981', fontWeight: '800', fontSize: 15 }}>{t('goals.goalsSection')}</Text>
             <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="flag-outline" size={18} color="#fff" />
             </View>

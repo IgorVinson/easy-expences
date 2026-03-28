@@ -13,6 +13,8 @@ type BudgetCategoryItemProps = {
   onPress?: (category: BudgetCategory) => void;
   onDelete?: (id: string) => void;
   onEdit?: (category: BudgetCategory) => void;
+  flat?: boolean;
+  isLast?: boolean;
 };
 
 export const BudgetCategoryItem = ({
@@ -20,6 +22,8 @@ export const BudgetCategoryItem = ({
   onPress,
   onDelete,
   onEdit,
+  flat = false,
+  isLast = false,
 }: BudgetCategoryItemProps) => {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -54,12 +58,12 @@ export const BudgetCategoryItem = ({
       <TouchableOpacity
         onPress={() => { swipeableRef.current?.close(); onEdit?.(category); }}
         style={{
-          marginBottom: 12,
+          marginBottom: flat ? 0 : 12,
           marginLeft: 8,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'flex-end',
-          borderRadius: 18,
+          borderRadius: flat ? 0 : 18,
           paddingHorizontal: 24,
           backgroundColor: theme.purple,
         }}>
@@ -79,12 +83,12 @@ export const BudgetCategoryItem = ({
       <TouchableOpacity
         onPress={() => { swipeableRef.current?.close(); onDelete?.(category.id); }}
         style={{
-          marginBottom: 12,
+          marginBottom: flat ? 0 : 12,
           marginRight: 8,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'flex-start',
-          borderRadius: 18,
+          borderRadius: flat ? 0 : 18,
           paddingHorizontal: 24,
           backgroundColor: '#EF4444',
         }}>
@@ -108,7 +112,12 @@ export const BudgetCategoryItem = ({
       <TouchableOpacity
         activeOpacity={0.75}
         onPress={() => onPress?.(category)}
-        style={{
+        style={flat ? {
+          padding: 16,
+          backgroundColor: 'transparent',
+          borderBottomWidth: isLast ? 0 : 1,
+          borderBottomColor: theme.border,
+        } : {
           marginBottom: 12,
           borderRadius: 18,
           padding: 18,
@@ -129,20 +138,20 @@ export const BudgetCategoryItem = ({
           {/* Icon */}
           <View
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 14,
+              width: flat ? 40 : 46,
+              height: flat ? 40 : 46,
+              borderRadius: flat ? 12 : 14,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: theme.isDark ? category.colorDark + '22' : category.colorLight,
-              marginRight: 12,
+              marginRight: flat ? 16 : 12,
             }}>
-            <Ionicons name={category.icon} size={22} color={category.colorDark} />
+            <Ionicons name={category.icon} size={flat ? 20 : 22} color={category.colorDark} />
           </View>
 
           {/* Name + spent/budget */}
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 2 }}>
+            <Text style={{ fontSize: flat ? 16 : 15, fontWeight: flat ? '500' : '700', color: theme.textPrimary, marginBottom: 2 }}>
               {category.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
