@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
-  Dimensions,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -230,13 +229,21 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       transparent
       statusBarTranslucent={Platform.OS === 'android'}
       onRequestClose={handleClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <TouchableWithoutFeedback onPress={handleClose}>
             <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
           </TouchableWithoutFeedback>
 
-          <View style={{ height: Dimensions.get('window').height * 0.88, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
+          <View
+            style={{
+              flexShrink: 1,
+              maxHeight: '90%',
+              backgroundColor: theme.bg,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              overflow: 'hidden',
+            }}>
             {/* Drag handle */}
             <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
               <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border }} />

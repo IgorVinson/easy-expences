@@ -168,11 +168,8 @@ export const BudgetCategoryItem = ({
           <View
             style={{
               borderRadius: 12,
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              backgroundColor: isOverBudget
-                ? 'rgba(239,68,68,0.1)'
-                : (theme.isDark ? category.colorDark + '22' : category.colorLight),
+              paddingHorizontal: 0,
+              paddingVertical: 0,
             }}>
             <Text
               style={{
