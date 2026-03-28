@@ -199,7 +199,7 @@ export const BudgetCategoryItem = ({
             }}>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: '700',
                 color: theme.textPrimary,
                 letterSpacing: -0.2,

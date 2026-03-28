@@ -22,6 +22,27 @@ import { useBudget } from '../../hooks/useBudget';
 import { useGoals } from '../../hooks/useGoals';
 import { useTransactions } from '../../hooks/useTransactions';
 
+function isToday(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+}
+
+function isYesterday(dateStr: string) {
+  const d = new Date(dateStr);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return (
+    d.getFullYear() === yesterday.getFullYear() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getDate() === yesterday.getDate()
+  );
+}
+
 export default function OverviewScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
@@ -30,9 +51,7 @@ export default function OverviewScreen() {
   const {
     expenses,
     income,
-    todayExpenses,
-    yesterdayExpenses,
-    olderExpenses,
+    allTransactions,
     loading: expensesLoading,
     updateExpense,
     deleteExpense,
@@ -56,6 +75,27 @@ export default function OverviewScreen() {
   }, []);
 
   const loading = expensesLoading || budgetLoading;
+
+  const goalNameById = useMemo(
+    () => Object.fromEntries(goals.map((goal) => [goal.id, goal.name])),
+    [goals]
+  );
+
+  const todayTransactions = useMemo(
+    () => allTransactions.filter((transaction) => isToday(transaction.date)),
+    [allTransactions]
+  );
+  const yesterdayTransactions = useMemo(
+    () => allTransactions.filter((transaction) => isYesterday(transaction.date)),
+    [allTransactions]
+  );
+  const olderTransactions = useMemo(
+    () =>
+      allTransactions.filter(
+        (transaction) => !isToday(transaction.date) && !isYesterday(transaction.date)
+      ),
+    [allTransactions]
+  );
 
   const derivedBudgetLeftByExpenseId = useMemo(() => {
     const remainingByExpenseId: Record<string, number> = {};
@@ -108,6 +148,20 @@ export default function OverviewScreen() {
         },
       },
     ]);
+  }
+
+  function getTransactionForDisplay(transaction: import('../../types').Expense) {
+    if (transaction.type === 'income') {
+      return {
+        ...transaction,
+        category: transaction.goalId
+          ? goalNameById[transaction.goalId] ?? t('addTransaction.incomeTab')
+          : t('addTransaction.incomeTab'),
+        budgetLeft: undefined,
+      };
+    }
+
+    return transaction;
   }
 
   return (
@@ -169,7 +223,7 @@ export default function OverviewScreen() {
                 {t('overview.today')}
               </Text>
             </View>
-            {todayExpenses.length === 0 ? (
+            {todayTransactions.length === 0 ? (
               <View
                 className="rounded-2xl px-6 py-6"
                 style={[
@@ -187,16 +241,16 @@ export default function OverviewScreen() {
                   { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
                   !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
                 ]}>
-                {todayExpenses.map((expense, index) => (
+                {todayTransactions.map((expense, index) => (
                   <ExpenseItem
                     key={expense.id}
-                    expense={expense}
+                    expense={getTransactionForDisplay(expense)}
                     flat
-                    isLast={index === todayExpenses.length - 1}
-                    budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
-                    onPress={openEditExpense}
+                    isLast={index === todayTransactions.length - 1}
+                    budgetLeftOverride={expense.type === 'expense' ? derivedBudgetLeftByExpenseId[expense.id] ?? null : null}
+                    onPress={expense.type === 'expense' ? openEditExpense : undefined}
                     onDelete={handleDeleteExpense}
-                    onEdit={openEditExpense}
+                    onEdit={expense.type === 'expense' ? openEditExpense : undefined}
                   />
                 ))}
               </View>
@@ -205,7 +259,7 @@ export default function OverviewScreen() {
         )}
 
         {/* Yesterday Section */}
-        {!loading && yesterdayExpenses.length > 0 && (
+        {!loading && yesterdayTransactions.length > 0 && (
           <View className="mb-4 px-6">
             <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('overview.yesterday')}
@@ -216,16 +270,16 @@ export default function OverviewScreen() {
                 { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
                 !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
               ]}>
-              {yesterdayExpenses.map((expense, index) => (
+              {yesterdayTransactions.map((expense, index) => (
                 <ExpenseItem
                   key={expense.id}
-                  expense={expense}
+                  expense={getTransactionForDisplay(expense)}
                   flat
-                  isLast={index === yesterdayExpenses.length - 1}
-                  budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
-                  onPress={openEditExpense}
+                  isLast={index === yesterdayTransactions.length - 1}
+                  budgetLeftOverride={expense.type === 'expense' ? derivedBudgetLeftByExpenseId[expense.id] ?? null : null}
+                  onPress={expense.type === 'expense' ? openEditExpense : undefined}
                   onDelete={handleDeleteExpense}
-                  onEdit={openEditExpense}
+                  onEdit={expense.type === 'expense' ? openEditExpense : undefined}
                 />
               ))}
             </View>
@@ -233,7 +287,7 @@ export default function OverviewScreen() {
         )}
 
         {/* Past Section */}
-        {!loading && olderExpenses.length > 0 && (
+        {!loading && olderTransactions.length > 0 && (
           <View className="mb-4 px-6">
             <Text className="mb-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('overview.past')}
@@ -244,16 +298,16 @@ export default function OverviewScreen() {
                 { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
                 !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
               ]}>
-              {olderExpenses.map((expense, index) => (
+              {olderTransactions.map((expense, index) => (
                 <ExpenseItem
                   key={expense.id}
-                  expense={expense}
+                  expense={getTransactionForDisplay(expense)}
                   flat
-                  isLast={index === olderExpenses.length - 1}
-                  budgetLeftOverride={derivedBudgetLeftByExpenseId[expense.id] ?? null}
-                  onPress={openEditExpense}
+                  isLast={index === olderTransactions.length - 1}
+                  budgetLeftOverride={expense.type === 'expense' ? derivedBudgetLeftByExpenseId[expense.id] ?? null : null}
+                  onPress={expense.type === 'expense' ? openEditExpense : undefined}
                   onDelete={handleDeleteExpense}
-                  onEdit={openEditExpense}
+                  onEdit={expense.type === 'expense' ? openEditExpense : undefined}
                   showDate
                 />
               ))}

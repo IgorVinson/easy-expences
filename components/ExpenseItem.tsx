@@ -53,6 +53,8 @@ export const ExpenseItem = ({
     progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
+    if (!onEdit) return null;
+
     const trans = dragX.interpolate({
       inputRange: [-80, 0],
       outputRange: [0, 80],
@@ -77,6 +79,8 @@ export const ExpenseItem = ({
     progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
+    if (!onDelete) return null;
+
     const trans = dragX.interpolate({
       inputRange: [0, 80],
       outputRange: [-80, 0],
