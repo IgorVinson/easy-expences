@@ -1,64 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter, useSegments } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withRepeat, 
-  withSequence, 
-  withTiming,
-  runOnJS 
-} from 'react-native-reanimated';
+import { runOnJS } from 'react-native-reanimated';
 import { MonthlyReviewProvider } from '../../components/MonthlyReviewProvider';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
-const TabArrow = ({ direction, theme }: { direction: 'left' | 'right', theme: any }) => {
-  const translateX = useSharedValue(0);
-  const opacity = useSharedValue(0.4);
-
-  useEffect(() => {
-    translateX.value = withRepeat(
-      withSequence(
-        withTiming(direction === 'left' ? 4 : -4, { duration: 800 }),
-        withTiming(0, { duration: 800 })
-      ),
-      -1,
-      true
-    );
-    opacity.value = withRepeat(
-      withSequence(
-        withTiming(0.8, { duration: 800 }),
-        withTiming(0.2, { duration: 800 })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-  }));
-
-  return (
-    <Animated.View style={[{ paddingHorizontal: 4 }, animatedStyle]}>
-      <Ionicons 
-        name={direction === 'left' ? 'chevron-forward' : 'chevron-back'} 
-        size={16} 
-        color={theme.textTertiary} 
-      />
-    </Animated.View>
-  );
-};
-
 function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any) {
-  const currentIndex = state.index;
-  const totalTabs = state.routes.length;
-
   return (
     <View
       style={[
@@ -67,58 +18,68 @@ function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any
           backgroundColor: theme.cardBg,
           borderTopWidth: 1,
           borderTopColor: theme.border,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
           paddingTop: 10,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          alignItems: 'center',
           paddingHorizontal: 12,
+          height: Platform.OS === 'ios' ? 88 : 68,
+          alignItems: 'flex-start',
         },
         !isDarkMode && styles.navShadow,
-      ]}
-    >
-      {/* Left Edge Arrow */}
-      <View style={{ width: 24, alignItems: 'center' }}>
-        {currentIndex > 0 && <TabArrow direction="right" theme={theme} />}
-      </View>
+      ]}>
+      {state.routes.map((route: any, index: number) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
 
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-        {state.routes.map((route: any, index: number) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
-
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-              activeOpacity={0.7}
-            >
-              {options.tabBarIcon && options.tabBarIcon({ 
-                color: isFocused ? theme.purple : theme.textTertiary,
-                focused: isFocused,
-                size: 32 
-              })}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* Right Edge Arrow */}
-      <View style={{ width: 24, alignItems: 'center' }}>
-        {currentIndex < totalTabs - 1 && <TabArrow direction="left" theme={theme} />}
-      </View>
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 7,
+              paddingHorizontal: 10,
+              borderRadius: 16,
+              marginHorizontal: 4,
+              backgroundColor: isFocused
+                ? isDarkMode
+                  ? 'rgba(139,92,246,0.14)'
+                  : 'rgba(139,92,246,0.08)'
+                : 'transparent',
+            }}
+            activeOpacity={0.7}>
+            {options.tabBarIcon?.({
+              color: isFocused ? theme.purple : theme.textTertiary,
+              focused: isFocused,
+              size: 24,
+            })}
+            {isFocused && (
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: theme.purple,
+                  marginTop: 3,
+                  letterSpacing: 0.2,
+                }}>
+                {options.title}
+              </Text>
+            )}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -140,7 +101,6 @@ export default function TabsLayout() {
     } else if (direction === 'right' && currentIndex > 0) {
       nextIndex = currentIndex - 1;
     }
-
     if (nextIndex !== currentIndex) {
       router.replace(`/(tabs)/${tabOrder[nextIndex]}`);
     }
@@ -163,11 +123,7 @@ export default function TabsLayout() {
         <View style={{ flex: 1 }}>
           <Tabs
             tabBar={(props) => (
-              <CustomTabBar 
-                {...props} 
-                theme={theme} 
-                isDarkMode={isDarkMode} 
-              />
+              <CustomTabBar {...props} theme={theme} isDarkMode={isDarkMode} />
             )}
             screenOptions={{
               headerShown: false,
@@ -179,21 +135,27 @@ export default function TabsLayout() {
               name="overview"
               options={{
                 title: t('tabs.overview'),
-                tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={32} color={color} />,
+                tabBarIcon: ({ color, focused }) => (
+                  <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+                ),
               }}
             />
             <Tabs.Screen
               name="goals"
               options={{
                 title: t('tabs.goals'),
-                tabBarIcon: ({ color }) => <Ionicons name="trophy" size={32} color={color} />,
+                tabBarIcon: ({ color, focused }) => (
+                  <Ionicons name={focused ? 'flag' : 'flag-outline'} size={24} color={color} />
+                ),
               }}
             />
             <Tabs.Screen
               name="profile"
               options={{
                 title: t('tabs.profile'),
-                tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={32} color={color} />,
+                tabBarIcon: ({ color, focused }) => (
+                  <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
+                ),
               }}
             />
           </Tabs>

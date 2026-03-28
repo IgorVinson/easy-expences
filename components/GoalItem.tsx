@@ -6,7 +6,6 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { styles } from '../styles';
 import { GoalWithProgress } from '../types';
 
 type GoalItemProps = {
@@ -31,41 +30,54 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => 
     maximumFractionDigits: 0,
   });
 
+  const pct = Math.round(goal.progressPercent);
+  const isComplete = pct >= 100;
+
   const renderRightActions = (
-    progress: Animated.AnimatedInterpolation<number>,
+    _progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
     const trans = dragX.interpolate({ inputRange: [-80, 0], outputRange: [0, 80] });
     return (
       <TouchableOpacity
-        onPress={() => {
-          swipeableRef.current?.close();
-          onEdit?.(goal);
-        }}
-        className="mb-3 ml-2 flex-row items-center justify-end rounded-2xl px-6"
-        style={{ backgroundColor: theme.purple }}>
+        onPress={() => { swipeableRef.current?.close(); onEdit?.(goal); }}
+        style={{
+          marginBottom: 12,
+          marginLeft: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          borderRadius: 18,
+          paddingHorizontal: 24,
+          backgroundColor: theme.purple,
+        }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
-          <Ionicons name="create-outline" size={24} color="white" />
+          <Ionicons name="create-outline" size={22} color="white" />
         </Animated.View>
       </TouchableOpacity>
     );
   };
 
   const renderLeftActions = (
-    progress: Animated.AnimatedInterpolation<number>,
+    _progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
     const trans = dragX.interpolate({ inputRange: [0, 80], outputRange: [-80, 0] });
     return (
       <TouchableOpacity
-        onPress={() => {
-          swipeableRef.current?.close();
-          onDelete?.(goal.id);
-        }}
-        className="mb-3 mr-2 flex-row items-center justify-start rounded-2xl px-6"
-        style={{ backgroundColor: '#EF4444' }}>
+        onPress={() => { swipeableRef.current?.close(); onDelete?.(goal.id); }}
+        style={{
+          marginBottom: 12,
+          marginRight: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          borderRadius: 18,
+          paddingHorizontal: 24,
+          backgroundColor: '#EF4444',
+        }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
-          <Ionicons name="trash-outline" size={24} color="white" />
+          <Ionicons name="trash-outline" size={22} color="white" />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -76,65 +88,126 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit }: GoalItemProps) => 
       ref={swipeableRef}
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
-      onSwipeableRightOpen={() => {
-        onEdit?.(goal);
-        setTimeout(() => swipeableRef.current?.close(), 100);
-      }}
-      onSwipeableLeftOpen={() => {
-        onDelete?.(goal.id);
-        setTimeout(() => swipeableRef.current?.close(), 100);
-      }}
+      onSwipeableRightOpen={() => { onEdit?.(goal); setTimeout(() => swipeableRef.current?.close(), 100); }}
+      onSwipeableLeftOpen={() => { onDelete?.(goal.id); setTimeout(() => swipeableRef.current?.close(), 100); }}
       friction={2}
       rightThreshold={40}
       leftThreshold={40}>
       <TouchableOpacity
-        activeOpacity={0.7}
+        activeOpacity={0.75}
         onPress={() => onPress?.(goal)}
-        style={[
-          styles.expenseItem,
-          {
-            backgroundColor: theme.cardBg,
-            borderColor: theme.border,
-            flexDirection: 'column',
-            alignItems: 'stretch',
-          },
-          !theme.isDark && styles.expenseItemShadow,
-        ]}>
-        {/* Top row */}
-        <View className="mb-3 flex-row items-center justify-between">
-          <View className="flex-1 flex-row items-center">
-            <View
-              className="h-12 w-12 items-center justify-center rounded-xl"
-              style={{
-                backgroundColor: theme.isDark ? goal.colorDark + '33' : goal.colorLight,
-              }}>
-              <Ionicons name={goal.icon} size={24} color={goal.colorDark} />
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
-                {goal.name}
+        style={{
+          marginBottom: 12,
+          borderRadius: 18,
+          padding: 18,
+          backgroundColor: theme.cardBg,
+          borderWidth: 1,
+          borderColor: theme.border,
+          ...(theme.isDark ? {} : {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
+            elevation: 2,
+          }),
+        }}>
+
+        {/* Top row: icon + name + percent badge */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+          {/* Icon */}
+          <View
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 14,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: theme.isDark ? goal.colorDark + '22' : goal.colorLight,
+              marginRight: 12,
+            }}>
+            <Ionicons name={goal.icon} size={22} color={goal.colorDark} />
+          </View>
+
+          {/* Name + amounts */}
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 2 }}>
+              {goal.name}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: goal.colorDark }}>
+                {formattedSaved}
               </Text>
-              <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
-                {formattedSaved} / {formattedTarget}
+              <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+                / {formattedTarget}
               </Text>
             </View>
           </View>
-          <Text className="text-sm font-semibold" style={{ color: goal.colorDark }}>
-            {Math.round(goal.progressPercent)}%
-          </Text>
+
+          {/* Percent badge */}
+          <View
+            style={{
+              borderRadius: 12,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              backgroundColor: isComplete
+                ? 'rgba(16,185,129,0.12)'
+                : (theme.isDark ? goal.colorDark + '22' : goal.colorLight),
+            }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '800',
+                color: isComplete ? '#10B981' : goal.colorDark,
+                letterSpacing: -0.3,
+              }}>
+              {isComplete ? '✓' : `${pct}%`}
+            </Text>
+          </View>
         </View>
 
-        {/* Progress bar */}
-        <View
-          className="h-2 overflow-hidden rounded-full"
-          style={{ backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+        {/* Progress bar with milestone dots */}
+        <View>
           <View
-            className="h-full rounded-full"
             style={{
-              width: `${goal.progressPercent}%`,
-              backgroundColor: goal.colorDark,
-            }}
-          />
+              height: 8,
+              borderRadius: 8,
+              backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+              overflow: 'hidden',
+            }}>
+            <View
+              style={{
+                height: '100%',
+                borderRadius: 8,
+                width: `${Math.min(goal.progressPercent, 100)}%`,
+                backgroundColor: isComplete ? '#10B981' : goal.colorDark,
+              }}
+            />
+          </View>
+
+          {/* Milestone ticks at 25%, 50%, 75% */}
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 8,
+              flexDirection: 'row',
+              pointerEvents: 'none',
+            }}>
+            {[0.25, 0.5, 0.75].map((tick) => (
+              <View
+                key={tick}
+                style={{
+                  position: 'absolute',
+                  left: `${tick * 100}%` as any,
+                  width: 1,
+                  height: 8,
+                  backgroundColor: theme.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)',
+                }}
+              />
+            ))}
+          </View>
         </View>
       </TouchableOpacity>
     </Swipeable>

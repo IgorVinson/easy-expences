@@ -2,11 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
-import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from '../contexts/ThemeContext';
-import { styles } from '../styles';
 import { BudgetCategory } from '../types';
 
 type BudgetCategoryItemProps = {
@@ -30,6 +29,13 @@ export const BudgetCategoryItem = ({
   const percentage = Math.min((category.spent / category.budget) * 100, 100);
   const remaining = category.budget - category.spent;
   const isOverBudget = remaining < 0;
+
+  const barColor = isOverBudget ? '#EF4444' : category.colorDark;
+
+  const formattedSpent = formatCurrencyAmount(category.spent, currency, i18n.language, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
   const formattedBudget = formatCurrencyAmount(category.budget, currency, i18n.language, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
@@ -40,48 +46,50 @@ export const BudgetCategoryItem = ({
   });
 
   const renderRightActions = (
-    progress: Animated.AnimatedInterpolation<number>,
+    _progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
-    const trans = dragX.interpolate({
-      inputRange: [-80, 0],
-      outputRange: [0, 80],
-    });
-
+    const trans = dragX.interpolate({ inputRange: [-80, 0], outputRange: [0, 80] });
     return (
       <TouchableOpacity
-        onPress={() => {
-          swipeableRef.current?.close();
-          onEdit?.(category);
-        }}
-        className="mb-3 ml-2 flex-row items-center justify-end rounded-2xl px-6"
-        style={{ backgroundColor: theme.purple }}>
+        onPress={() => { swipeableRef.current?.close(); onEdit?.(category); }}
+        style={{
+          marginBottom: 12,
+          marginLeft: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          borderRadius: 18,
+          paddingHorizontal: 24,
+          backgroundColor: theme.purple,
+        }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
-          <Ionicons name="create-outline" size={24} color="white" />
+          <Ionicons name="create-outline" size={22} color="white" />
         </Animated.View>
       </TouchableOpacity>
     );
   };
 
   const renderLeftActions = (
-    progress: Animated.AnimatedInterpolation<number>,
+    _progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
-    const trans = dragX.interpolate({
-      inputRange: [0, 80],
-      outputRange: [-80, 0],
-    });
-
+    const trans = dragX.interpolate({ inputRange: [0, 80], outputRange: [-80, 0] });
     return (
       <TouchableOpacity
-        onPress={() => {
-          swipeableRef.current?.close();
-          onDelete?.(category.id);
-        }}
-        className="mb-3 mr-2 flex-row items-center justify-start rounded-2xl px-6"
-        style={{ backgroundColor: '#EF4444' }}>
+        onPress={() => { swipeableRef.current?.close(); onDelete?.(category.id); }}
+        style={{
+          marginBottom: 12,
+          marginRight: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          borderRadius: 18,
+          paddingHorizontal: 24,
+          backgroundColor: '#EF4444',
+        }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
-          <Ionicons name="trash-outline" size={24} color="white" />
+          <Ionicons name="trash-outline" size={22} color="white" />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -92,54 +100,78 @@ export const BudgetCategoryItem = ({
       ref={swipeableRef}
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
-      onSwipeableRightOpen={() => {
-        onEdit?.(category);
-        setTimeout(() => swipeableRef.current?.close(), 100);
-      }}
-      onSwipeableLeftOpen={() => {
-        onDelete?.(category.id);
-        setTimeout(() => swipeableRef.current?.close(), 100);
-      }}
+      onSwipeableRightOpen={() => { onEdit?.(category); setTimeout(() => swipeableRef.current?.close(), 100); }}
+      onSwipeableLeftOpen={() => { onDelete?.(category.id); setTimeout(() => swipeableRef.current?.close(), 100); }}
       friction={2}
       rightThreshold={40}
       leftThreshold={40}>
       <TouchableOpacity
-        activeOpacity={0.7}
+        activeOpacity={0.75}
         onPress={() => onPress?.(category)}
-        style={[
-          styles.expenseItem,
-          {
-            backgroundColor: theme.cardBg,
-            borderColor: theme.border,
-            flexDirection: 'column',
-            alignItems: 'stretch',
-          },
-          !theme.isDark && styles.expenseItemShadow,
-        ]}>
+        style={{
+          marginBottom: 12,
+          borderRadius: 18,
+          padding: 18,
+          backgroundColor: theme.cardBg,
+          borderWidth: 1,
+          borderColor: theme.border,
+          ...(theme.isDark ? {} : {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 3,
+            elevation: 2,
+          }),
+        }}>
+
         {/* Top row */}
-        <View className="mb-3 flex-row items-center justify-between">
-          <View className="flex-1 flex-row items-center">
-            <View
-              className="h-12 w-12 items-center justify-center rounded-xl"
-              style={{
-                backgroundColor: theme.isDark ? category.colorDark + '33' : category.colorLight,
-              }}>
-              <Ionicons name={category.icon} size={24} color={category.colorDark} />
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
-                {category.name}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+          {/* Icon */}
+          <View
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 14,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: theme.isDark ? category.colorDark + '22' : category.colorLight,
+              marginRight: 12,
+            }}>
+            <Ionicons name={category.icon} size={22} color={category.colorDark} />
+          </View>
+
+          {/* Name + spent/budget */}
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 2 }}>
+              {category.name}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: isOverBudget ? '#EF4444' : category.colorDark }}>
+                {formattedSpent}
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+                / {formattedBudget}
               </Text>
             </View>
           </View>
 
-          <View className="items-end">
-            <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-              {formattedBudget}
-            </Text>
+          {/* Remaining badge */}
+          <View
+            style={{
+              borderRadius: 12,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              backgroundColor: isOverBudget
+                ? 'rgba(239,68,68,0.1)'
+                : (theme.isDark ? category.colorDark + '22' : category.colorLight),
+            }}>
             <Text
-              className="mt-0.5 text-xs"
-              style={{ color: isOverBudget ? '#F87171' : theme.textTertiary }}>
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: isOverBudget ? '#EF4444' : category.colorDark,
+                letterSpacing: -0.2,
+              }}>
               {isOverBudget
                 ? t('budgetCategoryItem.over', { amount: formattedRemaining })
                 : t('budgetCategoryItem.left', { amount: formattedRemaining })}
@@ -149,13 +181,18 @@ export const BudgetCategoryItem = ({
 
         {/* Progress bar */}
         <View
-          className="h-2 overflow-hidden rounded-full"
-          style={{ backgroundColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+          style={{
+            height: 8,
+            borderRadius: 8,
+            backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+            overflow: 'hidden',
+          }}>
           <View
-            className="h-full rounded-full"
             style={{
+              height: '100%',
+              borderRadius: 8,
               width: `${percentage}%`,
-              backgroundColor: isOverBudget ? '#F87171' : category.colorDark,
+              backgroundColor: barColor,
             }}
           />
         </View>

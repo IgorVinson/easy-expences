@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { TrialExpiredScreen } from '../components/TrialExpiredScreen';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { CurrencyProvider } from '../contexts/CurrencyContext';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
@@ -13,11 +12,10 @@ import { ONBOARDING_KEY } from './onboarding';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
-  const { tier, loading: subLoading } = useSubscription();
+  const { loading: subLoading } = useSubscription();
   const segments = useSegments();
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const { offerings } = useSubscription();
 
   useEffect(() => {
     if (loading || subLoading) return;
@@ -42,7 +40,7 @@ function RootLayoutNav() {
       }
       setReady(true);
     });
-  }, [user, loading, subLoading, segments, router, tier]);
+  }, [user, loading, subLoading, segments, router]);
 
   if (loading || subLoading || !ready) {
     return null;
