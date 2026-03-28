@@ -119,9 +119,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
           }),
         }}>
 
-        {/* Top row: icon + name + percent badge */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
-          {/* Icon */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View
             style={{
               width: flat ? 40 : 46,
@@ -135,12 +133,11 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
             <Ionicons name={goal.icon} size={flat ? 20 : 22} color={goal.colorDark} />
           </View>
 
-          {/* Name + amounts */}
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: flat ? 16 : 15, fontWeight: flat ? '500' : '700', color: theme.textPrimary, marginBottom: 2 }}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: theme.textPrimary, marginBottom: 2 }}>
               {goal.name}
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: goal.colorDark }}>
                 {formattedSaved}
               </Text>
@@ -148,72 +145,43 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
                 / {formattedTarget}
               </Text>
             </View>
+
+            <View
+              style={{
+                height: 6,
+                borderRadius: 999,
+                backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                overflow: 'hidden',
+              }}>
+              <View
+                style={{
+                  height: '100%',
+                  borderRadius: 999,
+                  width: `${Math.min(goal.progressPercent, 100)}%`,
+                  backgroundColor: isComplete ? '#10B981' : goal.colorDark,
+                }}
+              />
+            </View>
           </View>
 
-          {/* Percent badge */}
           <View
             style={{
               borderRadius: 12,
               paddingHorizontal: 10,
-              paddingVertical: 5,
+              paddingVertical: 6,
               backgroundColor: isComplete
                 ? 'rgba(16,185,129,0.12)'
                 : (theme.isDark ? goal.colorDark + '22' : goal.colorLight),
+              marginLeft: 12,
             }}>
             <Text
               style={{
-                fontSize: 13,
-                fontWeight: '800',
+                fontSize: 12,
+                fontWeight: '700',
                 color: isComplete ? '#10B981' : goal.colorDark,
-                letterSpacing: -0.3,
               }}>
               {isComplete ? '✓' : `${pct}%`}
             </Text>
-          </View>
-        </View>
-
-        {/* Progress bar with milestone dots */}
-        <View>
-          <View
-            style={{
-              height: 8,
-              borderRadius: 8,
-              backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-              overflow: 'hidden',
-            }}>
-            <View
-              style={{
-                height: '100%',
-                borderRadius: 8,
-                width: `${Math.min(goal.progressPercent, 100)}%`,
-                backgroundColor: isComplete ? '#10B981' : goal.colorDark,
-              }}
-            />
-          </View>
-
-          {/* Milestone ticks at 25%, 50%, 75% */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 8,
-              flexDirection: 'row',
-              pointerEvents: 'none',
-            }}>
-            {[0.25, 0.5, 0.75].map((tick) => (
-              <View
-                key={tick}
-                style={{
-                  position: 'absolute',
-                  left: `${tick * 100}%` as any,
-                  width: 1,
-                  height: 8,
-                  backgroundColor: theme.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)',
-                }}
-              />
-            ))}
           </View>
         </View>
       </TouchableOpacity>
