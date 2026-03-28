@@ -5,6 +5,7 @@ import Purchases, {
   CustomerInfo,
   PurchasesOfferings,
   PurchasesPackage,
+  PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
 import RevenueCatUI from 'react-native-purchases-ui';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
@@ -240,13 +241,29 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, [user, voiceUsage]);
 
   const subscribe = useCallback(async (pkg: PurchasesPackage) => {
-    const { customerInfo: updatedInfo } = await Purchases.purchasePackage(pkg);
-    const newTier = determineTier(updatedInfo);
-    setTier(newTier);
-    setCustomerInfo(updatedInfo);
-    setTrialDaysLeft(getTrialDaysLeft(updatedInfo));
-    if (user) {
-      syncTierToFirestore(user.uid, newTier).catch(console.error);
+    try {
+      const { customerInfo: updatedInfo } = await Purchases.purchasePackage(pkg);
+      const newTier = determineTier(updatedInfo);
+      setTier(newTier);
+      setCustomerInfo(updatedInfo);
+      setTrialDaysLeft(getTrialDaysLeft(updatedInfo));
+      if (user) {
+        syncTierToFirestore(user.uid, newTier).catch(console.error);
+      }
+    } catch (err: any) {
+      // Product already owned — user has an active subscription; sync state instead of throwing
+      if (err?.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
+        const info = await Purchases.getCustomerInfo();
+        const newTier = determineTier(info);
+        setTier(newTier);
+        setCustomerInfo(info);
+        setTrialDaysLeft(getTrialDaysLeft(info));
+        if (user) {
+          syncTierToFirestore(user.uid, newTier).catch(console.error);
+        }
+        return;
+      }
+      throw err;
     }
   }, [user]);
 

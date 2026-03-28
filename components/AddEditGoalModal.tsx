@@ -15,10 +15,12 @@ import {
   View,
 } from 'react-native';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
 import { GoalWithProgress, NewGoal } from '../types';
 import ListeningIndicator from './ListeningIndicator';
+import { PaywallModal } from './PaywallModal';
 
 const GOAL_ICONS: Array<keyof typeof Ionicons.glyphMap> = [
   'flag', 'trophy', 'star', 'heart', 'home', 'car', 'airplane', 'school',
@@ -57,6 +59,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
+  const { canUseVoice, voiceRecordingsLeft, tier, incrementVoiceUsage } = useSubscription();
   const {
     isRecording,
     isProcessing,
@@ -71,6 +74,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   const [selectedIcon, setSelectedIcon] = useState<keyof typeof Ionicons.glyphMap>('flag');
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -133,6 +137,10 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
   }
 
   async function handleStartRecording() {
+    if (!canUseVoice) {
+      setPaywallVisible(true);
+      return;
+    }
     await startRecording(handleStopAndTranscribe);
   }
 
@@ -144,6 +152,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
     }
     if (result.title) setName(result.title);
     if (result.amount > 0) setTargetAmount(result.amount.toString());
+    incrementVoiceUsage();
   }
 
   const inputStyle = {

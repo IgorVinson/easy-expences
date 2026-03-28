@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// import { TrialExpiredScreen } from '../components/TrialExpiredScreen';
+import { TrialExpiredScreen } from '../components/TrialExpiredScreen';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { CurrencyProvider } from '../contexts/CurrencyContext';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
@@ -17,6 +17,7 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const { offerings } = useSubscription();
 
   useEffect(() => {
     if (loading || subLoading) return;

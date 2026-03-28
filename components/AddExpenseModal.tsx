@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactions } from '../hooks/useTransactions';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
@@ -24,6 +25,7 @@ import { BudgetCategory, GoalWithProgress } from '../types';
 import { findBestNameMatch } from '../utils/voiceMatch';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 import ListeningIndicator from './ListeningIndicator';
+import { PaywallModal } from './PaywallModal';
 
 type Tab = 'expense' | 'income';
 
@@ -37,7 +39,6 @@ interface AddExpenseModalProps {
   initialCategory?: BudgetCategory | null;
   goals?: GoalWithProgress[];
   defaultTab?: Tab;
-  onVoiceSaved?: () => void;
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
@@ -48,11 +49,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   initialCategory,
   goals = [],
   defaultTab = 'expense',
-  onVoiceSaved,
 }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { currency } = useCurrency();
+  const { canUseVoice, voiceRecordingsLeft, tier, incrementVoiceUsage } = useSubscription();
   const { addTransaction } = useTransactions(userId);
   const {
     isRecording,
@@ -71,7 +72,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
-  const [usedVoice, setUsedVoice] = useState(false);
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const pulse = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -98,7 +99,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     setIsCalculatorVisible(false);
     setSelectedCategory(null);
     setSelectedGoal(null);
-    setUsedVoice(false);
   }
 
   function resetForm() {
@@ -117,6 +117,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   }
 
   async function handleStartRecording() {
+    if (!canUseVoice) {
+      setPaywallVisible(true);
+      return;
+    }
     await startRecording(handleStopAndTranscribe);
   }
 
@@ -137,7 +141,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     } else {
       setSelectedGoal(findBestNameMatch(goals, result.category));
     }
-    setUsedVoice(true);
+    incrementVoiceUsage();
   }
 
   async function handleSave() {
@@ -194,7 +198,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       }
       resetForm();
       onClose();
-      if (usedVoice) onVoiceSaved?.();
     } catch (e: any) {
       Alert.alert(t('common.error'), e.message ?? t('addExpense.failedSave'));
     } finally {
@@ -393,6 +396,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                           ? <ActivityIndicator size="large" color={theme.textPrimary} />
                           : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
+                      {tier === 'basic' && (
+                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 4, backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444' }}>
+                          <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#fff' }}>{voiceRecordingsLeft}</Text>
+                        </View>
+                      )}
+                      {tier === 'none' && (
+                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#EF4444' }}>
+                          <Ionicons name="lock-closed" size={10} color="#fff" />
+                        </View>
+                      )}
                     </View>
                   </View>
                   {/* Save button */}
@@ -410,6 +423,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </View>
         </View>
       </KeyboardAvoidingView>
+      <PaywallModal visible={paywallVisible} onClose={() => setPaywallVisible(false)} />
     </Modal>
   );
 };

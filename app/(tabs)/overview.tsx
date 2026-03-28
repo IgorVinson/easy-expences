@@ -267,68 +267,6 @@ export default function OverviewScreen() {
         <Ionicons name="add" size={32} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Quick Mic Button */}
-      <Animated.View className="absolute bottom-24 right-6 h-16 w-16 items-center justify-center">
-        <Animated.View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            width: 64,
-            height: 64,
-            borderRadius: 32,
-            backgroundColor: micPulseColor,
-            opacity: micPulse.interpolate({
-              inputRange: [0, 1],
-              outputRange: isDarkMode ? [0.22, 0] : [0.32, 0],
-            }),
-            transform: [
-              {
-                scale: micPulse.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 1.38],
-                }),
-              },
-            ],
-          }}
-        />
-        <TouchableOpacity
-          onPress={() => {
-            if (!canUseVoice) {
-              setPaywallVisible(true);
-              return;
-            }
-            setModalVisible(true);
-          }}
-          className="h-16 w-16 items-center justify-center rounded-full shadow-lg"
-          style={{
-            backgroundColor: theme.purple,
-            shadowColor: fabShadowColor,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: isDarkMode ? 0.26 : 0.3,
-            shadowRadius: 4.65,
-            elevation: 8,
-          }}>
-          <Ionicons name="mic" size={32} color="#FFFFFF" />
-        </TouchableOpacity>
-        {/* Voice recordings badge */}
-        {tier === 'basic' && (
-          <View
-            className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full px-1"
-            style={{
-              backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444',
-            }}>
-            <Text className="text-[10px] font-bold text-white">{voiceRecordingsLeft}</Text>
-          </View>
-        )}
-        {tier === 'none' && (
-          <View
-            className="absolute -right-1 -top-1 h-5 min-w-[20px] items-center justify-center rounded-full px-1"
-            style={{ backgroundColor: '#EF4444' }}>
-            <Ionicons name="lock-closed" size={10} color="#FFFFFF" />
-          </View>
-        )}
-      </Animated.View>
-
       {/* Add Expense Modal */}
       {user && (
         <AddExpenseModal
