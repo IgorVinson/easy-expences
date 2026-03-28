@@ -233,7 +233,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.55)' }} />
           </TouchableWithoutFeedback>
 
-          <View style={{ maxHeight: Dimensions.get('window').height * 0.9, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
+          <View style={{ height: Dimensions.get('window').height * 0.88, backgroundColor: theme.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
             {/* Drag handle */}
             <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
               <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border }} />
@@ -354,7 +354,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, backgroundColor: theme.bg }}>
                   {/* Listening indicator */}
                   {isRecording && (
                     <View style={{ alignItems: 'center', marginBottom: 12 }}>
@@ -375,7 +375,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         style={{
                           position: 'absolute',
                           width: 72, height: 72, borderRadius: 36,
-                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                           opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                           transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
                         }}
@@ -386,12 +386,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         style={{
                           width: 72, height: 72, borderRadius: 36,
                           alignItems: 'center', justifyContent: 'center',
-                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
                           opacity: isProcessing ? 0.7 : 1,
                         }}>
                         {isProcessing
-                          ? <ActivityIndicator size="large" color="#fff" />
-                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color="#fff" />}
+                          ? <ActivityIndicator size="large" color={theme.textPrimary} />
+                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
                     </View>
                   </View>

@@ -273,7 +273,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.bg }}>
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, backgroundColor: theme.bg }}>
                   {isRecording && (
                     <View style={{ alignItems: 'center', marginBottom: 12 }}>
                       <ListeningIndicator />
@@ -291,7 +291,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                         style={{
                           position: 'absolute',
                           width: 72, height: 72, borderRadius: 36,
-                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                           opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                           transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
                         }}
@@ -302,12 +302,12 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                         style={{
                           width: 72, height: 72, borderRadius: 36,
                           alignItems: 'center', justifyContent: 'center',
-                          backgroundColor: isRecording ? '#EF4444' : theme.purple,
+                          backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
                           opacity: isProcessing ? 0.7 : 1,
                         }}>
                         {isProcessing
-                          ? <ActivityIndicator size="large" color="#fff" />
-                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color="#fff" />}
+                          ? <ActivityIndicator size="large" color={theme.textPrimary} />
+                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
                     </View>
                   </View>
