@@ -144,8 +144,12 @@
   },
   "editExpense": {
     "title": "Редагувати витрату",
+    "titleIncome": "Редагувати дохід",
     "save": "Зберегти зміни",
+    "saveIncome": "Зберегти дохід",
     "delete": "Видалити витрату",
+    "deleteIncome": "Видалити дохід",
+    "deleteIncomeTitle": "Видалити дохід",
     "deleteConfirmSpecific": "Ви впевнені, що хочете видалити \"{{title}}\"?"
   },
   "addCategory": {
@@ -216,7 +220,8 @@
     }
   },
   "expenseItem": {
-    "left": "Залишилось {{amount}}"
+    "left": "Залишилось {{amount}}",
+    "goalProgress": "Заповнено {{percent}}%"
   },
   "budgetCategoryItem": {
     "spent": "Витрачено {{amount}}",

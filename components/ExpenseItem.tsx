@@ -16,6 +16,7 @@ type ExpenseItemProps = {
   onEdit?: (expense: Expense) => void;
   showDate?: boolean;
   budgetLeftOverride?: number | null;
+  amountMetaText?: string | null;
   flat?: boolean;
   isLast?: boolean;
 };
@@ -27,6 +28,7 @@ export const ExpenseItem = ({
   onEdit,
   showDate,
   budgetLeftOverride,
+  amountMetaText,
   flat = false,
   isLast = false,
 }: ExpenseItemProps) => {
@@ -34,6 +36,7 @@ export const ExpenseItem = ({
   const { theme } = useTheme();
   const { currency } = useCurrency();
   const swipeableRef = useRef<Swipeable>(null);
+  const isIncome = expense.type === 'income';
   const budgetLeftToShow = budgetLeftOverride ?? expense.budgetLeft ?? 0;
 
   const formattedDate = showDate
@@ -43,6 +46,7 @@ export const ExpenseItem = ({
       })
     : null;
   const formattedAmount = formatCurrencyAmount(Math.abs(expense.amount), currency, i18n.language);
+  const displayAmount = isIncome ? `+${formattedAmount}` : formattedAmount;
   const formattedBudgetLeft = formatCurrencyAmount(
     Math.abs(budgetLeftToShow),
     currency,
@@ -162,14 +166,20 @@ export const ExpenseItem = ({
           </View>
         </View>
         <View className="ml-3 flex-col items-end">
-          <Text className="text-base font-semibold" style={{ color: theme.textPrimary }}>
-            {formattedAmount}
+          <Text
+            className="text-base font-semibold"
+            style={{ color: isIncome ? '#10B981' : theme.textPrimary }}>
+            {displayAmount}
           </Text>
-          {budgetLeftToShow !== null && budgetLeftToShow !== undefined && (
+          {amountMetaText ? (
+            <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
+              {amountMetaText}
+            </Text>
+          ) : budgetLeftToShow !== null && budgetLeftToShow !== undefined ? (
             <Text className="mt-0.5 text-xs" style={{ color: theme.textTertiary }}>
               {t('expenseItem.left', { amount: formattedBudgetLeft })}
             </Text>
-          )}
+          ) : null}
         </View>
       </TouchableOpacity>
     </Swipeable>

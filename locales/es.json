@@ -144,8 +144,12 @@
   },
   "editExpense": {
     "title": "Editar Gasto",
+    "titleIncome": "Editar Ingreso",
     "save": "Guardar Cambios",
+    "saveIncome": "Guardar Ingreso",
     "delete": "Eliminar Gasto",
+    "deleteIncome": "Eliminar Ingreso",
+    "deleteIncomeTitle": "Eliminar Ingreso",
     "deleteConfirmSpecific": "¿Estás seguro de que quieres eliminar \"{{title}}\"?"
   },
   "addCategory": {
@@ -216,7 +220,8 @@
     }
   },
   "expenseItem": {
-    "left": "Quedan {{amount}}"
+    "left": "Quedan {{amount}}",
+    "goalProgress": "{{percent}}% completado"
   },
   "budgetCategoryItem": {
     "spent": "{{amount}} gastados",

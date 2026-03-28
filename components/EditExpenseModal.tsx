@@ -18,27 +18,18 @@ import {
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
-import { BudgetCategory, Expense } from '../types';
+import { BudgetCategory, Expense, GoalWithProgress } from '../types';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
+
+const INCOME_GREEN = '#10B981';
 
 interface EditExpenseModalProps {
   visible: boolean;
   onClose: () => void;
   expense: Expense | null;
   userId: string;
-  onSave: (
-    id: string,
-    changes: {
-      title: string;
-      amount: number;
-      category: string;
-      categoryId?: string;
-      icon: any;
-      colorLight: string;
-      colorDark: string;
-      budgetLeft: number;
-    }
-  ) => Promise<void>;
+  goals?: GoalWithProgress[];
+  onSave: (id: string, changes: Record<string, any>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -47,6 +38,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   onClose,
   expense,
   userId,
+  goals = [],
   onSave,
   onDelete,
 }) => {
@@ -60,8 +52,10 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   const [calculatorExpression, setCalculatorExpression] = useState('');
   const [isCalculatorVisible, setIsCalculatorVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<GoalWithProgress | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const isIncome = expense?.type === 'income';
 
   useEffect(() => {
     if (expense) {
@@ -69,14 +63,21 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setTitle(expense.title);
       setAmount(nextAmount);
       setCalculatorExpression(nextAmount);
-      const matched = expense.categoryId
-        ? categories.find((c) => c.id === expense.categoryId)
-        : categories.find((c) => c.name === expense.category);
-      setSelectedCategory(matched ?? null);
+      if (expense.type === 'income') {
+        const matchedGoal = goals.find((goal) => goal.id === expense.goalId);
+        setSelectedGoal(matchedGoal ?? null);
+        setSelectedCategory(null);
+      } else {
+        const matched = expense.categoryId
+          ? categories.find((c) => c.id === expense.categoryId)
+          : categories.find((c) => c.name === expense.category);
+        setSelectedCategory(matched ?? null);
+        setSelectedGoal(null);
+      }
     } else {
       resetForm();
     }
-  }, [expense, visible, categories]);
+  }, [expense, visible, categories, goals]);
 
   function resetForm() {
     setTitle('');
@@ -84,6 +85,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     setCalculatorExpression('');
     setIsCalculatorVisible(false);
     setSelectedCategory(null);
+    setSelectedGoal(null);
   }
 
   function handleClose() {
@@ -122,23 +124,42 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       setCalculatorExpression(resolvedAmount);
     }
 
-    if (!selectedCategory) {
-      Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
-      return;
-    }
-
     try {
       setSaving(true);
-      await onSave(expense.id, {
-        title: title.trim(),
-        amount: parsedAmount,
-        category: selectedCategory.name,
-        categoryId: selectedCategory.id,
-        icon: selectedCategory.icon,
-        colorLight: selectedCategory.colorLight,
-        colorDark: selectedCategory.colorDark,
-        budgetLeft: selectedCategory.budget - selectedCategory.spent - parsedAmount,
-      });
+      if (expense.type === 'income') {
+        if (!selectedGoal) {
+          Alert.alert(t('addTransaction.noGoalTitle'), t('addTransaction.selectGoal'));
+          return;
+        }
+
+        await onSave(expense.id, {
+          title: title.trim(),
+          amount: parsedAmount,
+          goalId: selectedGoal.id,
+          category: undefined,
+          categoryId: undefined,
+          budgetLeft: undefined,
+          icon: 'cash',
+          colorLight: '#D1FAE5',
+          colorDark: INCOME_GREEN,
+        });
+      } else {
+        if (!selectedCategory) {
+          Alert.alert(t('addExpense.noCategory'), t('addExpense.selectCategory'));
+          return;
+        }
+
+        await onSave(expense.id, {
+          title: title.trim(),
+          amount: parsedAmount,
+          category: selectedCategory.name,
+          categoryId: selectedCategory.id,
+          icon: selectedCategory.icon,
+          colorLight: selectedCategory.colorLight,
+          colorDark: selectedCategory.colorDark,
+          budgetLeft: selectedCategory.budget - selectedCategory.spent - parsedAmount,
+        });
+      }
       resetForm();
       onClose();
     } catch (e: any) {
@@ -151,7 +172,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
   function handleDeletePress() {
     if (!expense) return;
     Alert.alert(
-      t('overview.deleteTitle'),
+      isIncome ? t('editExpense.deleteIncomeTitle') : t('overview.deleteTitle'),
       t('editExpense.deleteConfirmSpecific', { title: expense.title }),
       [
         { text: t('common.cancel'), style: 'cancel' },
@@ -230,7 +251,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
             <View className="flex-row items-center justify-between px-6 py-3">
               <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
-                {t('editExpense.title')}
+                {isIncome ? t('editExpense.titleIncome') : t('editExpense.title')}
               </Text>
               <TouchableOpacity
                 onPress={handleClose}
@@ -266,58 +287,117 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 isCalculatorVisible={isCalculatorVisible}
                 inputStyle={inputStyle}
                 labelStyle={labelStyle}
+                accentColor={isIncome ? INCOME_GREEN : theme.purple}
               />
 
-              <Text className="mb-3 text-xs font-semibold" style={{ color: theme.textSecondary }}>
-                {t('addExpense.categoryLabel')}
-              </Text>
-              {categories.length === 0 ? (
-                <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
-                  {t('addExpense.noCategories')}
-                </Text>
+              {isIncome ? (
+                <>
+                  <Text className="mb-3 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                    {t('addTransaction.assignToGoal')}
+                  </Text>
+                  {goals.length === 0 ? (
+                    <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                      {t('addTransaction.noGoalsYet')}
+                    </Text>
+                  ) : (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                      {goals.map((goal) => {
+                        const isSelected = selectedGoal?.id === goal.id;
+                        return (
+                          <TouchableOpacity
+                            key={goal.id}
+                            onPress={() => {
+                              hideCalculator();
+                              setSelectedGoal(goal);
+                            }}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              paddingHorizontal: 14,
+                              paddingVertical: 10,
+                              borderRadius: 16,
+                              backgroundColor: isSelected
+                                ? isDarkMode
+                                  ? INCOME_GREEN + '33'
+                                  : '#D1FAE5'
+                                : theme.cardBg,
+                              borderWidth: isSelected ? 2 : 1,
+                              borderColor: isSelected ? INCOME_GREEN : theme.border,
+                            }}>
+                            <Ionicons
+                              name={goal.icon as any}
+                              size={15}
+                              color={isSelected ? INCOME_GREEN : theme.textTertiary}
+                            />
+                            <Text
+                              style={{
+                                marginLeft: 6,
+                                fontSize: 13,
+                                fontWeight: '500',
+                                color: isSelected ? INCOME_GREEN : theme.textSecondary,
+                              }}>
+                              {goal.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+                </>
               ) : (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                  {categories.map((cat) => {
-                    const isSelected = selectedCategory?.id === cat.id;
-                    return (
-                      <TouchableOpacity
-                        key={cat.id}
-                        onPress={() => {
-                          hideCalculator();
-                          setSelectedCategory(cat);
-                        }}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          paddingHorizontal: 14,
-                          paddingVertical: 10,
-                          borderRadius: 16,
-                          backgroundColor: isSelected
-                            ? isDarkMode
-                              ? cat.colorDark + '33'
-                              : cat.colorLight
-                            : theme.cardBg,
-                          borderWidth: isSelected ? 2 : 1,
-                          borderColor: isSelected ? cat.colorDark : theme.border,
-                        }}>
-                        <Ionicons
-                          name={cat.icon as any}
-                          size={15}
-                          color={isSelected ? cat.colorDark : theme.textTertiary}
-                        />
-                        <Text
-                          style={{
-                            marginLeft: 6,
-                            fontSize: 13,
-                            fontWeight: '500',
-                            color: isSelected ? cat.colorDark : theme.textSecondary,
-                          }}>
-                          {cat.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                <>
+                  <Text className="mb-3 text-xs font-semibold" style={{ color: theme.textSecondary }}>
+                    {t('addExpense.categoryLabel')}
+                  </Text>
+                  {categories.length === 0 ? (
+                    <Text style={{ color: theme.textTertiary, fontSize: 14, marginBottom: 20 }}>
+                      {t('addExpense.noCategories')}
+                    </Text>
+                  ) : (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                      {categories.map((cat) => {
+                        const isSelected = selectedCategory?.id === cat.id;
+                        return (
+                          <TouchableOpacity
+                            key={cat.id}
+                            onPress={() => {
+                              hideCalculator();
+                              setSelectedCategory(cat);
+                            }}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              paddingHorizontal: 14,
+                              paddingVertical: 10,
+                              borderRadius: 16,
+                              backgroundColor: isSelected
+                                ? isDarkMode
+                                  ? cat.colorDark + '33'
+                                  : cat.colorLight
+                                : theme.cardBg,
+                              borderWidth: isSelected ? 2 : 1,
+                              borderColor: isSelected ? cat.colorDark : theme.border,
+                            }}>
+                            <Ionicons
+                              name={cat.icon as any}
+                              size={15}
+                              color={isSelected ? cat.colorDark : theme.textTertiary}
+                            />
+                            <Text
+                              style={{
+                                marginLeft: 6,
+                                fontSize: 13,
+                                fontWeight: '500',
+                                color: isSelected ? cat.colorDark : theme.textSecondary,
+                              }}>
+                              {cat.name}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+                </>
               )}
 
               <TouchableOpacity
@@ -334,7 +414,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                   <>
                     <Ionicons name="trash-outline" size={15} color="#F87171" />
                     <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
-                      {t('editExpense.delete')}
+                      {isIncome ? t('editExpense.deleteIncome') : t('editExpense.delete')}
                     </Text>
                   </>
                 )}
@@ -354,13 +434,15 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 disabled={saving || deleting}
                 className="items-center rounded-2xl py-4"
                 style={{
-                  backgroundColor: theme.purple,
+                  backgroundColor: isIncome ? INCOME_GREEN : theme.purple,
                   opacity: saving || deleting ? 0.7 : 1,
                 }}>
                 {saving ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text className="text-base font-bold text-white">{t('editExpense.save')}</Text>
+                  <Text className="text-base font-bold text-white">
+                    {isIncome ? t('editExpense.saveIncome') : t('editExpense.save')}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

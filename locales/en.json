@@ -144,8 +144,12 @@
   },
   "editExpense": {
     "title": "Edit Expense",
+    "titleIncome": "Edit Income",
     "save": "Save Changes",
+    "saveIncome": "Save Income",
     "delete": "Delete Expense",
+    "deleteIncome": "Delete Income",
+    "deleteIncomeTitle": "Delete Income",
     "deleteConfirmSpecific": "Are you sure you want to delete \"{{title}}\"?"
   },
   "addCategory": {
@@ -216,7 +220,8 @@
     }
   },
   "expenseItem": {
-    "left": "{{amount}} left"
+    "left": "{{amount}} left",
+    "goalProgress": "{{percent}}% filled"
   },
   "budgetCategoryItem": {
     "spent": "{{amount}} spent",

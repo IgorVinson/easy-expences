@@ -164,6 +164,15 @@ export default function OverviewScreen() {
     return transaction;
   }
 
+  function getIncomeMetaText(transaction: import('../../types').Expense) {
+    if (transaction.type !== 'income' || !transaction.goalId) return null;
+
+    const goal = goals.find((item) => item.id === transaction.goalId);
+    if (!goal) return null;
+
+    return t('expenseItem.goalProgress', { percent: Math.round(goal.progressPercent) });
+  }
+
   return (
     <View className="flex-1" style={{ backgroundColor: theme.bg }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -248,9 +257,10 @@ export default function OverviewScreen() {
                     flat
                     isLast={index === todayTransactions.length - 1}
                     budgetLeftOverride={expense.type === 'expense' ? derivedBudgetLeftByExpenseId[expense.id] ?? null : null}
-                    onPress={expense.type === 'expense' ? openEditExpense : undefined}
+                    amountMetaText={getIncomeMetaText(expense)}
+                    onPress={openEditExpense}
                     onDelete={handleDeleteExpense}
-                    onEdit={expense.type === 'expense' ? openEditExpense : undefined}
+                    onEdit={openEditExpense}
                   />
                 ))}
               </View>
@@ -277,9 +287,10 @@ export default function OverviewScreen() {
                   flat
                   isLast={index === yesterdayTransactions.length - 1}
                   budgetLeftOverride={expense.type === 'expense' ? derivedBudgetLeftByExpenseId[expense.id] ?? null : null}
-                  onPress={expense.type === 'expense' ? openEditExpense : undefined}
+                  amountMetaText={getIncomeMetaText(expense)}
+                  onPress={openEditExpense}
                   onDelete={handleDeleteExpense}
-                  onEdit={expense.type === 'expense' ? openEditExpense : undefined}
+                  onEdit={openEditExpense}
                 />
               ))}
             </View>
@@ -305,9 +316,10 @@ export default function OverviewScreen() {
                   flat
                   isLast={index === olderTransactions.length - 1}
                   budgetLeftOverride={expense.type === 'expense' ? derivedBudgetLeftByExpenseId[expense.id] ?? null : null}
-                  onPress={expense.type === 'expense' ? openEditExpense : undefined}
+                  amountMetaText={getIncomeMetaText(expense)}
+                  onPress={openEditExpense}
                   onDelete={handleDeleteExpense}
-                  onEdit={expense.type === 'expense' ? openEditExpense : undefined}
+                  onEdit={openEditExpense}
                   showDate
                 />
               ))}
@@ -351,6 +363,7 @@ export default function OverviewScreen() {
           onClose={closeEditExpense}
           expense={editingExpense}
           userId={user.uid}
+          goals={goals}
           onSave={handleUpdateExpense}
           onDelete={handleDeleteExpense}
         />
