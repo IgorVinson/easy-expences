@@ -28,8 +28,6 @@ import { PaywallModal } from './PaywallModal';
 
 type Tab = 'expense' | 'income';
 
-const INCOME_GREEN = '#10B981';
-
 interface AddExpenseModalProps {
   visible: boolean;
   onClose: () => void;
@@ -271,7 +269,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 <TouchableOpacity
                   key={tab}
                   onPress={() => { setActiveTab(tab); resetFields(); }}
-                  style={{ flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: activeTab === tab ? (tab === 'income' ? INCOME_GREEN : theme.purple) : 'transparent' }}>
+                  style={{ flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: activeTab === tab ? (tab === 'income' ? theme.success : theme.purple) : 'transparent' }}>
                   <Text style={{ color: activeTab === tab ? '#fff' : theme.textSecondary, fontWeight: '600', fontSize: 14 }}>
                     {tab === 'expense' ? t('addTransaction.expenseTab') : t('addTransaction.incomeTab')}
                   </Text>
@@ -303,7 +301,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     isCalculatorVisible={isCalculatorVisible}
                     inputStyle={inputStyle}
                     labelStyle={amountLabelStyle}
-                    accentColor={activeTab === 'income' ? INCOME_GREEN : theme.purple}
+                    accentColor={activeTab === 'income' ? theme.success : theme.purple}
                   />
 
                   {/* Expense: category selector */}
@@ -355,9 +353,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                               <TouchableOpacity
                                 key={goal.id}
                                 onPress={() => setSelectedGoal(goal)}
-                                style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? INCOME_GREEN + '33' : '#D1FAE5') : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? INCOME_GREEN : theme.border }}>
-                                <Ionicons name={goal.icon as any} size={15} color={isSelected ? INCOME_GREEN : theme.textTertiary} />
-                                <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? INCOME_GREEN : theme.textSecondary }}>
+                                style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: isSelected ? (isDarkMode ? theme.success + '33' : '#D1FAE5') : theme.cardBg, borderWidth: isSelected ? 2 : 1, borderColor: isSelected ? theme.success : theme.border }}>
+                                <Ionicons name={goal.icon as any} size={15} color={isSelected ? theme.success : theme.textTertiary} />
+                                <Text style={{ marginLeft: 6, fontSize: 13, fontWeight: '500', color: isSelected ? theme.success : theme.textSecondary }}>
                                   {goal.name}
                                 </Text>
                               </TouchableOpacity>
@@ -379,7 +377,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   )}
                   {/* Error */}
                   {Boolean(voiceError) && (
-                    <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                    <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: theme.error, backgroundColor: theme.errorBg }}>
                       <Text style={{ fontSize: 12, color: theme.textPrimary }}>{voiceError}</Text>
                     </View>
                   )}
@@ -391,7 +389,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         style={{
                           position: 'absolute',
                           width: 72, height: 72, borderRadius: 36,
-                          backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
+                          backgroundColor: isRecording ? theme.error : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                           opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                           transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
                         }}
@@ -402,7 +400,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         style={{
                           width: 72, height: 72, borderRadius: 36,
                           alignItems: 'center', justifyContent: 'center',
-                          backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
+                          backgroundColor: isRecording ? theme.error : theme.iconBg,
                           opacity: isProcessing ? 0.7 : 1,
                         }}>
                         {isProcessing
@@ -410,12 +408,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                           : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
                       {tier === 'basic' && (
-                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 4, backgroundColor: voiceRecordingsLeft > 0 ? '#8B5CF6' : '#EF4444' }}>
+                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 4, backgroundColor: voiceRecordingsLeft > 0 ? theme.purple : theme.error }}>
                           <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#fff' }}>{voiceRecordingsLeft}</Text>
                         </View>
                       )}
                       {tier === 'none' && (
-                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#EF4444' }}>
+                        <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: theme.error }}>
                           <Ionicons name="lock-closed" size={10} color="#fff" />
                         </View>
                       )}
@@ -425,7 +423,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                   <TouchableOpacity
                     onPress={handleSave}
                     disabled={saving}
-                    style={{ backgroundColor: activeTab === 'income' ? INCOME_GREEN : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
+                    style={{ backgroundColor: activeTab === 'income' ? theme.success : theme.purple, borderRadius: 16, paddingVertical: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}>
                     {saving ? <ActivityIndicator color="#fff" /> : (
                       <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
                         {activeTab === 'expense' ? t('addExpense.save') : t('addTransaction.saveIncome')}

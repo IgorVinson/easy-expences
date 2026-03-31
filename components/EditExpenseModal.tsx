@@ -21,8 +21,6 @@ import { useBudget } from '../hooks/useBudget';
 import { BudgetCategory, Expense, GoalWithProgress } from '../types';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 
-const INCOME_GREEN = '#10B981';
-
 interface EditExpenseModalProps {
   visible: boolean;
   onClose: () => void;
@@ -141,7 +139,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           budgetLeft: undefined,
           icon: 'cash',
           colorLight: '#D1FAE5',
-          colorDark: INCOME_GREEN,
+          colorDark: theme.success,
         });
       } else {
         if (!selectedCategory) {
@@ -287,7 +285,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 isCalculatorVisible={isCalculatorVisible}
                 inputStyle={inputStyle}
                 labelStyle={labelStyle}
-                accentColor={isIncome ? INCOME_GREEN : theme.purple}
+                accentColor={isIncome ? theme.success : theme.purple}
               />
 
               {isIncome ? (
@@ -318,23 +316,23 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                               borderRadius: 16,
                               backgroundColor: isSelected
                                 ? isDarkMode
-                                  ? INCOME_GREEN + '33'
+                                  ? theme.success + '33'
                                   : '#D1FAE5'
                                 : theme.cardBg,
                               borderWidth: isSelected ? 2 : 1,
-                              borderColor: isSelected ? INCOME_GREEN : theme.border,
+                              borderColor: isSelected ? theme.success : theme.border,
                             }}>
                             <Ionicons
                               name={goal.icon as any}
                               size={15}
-                              color={isSelected ? INCOME_GREEN : theme.textTertiary}
+                              color={isSelected ? theme.success : theme.textTertiary}
                             />
                             <Text
                               style={{
                                 marginLeft: 6,
                                 fontSize: 13,
                                 fontWeight: '500',
-                                color: isSelected ? INCOME_GREEN : theme.textSecondary,
+                                color: isSelected ? theme.success : theme.textSecondary,
                               }}>
                               {goal.name}
                             </Text>
@@ -405,15 +403,15 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 disabled={saving || deleting}
                 className="mb-4 mt-6 flex-row items-center justify-center gap-1.5 self-center rounded-xl border px-4 py-2"
                 style={{
-                  borderColor: '#F87171',
+                  borderColor: theme.error,
                   opacity: saving || deleting ? 0.5 : 1,
                 }}>
                 {deleting ? (
-                  <ActivityIndicator color="#F87171" size="small" />
+                  <ActivityIndicator color={theme.error} size="small" />
                 ) : (
                   <>
-                    <Ionicons name="trash-outline" size={15} color="#F87171" />
-                    <Text className="text-sm font-semibold" style={{ color: '#F87171' }}>
+                    <Ionicons name="trash-outline" size={15} color={theme.error} />
+                    <Text className="text-sm font-semibold" style={{ color: theme.error }}>
                       {isIncome ? t('editExpense.deleteIncome') : t('editExpense.delete')}
                     </Text>
                   </>
@@ -434,7 +432,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 disabled={saving || deleting}
                 className="items-center rounded-2xl py-4"
                 style={{
-                  backgroundColor: isIncome ? INCOME_GREEN : theme.purple,
+                  backgroundColor: isIncome ? theme.success : theme.purple,
                   opacity: saving || deleting ? 0.7 : 1,
                 }}>
                 {saving ? (

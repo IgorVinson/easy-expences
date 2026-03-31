@@ -14,6 +14,15 @@ type Theme = {
   isDark: boolean;
   expenseIconBg: (colorLight: string, colorDark: string) => string;
   expenseIconColor: (colorDark: string) => string;
+  // Semantic colors
+  success: string;
+  successBg: string;
+  error: string;
+  errorBg: string;
+  warning: string;
+  warningBg: string;
+  info: string;
+  infoBg: string;
 };
 
 type ThemeContextType = {
@@ -50,6 +59,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     expenseIconBg: (colorLight: string, colorDark: string) =>
       isDarkMode ? colorDark + '33' : colorLight,
     expenseIconColor: (colorDark: string) => colorDark,
+    // Semantic colors
+    success: '#10B981',
+    successBg: isDarkMode ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+    error: '#EF4444',
+    errorBg: isDarkMode ? 'rgba(239,68,68,0.15)' : '#FEE2E2',
+    warning: '#F59E0B',
+    warningBg: isDarkMode ? 'rgba(245,158,11,0.15)' : '#FFFBEB',
+    info: '#0EA5E9',
+    infoBg: isDarkMode ? 'rgba(14,165,233,0.15)' : '#E0F2FE',
   };
 
   const toggleTheme = () => setThemePreference(isDarkMode ? 'light' : 'dark');

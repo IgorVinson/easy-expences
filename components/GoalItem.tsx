@@ -76,7 +76,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
           justifyContent: 'flex-start',
           borderRadius: flat ? 0 : 18,
           paddingHorizontal: 24,
-          backgroundColor: '#EF4444',
+          backgroundColor: theme.error,
         }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
           <Ionicons name="trash-outline" size={22} color="white" />
@@ -158,7 +158,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
                   height: '100%',
                   borderRadius: 999,
                   width: `${Math.min(goal.progressPercent, 100)}%`,
-                  backgroundColor: isComplete ? '#10B981' : goal.colorDark,
+                  backgroundColor: isComplete ? theme.success : goal.colorDark,
                 }}
               />
             </View>
@@ -170,7 +170,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
               paddingHorizontal: 10,
               paddingVertical: 6,
               backgroundColor: isComplete
-                ? 'rgba(16,185,129,0.12)'
+                ? theme.successBg
                 : (theme.isDark ? goal.colorDark + '22' : goal.colorLight),
               marginLeft: 12,
             }}>
@@ -178,7 +178,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
               style={{
                 fontSize: 12,
                 fontWeight: '700',
-                color: isComplete ? '#10B981' : goal.colorDark,
+                color: isComplete ? theme.success : goal.colorDark,
               }}>
               {isComplete ? '✓' : `${pct}%`}
             </Text>

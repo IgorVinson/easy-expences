@@ -82,7 +82,7 @@ const ListeningIndicator = () => {
           <VoiceBar
             key={index}
             delay={delay}
-            color={isDarkMode ? '#F87171' : '#EF4444'}
+            color={theme.error}
             minHeight={5}
             maxHeight={index % 2 === 0 ? 18 : 14}
           />
@@ -91,7 +91,7 @@ const ListeningIndicator = () => {
       <Animated.View
         style={[
           styles.dot,
-          { backgroundColor: isDarkMode ? '#F87171' : '#EF4444' },
+          { backgroundColor: theme.error },
           { opacity: dotOpacity },
         ]}
       />

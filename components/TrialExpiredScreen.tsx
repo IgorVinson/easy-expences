@@ -151,7 +151,7 @@ export const TrialExpiredScreen: React.FC = () => {
           <View
             className="mb-4 h-16 w-16 items-center justify-center rounded-full"
             style={{ backgroundColor: isDarkMode ? 'rgba(139,92,246,0.15)' : '#EDE9FE' }}>
-            <Ionicons name="time-outline" size={32} color="#8B5CF6" />
+            <Ionicons name="time-outline" size={32} color={theme.purple} />
           </View>
           <Text className="text-2xl font-bold text-center" style={{ color: theme.textPrimary }}>
             {t('paywall.expiredTitle')}
@@ -183,8 +183,8 @@ export const TrialExpiredScreen: React.FC = () => {
               </Text>
             </View>
             <View className="w-16 items-center">
-              <Text className="text-xs font-bold uppercase" style={{ color: '#8B5CF6' }}>
-                {t('common.premium')}
+<Text className="text-xs font-bold uppercase" style={{ color: theme.purple }}>
+                  {t('common.premium')}
               </Text>
             </View>
           </View>
@@ -211,7 +211,7 @@ export const TrialExpiredScreen: React.FC = () => {
                 </Text>
               </View>
               <View className="w-16 items-center">
-                <Text className="text-xs font-semibold" style={{ color: '#8B5CF6' }}>
+                <Text className="text-xs font-semibold" style={{ color: theme.purple }}>
                   {feature.premium}
                 </Text>
               </View>
@@ -231,14 +231,14 @@ export const TrialExpiredScreen: React.FC = () => {
                   ? isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF'
                   : isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
               borderWidth: selectedTier === 'premium' ? 2 : 1,
-              borderColor: selectedTier === 'premium' ? '#8B5CF6' : theme.border,
+              borderColor: selectedTier === 'premium' ? theme.purple : theme.border,
             }}>
             <View className="flex-1">
               <View className="flex-row items-center">
                 <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
                   {t('paywall.plans.premium')}
                 </Text>
-                <View className="ml-2 rounded-full px-2 py-0.5" style={{ backgroundColor: '#8B5CF6' }}>
+                <View className="ml-2 rounded-full px-2 py-0.5" style={{ backgroundColor: theme.purple }}>
                   <Text className="text-[10px] font-bold text-white">
                     {t('paywall.plans.recommended')}
                   </Text>
@@ -254,8 +254,8 @@ export const TrialExpiredScreen: React.FC = () => {
               className="h-6 w-6 items-center justify-center rounded-full"
               style={{
                 borderWidth: 2,
-                borderColor: selectedTier === 'premium' ? '#8B5CF6' : theme.border,
-                backgroundColor: selectedTier === 'premium' ? '#8B5CF6' : 'transparent',
+                borderColor: selectedTier === 'premium' ? theme.purple : theme.border,
+                backgroundColor: selectedTier === 'premium' ? theme.purple : 'transparent',
               }}>
               {selectedTier === 'premium' && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
             </View>
@@ -271,7 +271,7 @@ export const TrialExpiredScreen: React.FC = () => {
                   ? isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF'
                   : isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
               borderWidth: selectedTier === 'basic' ? 2 : 1,
-              borderColor: selectedTier === 'basic' ? '#8B5CF6' : theme.border,
+              borderColor: selectedTier === 'basic' ? theme.purple : theme.border,
             }}>
             <View className="flex-1">
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
@@ -287,8 +287,8 @@ export const TrialExpiredScreen: React.FC = () => {
               className="h-6 w-6 items-center justify-center rounded-full"
               style={{
                 borderWidth: 2,
-                borderColor: selectedTier === 'basic' ? '#8B5CF6' : theme.border,
-                backgroundColor: selectedTier === 'basic' ? '#8B5CF6' : 'transparent',
+                borderColor: selectedTier === 'basic' ? theme.purple : theme.border,
+                backgroundColor: selectedTier === 'basic' ? theme.purple : 'transparent',
               }}>
               {selectedTier === 'basic' && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
             </View>
@@ -300,7 +300,7 @@ export const TrialExpiredScreen: React.FC = () => {
           <TouchableOpacity onPress={() => setBillingCycle('monthly')}>
             <Text
               className="text-sm font-semibold"
-              style={{ color: billingCycle === 'monthly' ? '#8B5CF6' : theme.textTertiary }}>
+              style={{ color: billingCycle === 'monthly' ? theme.purple : theme.textTertiary }}>
               {t('paywall.plans.monthly')}
             </Text>
           </TouchableOpacity>
@@ -308,7 +308,7 @@ export const TrialExpiredScreen: React.FC = () => {
           <TouchableOpacity onPress={() => setBillingCycle('annual')}>
             <Text
               className="text-sm font-semibold"
-              style={{ color: billingCycle === 'annual' ? '#8B5CF6' : theme.textTertiary }}>
+              style={{ color: billingCycle === 'annual' ? theme.purple : theme.textTertiary }}>
               {t('paywall.plans.annual')} ({t('paywall.plans.savePercent', { percent: 20 })})
             </Text>
           </TouchableOpacity>
@@ -319,7 +319,7 @@ export const TrialExpiredScreen: React.FC = () => {
           onPress={handlePurchase}
           disabled={purchasing}
           className="items-center justify-center rounded-2xl py-4"
-          style={{ backgroundColor: '#8B5CF6', opacity: purchasing ? 0.7 : 1 }}>
+          style={{ backgroundColor: theme.purple, opacity: purchasing ? 0.7 : 1 }}>
           {purchasing ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
@@ -360,14 +360,14 @@ export const TrialExpiredScreen: React.FC = () => {
                 backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
                 color: theme.textPrimary,
                 borderWidth: promoError ? 1 : 0,
-                borderColor: '#EF4444',
+                borderColor: theme.error,
               }}
             />
             <TouchableOpacity
               onPress={handleRedeemPromo}
               disabled={promoLoading}
               className="rounded-xl px-4 py-3"
-              style={{ backgroundColor: '#8B5CF6' }}>
+              style={{ backgroundColor: theme.purple }}>
               {promoLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
@@ -377,7 +377,7 @@ export const TrialExpiredScreen: React.FC = () => {
           </View>
         )}
         {promoError ? (
-          <Text className="mt-1 text-center text-xs" style={{ color: '#EF4444' }}>
+          <Text className="mt-1 text-center text-xs" style={{ color: theme.error }}>
             {promoError}
           </Text>
         ) : null}

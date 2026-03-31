@@ -113,7 +113,7 @@ export const GoalDetailModal: React.FC<GoalDetailModalProps> = ({
                       {new Date(txn.date).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </Text>
                   </View>
-                  <Text style={{ color: '#10B981', fontSize: 16, fontWeight: '700' }}>
+                  <Text style={{ color: theme.success, fontSize: 16, fontWeight: '700' }}>
                     +{formatCurrencyAmount(txn.amount, currency, i18n.language)}
                   </Text>
                 </View>
