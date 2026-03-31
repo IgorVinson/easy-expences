@@ -169,24 +169,17 @@ export const BudgetCategoryItem = ({
           {/* Name + spent/budget */}
           <View style={{ flex: 1 }}>
             <Text
-              style={{
-                fontSize: flat ? 16 : 15,
-                fontWeight: flat ? '500' : '700',
-                color: theme.textPrimary,
-                marginBottom: 2,
-              }}>
+              className="text-base font-bold"
+              style={{ color: theme.textPrimary, marginBottom: 2 }}>
               {category.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '700',
-                  color: isOverBudget ? theme.error : theme.textTertiary,
-                }}>
+                className="text-sm font-bold"
+                style={{ color: isOverBudget ? theme.error : theme.textTertiary }}>
                 {formattedSpent}
               </Text>
-              <Text style={{ fontSize: 12, color: theme.textTertiary }}>/ {formattedBudget}</Text>
+              <Text className="text-xs" style={{ color: theme.textTertiary }}>/ {formattedBudget}</Text>
             </View>
           </View>
 
@@ -198,12 +191,8 @@ export const BudgetCategoryItem = ({
               paddingVertical: 0,
             }}>
             <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                color: theme.textPrimary,
-                letterSpacing: -0.2,
-              }}>
+              className="text-sm font-bold"
+              style={{ color: theme.textPrimary, letterSpacing: -0.2 }}>
               {isOverBudget
                 ? t('budgetCategoryItem.over', { amount: formattedRemaining })
                 : t('budgetCategoryItem.left', { amount: formattedRemaining })}

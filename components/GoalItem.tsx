@@ -134,14 +134,14 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
           </View>
 
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: theme.textPrimary, marginBottom: 2 }}>
+            <Text className="text-base font-medium" style={{ color: theme.textPrimary, marginBottom: 2 }}>
               {goal.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.textSecondary }}>
+              <Text className="text-sm font-bold" style={{ color: theme.textSecondary }}>
                 {formattedSaved}
               </Text>
-              <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+              <Text className="text-xs" style={{ color: theme.textTertiary }}>
                 / {formattedTarget}
               </Text>
             </View>
@@ -175,11 +175,8 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
               marginLeft: 12,
             }}>
             <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: isComplete ? theme.success : goal.colorDark,
-              }}>
+              className="text-xs font-bold"
+              style={{ color: isComplete ? theme.success : goal.colorDark }}>
               {isComplete ? '✓' : `${pct}%`}
             </Text>
           </View>
