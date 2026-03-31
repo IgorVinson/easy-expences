@@ -163,7 +163,7 @@ export const BudgetCategoryItem = ({
               backgroundColor: theme.isDark ? category.colorDark + '22' : category.colorLight,
               marginRight: flat ? 16 : 12,
             }}>
-            <Ionicons name={category.icon} size={flat ? 20 : 22} color={category.colorDark} />
+            <Ionicons name={category.icon} size={20} color={category.colorDark} />
           </View>
 
           {/* Name + spent/budget */}

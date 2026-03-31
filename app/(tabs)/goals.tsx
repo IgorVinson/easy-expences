@@ -371,7 +371,7 @@ export default function GoalsScreen() {
 
           {goalsExpanded && (goalsLoading ? (
             <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-              <ActivityIndicator size="large" color="#10B981" />
+              <ActivityIndicator size="large" color={theme.success} />
             </View>
           ) : goals.length === 0 ? (
             <View
@@ -388,12 +388,12 @@ export default function GoalsScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: 14,
-                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    backgroundColor: theme.successBg,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
                   }}>
-                  <Ionicons name="flag-outline" size={24} color="#10B981" />
+                  <Ionicons name="flag-outline" size={24} color={theme.success} />
                 </View>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textSecondary }}>
                   {t('goals.noGoals')}
@@ -536,10 +536,10 @@ export default function GoalsScreen() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: '#10B981',
+          backgroundColor: theme.success,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#10B981',
+          shadowColor: theme.success,
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: isDarkMode ? 0.22 : 0.28,
           shadowRadius: 10,

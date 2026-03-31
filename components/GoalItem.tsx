@@ -130,7 +130,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
               backgroundColor: theme.isDark ? goal.colorDark + '22' : goal.colorLight,
               marginRight: flat ? 16 : 12,
             }}>
-            <Ionicons name={goal.icon} size={flat ? 20 : 22} color={goal.colorDark} />
+            <Ionicons name={goal.icon} size={20} color={goal.colorDark} />
           </View>
 
           <View style={{ flex: 1 }}>

@@ -73,7 +73,7 @@ export const ExpenseItem = ({
         className="mb-3 ml-2 flex-row items-center justify-end rounded-2xl px-6"
         style={{ backgroundColor: theme.purple }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
-          <Ionicons name="create-outline" size={24} color="white" />
+          <Ionicons name="create-outline" size={22} color="white" />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -99,7 +99,7 @@ export const ExpenseItem = ({
         className="mb-3 mr-2 flex-row items-center justify-start rounded-2xl px-6"
         style={{ backgroundColor: theme.error }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
-          <Ionicons name="trash-outline" size={24} color="white" />
+          <Ionicons name="trash-outline" size={22} color="white" />
         </Animated.View>
       </TouchableOpacity>
     );
@@ -147,7 +147,7 @@ export const ExpenseItem = ({
             }}>
             <Ionicons
               name={expense.icon}
-              size={flat ? 20 : 24}
+              size={20}
               color={theme.isDark ? expense.colorDark : expense.colorDark.replace('33', '')}
             />
           </View>

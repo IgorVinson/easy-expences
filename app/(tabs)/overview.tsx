@@ -334,8 +334,10 @@ export default function OverviewScreen() {
       {/* Quick Add Button */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="absolute bottom-6 right-6 h-16 w-16 items-center justify-center rounded-full shadow-lg"
+        className="absolute bottom-6 right-6 items-center justify-center rounded-full shadow-lg"
         style={{
+          width: 56,
+          height: 56,
           backgroundColor: theme.purple,
           shadowColor: fabShadowColor,
           shadowOffset: { width: 0, height: 4 },
@@ -343,7 +345,7 @@ export default function OverviewScreen() {
           shadowRadius: 4.65,
           elevation: 8,
         }}>
-        <Ionicons name="add" size={32} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
       {/* Add Expense Modal */}
