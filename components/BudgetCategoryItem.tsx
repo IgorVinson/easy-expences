@@ -34,7 +34,7 @@ export const BudgetCategoryItem = ({
   const remaining = category.budget - category.spent;
   const isOverBudget = remaining < 0;
 
-  const barColor = isOverBudget ? '#EF4444' : category.colorDark;
+  const barColor = isOverBudget ? theme.error : category.colorDark;
 
   const formattedSpent = formatCurrencyAmount(category.spent, currency, i18n.language, {
     minimumFractionDigits: 0,
@@ -96,7 +96,7 @@ export const BudgetCategoryItem = ({
           justifyContent: 'flex-start',
           borderRadius: flat ? 0 : 18,
           paddingHorizontal: 24,
-          backgroundColor: '#EF4444',
+          backgroundColor: theme.error,
         }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
           <Ionicons name="trash-outline" size={22} color="white" />
@@ -182,7 +182,7 @@ export const BudgetCategoryItem = ({
                 style={{
                   fontSize: 13,
                   fontWeight: '700',
-                  color: isOverBudget ? '#EF4444' : theme.textTertiary,
+                  color: isOverBudget ? theme.error : theme.textTertiary,
                 }}>
                 {formattedSpent}
               </Text>

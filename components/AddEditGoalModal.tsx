@@ -362,8 +362,8 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                   {goal && onDelete && (
                     <TouchableOpacity
                       onPress={() => { handleClose(); onDelete(goal.id); }}
-                      style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 16, backgroundColor: '#EF444415', marginBottom: 8 }}>
-                      <Text style={{ color: '#EF4444', fontWeight: '600', fontSize: 15 }}>
+                      style={{ paddingVertical: 14, alignItems: 'center', borderRadius: 16, backgroundColor: theme.errorBg, marginBottom: 8 }}>
+                      <Text style={{ color: theme.error, fontWeight: '600', fontSize: 15 }}>
                         {t('goals.deleteTitle')}
                       </Text>
                     </TouchableOpacity>
@@ -378,7 +378,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                     </View>
                   )}
                   {!goal && Boolean(voiceError) && (
-                    <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: '#F87171', backgroundColor: isDarkMode ? '#7F1D1D33' : '#FEE2E2' }}>
+                    <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: theme.error, backgroundColor: theme.errorBg }}>
                       <Text style={{ fontSize: 12, color: theme.textPrimary }}>{voiceError}</Text>
                     </View>
                   )}
@@ -392,7 +392,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                             width: MIC_BUTTON_SIZE,
                             height: MIC_BUTTON_SIZE,
                             borderRadius: MIC_BUTTON_SIZE / 2,
-                            backgroundColor: isRecording ? '#EF4444' : (isDarkMode ? '#6B7280' : '#9CA3AF'),
+                            backgroundColor: isRecording ? theme.error : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                             opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                             transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
                           }}
@@ -405,7 +405,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                             height: MIC_BUTTON_SIZE,
                             borderRadius: MIC_BUTTON_SIZE / 2,
                             alignItems: 'center', justifyContent: 'center',
-                            backgroundColor: isRecording ? '#EF4444' : theme.iconBg,
+                            backgroundColor: isRecording ? theme.error : theme.iconBg,
                             opacity: isProcessing ? 0.7 : 1,
                           }}>
                           {isProcessing

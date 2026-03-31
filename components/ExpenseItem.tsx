@@ -97,7 +97,7 @@ export const ExpenseItem = ({
           onDelete?.(expense.id);
         }}
         className="mb-3 mr-2 flex-row items-center justify-start rounded-2xl px-6"
-        style={{ backgroundColor: '#EF4444' }}>
+        style={{ backgroundColor: theme.error }}>
         <Animated.View style={{ transform: [{ translateX: trans }] }}>
           <Ionicons name="trash-outline" size={24} color="white" />
         </Animated.View>
@@ -168,7 +168,7 @@ export const ExpenseItem = ({
         <View className="ml-3 flex-col items-end">
           <Text
             className="text-base font-semibold"
-            style={{ color: isIncome ? '#10B981' : theme.textPrimary }}>
+            style={{ color: isIncome ? theme.success : theme.textPrimary }}>
             {displayAmount}
           </Text>
           {amountMetaText ? (

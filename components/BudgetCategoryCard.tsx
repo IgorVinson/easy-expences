@@ -66,7 +66,7 @@ export const BudgetCategoryCard = ({ category }: { category: BudgetCategory }) =
             className="h-full rounded-full"
             style={{
               width: `${percent}%`,
-              backgroundColor: isOverBudget ? '#EF4444' : category.colorDark,
+              backgroundColor: isOverBudget ? theme.error : category.colorDark,
             }}
           />
         </View>
@@ -83,7 +83,7 @@ export const BudgetCategoryCard = ({ category }: { category: BudgetCategory }) =
           </Text>
           <Text
             className="text-sm font-medium"
-            style={{ color: isOverBudget ? '#EF4444' : theme.textSecondary }}>
+            style={{ color: isOverBudget ? theme.error : theme.textSecondary }}>
             {isOverBudget
               ? t('budgetCategoryItem.over', {
                   amount: formatCurrencyAmount(Math.abs(remaining), currency, i18n.language, {
