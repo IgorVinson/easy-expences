@@ -169,13 +169,13 @@ export const BudgetCategoryItem = ({
           {/* Name + spent/budget */}
           <View style={{ flex: 1 }}>
             <Text
-              className="text-base font-bold"
+              className="text-base font-medium"
               style={{ color: theme.textPrimary, marginBottom: 2 }}>
               {category.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Text
-                className="text-sm font-bold"
+                className="text-sm"
                 style={{ color: isOverBudget ? theme.error : theme.textTertiary }}>
                 {formattedSpent}
               </Text>
