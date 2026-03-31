@@ -138,7 +138,7 @@ export const GoalItem = ({ goal, onPress, onDelete, onEdit, flat = false, isLast
               {goal.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <Text className="text-sm font-bold" style={{ color: theme.textSecondary }}>
+              <Text className="text-sm" style={{ color: theme.textSecondary }}>
                 {formattedSaved}
               </Text>
               <Text className="text-xs" style={{ color: theme.textTertiary }}>
