@@ -231,7 +231,7 @@ export default function GoalsScreen() {
 
         <View className="mb-6 px-6">
           <View
-            className="rounded-2xl p-4"
+            className="rounded-2xl px-6 py-6"
             style={[
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
               !isDarkMode && styles.cardShadow,
@@ -294,8 +294,8 @@ export default function GoalsScreen() {
         </View>
 
         <View className="mb-6 px-6">
-          <View className="mb-4 flex-row items-center">
-            <Text className="flex-1 text-xl font-bold" style={{ color: theme.textPrimary }}>
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('goals.budgetsSection')}
             </Text>
             <TouchableOpacity onPress={() => setBudgetsExpanded((v) => !v)}>
@@ -329,10 +329,10 @@ export default function GoalsScreen() {
                   }}>
                   <Ionicons name="wallet-outline" size={24} color={theme.purple} />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textSecondary }}>
+                <Text className="text-sm font-bold" style={{ color: theme.textSecondary }}>
                   {t('budget.noCategories')}
                 </Text>
-                <Text style={{ fontSize: 13, color: theme.textTertiary, marginTop: 4 }}>
+                <Text className="text-xs" style={{ color: theme.textTertiary, marginTop: 4 }}>
                   {t('goals.tapAddBudget')}
                 </Text>
               </TouchableOpacity>
@@ -360,8 +360,8 @@ export default function GoalsScreen() {
         </View>
 
         <View className="mb-8 px-6">
-          <View className="mb-4 flex-row items-center">
-            <Text className="flex-1 text-xl font-bold" style={{ color: theme.textPrimary }}>
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-xl font-bold" style={{ color: theme.textPrimary }}>
               {t('goals.goalsSection')}
             </Text>
             <TouchableOpacity onPress={() => setGoalsExpanded((v) => !v)}>
@@ -371,7 +371,7 @@ export default function GoalsScreen() {
 
           {goalsExpanded && (goalsLoading ? (
             <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-              <ActivityIndicator size="large" color="#10B981" />
+              <ActivityIndicator size="large" color={theme.success} />
             </View>
           ) : goals.length === 0 ? (
             <View
@@ -388,17 +388,17 @@ export default function GoalsScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: 14,
-                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    backgroundColor: theme.successBg,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
                   }}>
-                  <Ionicons name="flag-outline" size={24} color="#10B981" />
+                  <Ionicons name="flag-outline" size={24} color={theme.success} />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textSecondary }}>
+                <Text className="text-sm font-bold" style={{ color: theme.textSecondary }}>
                   {t('goals.noGoals')}
                 </Text>
-                <Text style={{ fontSize: 13, color: theme.textTertiary, marginTop: 4 }}>
+                <Text className="text-xs" style={{ color: theme.textTertiary, marginTop: 4 }}>
                   {t('goals.tapAddGoal')}
                 </Text>
               </TouchableOpacity>
@@ -475,7 +475,7 @@ export default function GoalsScreen() {
               shadowRadius: 8,
               elevation: 6,
             }}>
-            <Text style={{ color: theme.textPrimary, fontWeight: '700', fontSize: 15 }}>
+            <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>
               {t('goals.budgetsSection')}
             </Text>
             <View
@@ -509,7 +509,7 @@ export default function GoalsScreen() {
               shadowRadius: 8,
               elevation: 6,
             }}>
-            <Text style={{ color: theme.textPrimary, fontWeight: '700', fontSize: 15 }}>
+            <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>
               {t('goals.goalsSection')}
             </Text>
             <View
@@ -536,10 +536,10 @@ export default function GoalsScreen() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: '#10B981',
+          backgroundColor: theme.success,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#10B981',
+          shadowColor: theme.success,
           shadowOffset: { width: 0, height: 6 },
           shadowOpacity: isDarkMode ? 0.22 : 0.28,
           shadowRadius: 10,

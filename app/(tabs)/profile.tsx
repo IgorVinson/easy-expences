@@ -256,21 +256,21 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 onPress={() => setIsPaywallOpen(true)}
                 className="w-full items-center justify-center rounded-xl py-3"
-                style={{ backgroundColor: '#8B5CF6' }}>
+                style={{ backgroundColor: theme.purple }}>
                 <Text className="text-sm font-bold text-white">{t('profile.upgradeToPremium')}</Text>
               </TouchableOpacity>
             ) : tier === 'trial' ? (
               <TouchableOpacity
                 onPress={() => setIsPaywallOpen(true)}
                 className="w-full items-center justify-center rounded-xl py-3"
-                style={{ backgroundColor: '#8B5CF6' }}>
+                style={{ backgroundColor: theme.purple }}>
                 <Text className="text-sm font-bold text-white">{t('profile.choosePlan')}</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 onPress={() => setIsPaywallOpen(true)}
                 className="w-full items-center justify-center rounded-xl py-3"
-                style={{ backgroundColor: '#8B5CF6' }}>
+                style={{ backgroundColor: theme.purple }}>
                 <Text className="text-sm font-bold text-white">{t('profile.subscribe')}</Text>
               </TouchableOpacity>
             )}
