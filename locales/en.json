@@ -176,12 +176,12 @@
     "couldNotTranscribe": "Could not transcribe your recording. Please try again."
   },
   "paywall": {
-    "title": "Unlock SaySpend",
+    "title": "Unlock Keelio",
     "subtitle": "Choose the plan that works for you",
     "trialTitle": "Trial: {{days}} days left",
     "trialSubtitle": "Pick your plan before trial ends",
     "expiredTitle": "Your Trial Has Ended",
-    "expiredSubtitle": "Choose a plan to continue using SaySpend",
+    "expiredSubtitle": "Choose a plan to continue using Keelio",
     "features": {
       "voice": "Voice Recording",
       "manualExpenses": "Manual Expenses",

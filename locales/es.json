@@ -176,12 +176,12 @@
     "couldNotTranscribe": "No se pudo transcribir la grabación. Inténtalo de nuevo."
   },
   "paywall": {
-    "title": "Desbloquea SaySpend",
+    "title": "Desbloquea Keelio",
     "subtitle": "Elige el plan que mejor se adapte a ti",
     "trialTitle": "Prueba: {{days}} días restantes",
     "trialSubtitle": "Elige tu plan antes de que termine la prueba",
     "expiredTitle": "Tu prueba ha terminado",
-    "expiredSubtitle": "Elige un plan para seguir usando SaySpend",
+    "expiredSubtitle": "Elige un plan para seguir usando Keelio",
     "features": {
       "voice": "Grabación de voz",
       "manualExpenses": "Gastos manuales",

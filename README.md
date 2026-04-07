@@ -1,4 +1,4 @@
-# Easy Expenses
+# Keelio
 
 React Native mobile expense tracker with Firebase auth and real-time sync.
 
@@ -39,8 +39,8 @@ Easy Expenses is a mobile budgeting application built with React Native and Expo
 
 ```bash
 # Clone the repository
-git clone https://github.com/IgorVinson/sayspend.git
-cd sayspend
+git clone https://github.com/IgorVinson/keelio.git
+cd keelio
 
 # Install dependencies
 npm install
@@ -60,12 +60,12 @@ Create a `firebaseConfig.js` file with your Firebase configuration:
 
 ```javascript
 export const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  apiKey: 'your-api-key',
+  authDomain: 'your-project.firebaseapp.com',
+  projectId: 'your-project-id',
+  storageBucket: 'your-project.appspot.com',
+  messagingSenderId: '123456789',
+  appId: 'your-app-id',
 };
 ```
 

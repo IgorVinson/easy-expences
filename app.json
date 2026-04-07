@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SaySpend",
-    "slug": "sayspend",
+    "name": "Keelio",
+    "slug": "keelio",
     "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,12 +28,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sayspend.app",
+      "bundleIdentifier": "com.keelio.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "LSApplicationQueriesSchemes": ["mailto"]
@@ -41,7 +39,7 @@
     },
     "android": {
       "googleServicesFile": "./google-services.json",
-      "package": "com.sayspend.app",
+      "package": "com.keelio.app",
       "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -53,18 +51,15 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "com.sayspend.app",
+              "scheme": "com.keelio.app",
               "host": "oauth2redirect"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
-    "scheme": "sayspend",
+    "scheme": "keelio",
     "extra": {
       "router": {},
       "eas": {

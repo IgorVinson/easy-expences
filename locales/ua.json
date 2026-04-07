@@ -176,12 +176,12 @@
     "couldNotTranscribe": "Не вдалося розпізнати запис. Спробуйте ще раз."
   },
   "paywall": {
-    "title": "Розблокуйте SaySpend",
+    "title": "Розблокуйте Keelio",
     "subtitle": "Оберіть тариф, який вам підходить",
     "trialTitle": "Пробний період: {{days}} днів залишилось",
     "trialSubtitle": "Оберіть тариф до завершення пробного періоду",
     "expiredTitle": "Пробний період закінчився",
-    "expiredSubtitle": "Оберіть тариф, щоб продовжити користуватися SaySpend",
+    "expiredSubtitle": "Оберіть тариф, щоб продовжити користуватися Keelio",
     "features": {
       "voice": "Голосовий запис",
       "manualExpenses": "Ручні витрати",
