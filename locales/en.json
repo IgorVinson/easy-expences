@@ -275,7 +275,9 @@
     "s5": {
       "titlePart1": "No more ",
       "titleAccent": "guessing",
-      "titlePart2": ".\nWhat expenses do you want to track?",
+      "titlePart2Prefix": ".\nWhat ",
+      "titlePart2Accent": "expenses",
+      "titlePart2Suffix": " do you want to track?",
       "subtitle": "Select all that apply to personalize your experience.",
       "customLabel": "Other custom expense",
       "customPlaceholder": "e.g. Wellness, Pet supplies",

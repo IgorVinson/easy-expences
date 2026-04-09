@@ -275,7 +275,9 @@
     "s5": {
       "titlePart1": "Більше ніяких ",
       "titleAccent": "здогадок",
-      "titlePart2": ".\nЯкі витрати ти хочеш відстежувати?",
+      "titlePart2Prefix": ".\nЯкі ",
+      "titlePart2Accent": "витрати",
+      "titlePart2Suffix": " ти хочеш відстежувати?",
       "subtitle": "Обери всі відповідні варіанти для персоналізації.",
       "customLabel": "Інша категорія витрат",
       "customPlaceholder": "напр. Здоров'я, Домашні тварини",

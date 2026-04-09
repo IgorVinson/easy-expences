@@ -273,7 +273,11 @@
       "socialProof": "Únete a 5000+ personas que ahorran más con el \"anti-presupuesto\"."
     },
     "s5": {
-      "title": "Sin más adivinanzas.\n¿Qué gastos quieres rastrear?",
+      "titlePart1": "Sin más ",
+      "titleAccent": "adivinanzas",
+      "titlePart2Prefix": ".\n¿Qué ",
+      "titlePart2Accent": "gastos",
+      "titlePart2Suffix": " quieres rastrear?",
       "subtitle": "Selecciona todo lo que aplique para personalizar tu experiencia.",
       "customLabel": "Otro gasto personalizado",
       "customPlaceholder": "ej. Bienestar, Mascotas",
@@ -289,7 +293,9 @@
       "opt_add": "Agregar"
     },
     "s6": {
-      "title": "¿Qué metas quieres rastrear?",
+      "titlePart1": "¿Qué ",
+      "titleAccent": "metas",
+      "titlePart2": " quieres rastrear?",
       "subtitle": "Todo santuario comienza con una intención. Dinos hacia qué trabajas.",
       "inputPlaceholder": "ej. Viaje a Bali o un Tesla nuevo",
       "chipsLabel": "Metas Populares",

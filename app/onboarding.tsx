@@ -651,14 +651,13 @@ function Screen5({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
         <Text style={[styles.headline, { color: theme.textPrimary, marginBottom: 6 }]}>
-          {t('onboarding.s5.title')
-            .split('\n')
-            .map((line, i) => (
-              <Text key={i}>
-                {i > 0 ? '\n' : ''}
-                {line}
-              </Text>
-            ))}
+          {t('onboarding.s5.titlePart1')}
+          <Text style={{ color: theme.info }}>{t('onboarding.s5.titleAccent')}</Text>
+          <Text>
+            {t('onboarding.s5.titlePart2Prefix')}
+            <Text style={{ color: theme.error }}>{t('onboarding.s5.titlePart2Accent')}</Text>
+            {t('onboarding.s5.titlePart2Suffix')}
+          </Text>
         </Text>
         <Text style={[styles.bodyText, { color: theme.textSecondary, marginBottom: 20 }]}>
           {t('onboarding.s5.subtitle')}
@@ -787,7 +786,9 @@ function Screen6({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
         <Text style={[styles.headline, { color: theme.textPrimary, marginBottom: 6 }]}>
-          {t('onboarding.s6.title')}
+          {t('onboarding.s6.titlePart1')}
+          <Text style={{ color: theme.success }}>{t('onboarding.s6.titleAccent')}</Text>
+          {t('onboarding.s6.titlePart2')}
         </Text>
         <Text style={[styles.bodyText, { color: theme.textSecondary, marginBottom: 20 }]}>
           {t('onboarding.s6.subtitle')}
