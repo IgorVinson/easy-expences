@@ -306,6 +306,17 @@
       "cta": "Set Goal",
       "skipLabel": "Skip for now"
     },
+    "s7": {
+      "titlePart1": "Set your ",
+      "titleAccent": "monthly limits",
+      "titlePart2": ".",
+      "subtitle": "Break down your spending and goals before you get started.",
+      "expensesSection": "Spending Categories",
+      "goalsSection": "Financial Goals",
+      "emptyExpenses": "Select at least one expense category on the previous screen.",
+      "emptyGoals": "Pick a goal on the previous screen and set the amount here.",
+      "cta": "Save Budgets"
+    },
     "usecases": {
       "title": "Track What Matters to You",
       "description": "Dental debt, weekend trips, monthly groceries — create a budget for anything and watch your progress."

@@ -306,6 +306,17 @@
       "cta": "Establecer Meta",
       "skipLabel": "Omitir por ahora"
     },
+    "s7": {
+      "titlePart1": "Define tus ",
+      "titleAccent": "límites mensuales",
+      "titlePart2": ".",
+      "subtitle": "Desglosa tus gastos y metas antes de empezar.",
+      "expensesSection": "Categorías de gasto",
+      "goalsSection": "Metas financieras",
+      "emptyExpenses": "Selecciona al menos una categoría de gasto en la pantalla anterior.",
+      "emptyGoals": "Elige una meta en la pantalla anterior y fija el monto aquí.",
+      "cta": "Guardar presupuestos"
+    },
     "usecases": {
       "title": "Registra lo que importa",
       "description": "Deuda dental, viajes de fin de semana, compras mensuales — crea una categoría para cualquier cosa y sigue tu progreso."

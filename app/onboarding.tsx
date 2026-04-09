@@ -2,9 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   SafeAreaView,
@@ -18,10 +19,12 @@ import {
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { formatCurrencyAmount } from '../config/currencies';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const ONBOARDING_KEY = 'onboarding_completed';
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 function getCurrentMonthStartIso() {
   const now = new Date();
@@ -78,6 +81,7 @@ const CATEGORY_OPTIONS = [
 type SharedProps = {
   theme: ReturnType<typeof useTheme>['theme'];
   t: (key: string) => string;
+  language: string;
   onNext: () => void;
   onSkip: () => void;
   onBack: () => void;
@@ -133,17 +137,29 @@ function CTAButton({
   onPress,
   theme,
   icon,
+  loading,
+  disabled,
 }: {
   label: string;
   onPress: () => void;
   theme: ReturnType<typeof useTheme>['theme'];
   icon?: keyof typeof Ionicons.glyphMap;
+  loading?: boolean;
+  disabled?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} style={styles.ctaButtonWrapper}>
-      <LinearGradient colors={[theme.purple, theme.purpleCard]} style={styles.ctaButton}>
-        <Text style={styles.ctaButtonText}>{label}</Text>
-        {icon && <Ionicons name={icon} size={20} color="#fff" />}
+    <Pressable onPress={onPress} style={styles.ctaButtonWrapper} disabled={disabled || loading}>
+      <LinearGradient
+        colors={[theme.purple, theme.purpleCard]}
+        style={[styles.ctaButton, disabled || loading ? { opacity: 0.88 } : null]}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <>
+            <Text style={styles.ctaButtonText}>{label}</Text>
+            {icon && <Ionicons name={icon} size={20} color="#fff" />}
+          </>
+        )}
       </LinearGradient>
     </Pressable>
   );
@@ -748,10 +764,34 @@ function Screen5({
 // Screen 6 — Goal Setting (affects app)
 // ─────────────────────────────────────────────
 const GOAL_OPTIONS = [
-  { key: 'chip1', icon: 'airplane-outline' as const, color: '#38BDF8', bgLight: '#E0F2FE' },
-  { key: 'chip2', icon: 'laptop-outline' as const, color: '#A78BFA', bgLight: '#EDE9FE' },
-  { key: 'chip3', icon: 'shield-checkmark-outline' as const, color: '#10B981', bgLight: '#D1FAE5' },
-  { key: 'chip4', icon: 'home-outline' as const, color: '#FB923C', bgLight: '#FED7AA' },
+  {
+    key: 'chip1',
+    icon: 'airplane-outline' as const,
+    color: '#38BDF8',
+    bgLight: '#E0F2FE',
+    budget: 1500,
+  },
+  {
+    key: 'chip2',
+    icon: 'laptop-outline' as const,
+    color: '#A78BFA',
+    bgLight: '#EDE9FE',
+    budget: 2500,
+  },
+  {
+    key: 'chip3',
+    icon: 'shield-checkmark-outline' as const,
+    color: '#10B981',
+    bgLight: '#D1FAE5',
+    budget: 500,
+  },
+  {
+    key: 'chip4',
+    icon: 'home-outline' as const,
+    color: '#FB923C',
+    bgLight: '#FED7AA',
+    budget: 10000,
+  },
 ];
 
 function Screen6({
@@ -762,14 +802,14 @@ function Screen6({
   onSkip,
   step,
   onGoalChange,
-}: SharedProps & { onGoalChange: (goal: string) => void }) {
+}: SharedProps & { onGoalChange: (goal: string, goalKey: string | null) => void }) {
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [customGoal, setCustomGoal] = useState('');
   const inputRef = React.useRef<TextInput>(null);
 
   const handleNext = () => {
     const goal = customGoal.trim() || (selectedGoal ? t(`onboarding.s6.${selectedGoal}`) : '');
-    onGoalChange(goal);
+    onGoalChange(goal, selectedGoal);
     onNext();
   };
 
@@ -879,11 +919,378 @@ function Screen6({
 }
 
 // ─────────────────────────────────────────────
+// Screen 7 — Budget Setup
+// ─────────────────────────────────────────────
+type BudgetPlan = {
+  expenseBudgets: Record<string, number>;
+  customExpenseBudget: number;
+  goalTargetAmount: number;
+};
+
+type BudgetItem = {
+  id: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  bgLight: string;
+  min: number;
+  max: number;
+  step: number;
+  initial: number;
+};
+
+function getGoalPreset(goalKey: string | null) {
+  if (!goalKey) {
+    return {
+      key: 'custom',
+      icon: 'flag' as const,
+      color: '#10B981',
+      bgLight: '#D1FAE5',
+      budget: 1500,
+    };
+  }
+
+  return GOAL_OPTIONS.find((goal) => goal.key === goalKey) ?? GOAL_OPTIONS[0];
+}
+
+function BudgetSlider({
+  value,
+  min,
+  max,
+  step,
+  tintColor,
+  trackColor,
+  thumbBorderColor,
+  onChange,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  tintColor: string;
+  trackColor?: string;
+  thumbBorderColor?: string;
+  onChange: (next: number) => void;
+}) {
+  const [trackWidth, setTrackWidth] = useState(0);
+
+  const progress = max > min ? (value - min) / (max - min) : 0;
+  const thumbLeft = trackWidth * Math.min(Math.max(progress, 0), 1);
+
+  const handleChange = (x: number) => {
+    if (trackWidth <= 0) {
+      return;
+    }
+
+    const clampedX = Math.min(Math.max(x, 0), trackWidth);
+    const nextRaw = min + (clampedX / trackWidth) * (max - min);
+    const next = Math.max(min, Math.min(max, Math.round(nextRaw / step) * step));
+    onChange(next);
+  };
+
+  return (
+    <View
+      style={styles.s7SliderArea}
+      onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={(event) => handleChange(event.nativeEvent.locationX)}
+      onResponderMove={(event) => handleChange(event.nativeEvent.locationX)}>
+      <View style={[styles.s7SliderTrack, { backgroundColor: trackColor ?? '#E2E8F0' }]}>
+        <View
+          style={[
+            styles.s7SliderFill,
+            {
+              width: Math.max(thumbLeft, 0),
+              backgroundColor: tintColor,
+            },
+          ]}
+        />
+        <View
+          style={[
+            styles.s7SliderThumb,
+            {
+              left: Math.max(thumbLeft - 9, 0),
+              backgroundColor: tintColor,
+              borderColor: thumbBorderColor ?? '#fff',
+            },
+          ]}
+        />
+      </View>
+    </View>
+  );
+}
+
+function Screen7({
+  theme,
+  t,
+  onBack,
+  step,
+  selectedCategoryKeys,
+  customCategory,
+  goalName,
+  goalKey,
+  onFinish,
+  language,
+}: SharedProps & {
+  selectedCategoryKeys: string[];
+  customCategory: string;
+  goalName: string;
+  goalKey: string | null;
+  onFinish: (plan: BudgetPlan) => Promise<void> | void;
+}) {
+  const { currency } = useCurrency();
+  const [saving, setSaving] = useState(false);
+  const [budgetMap, setBudgetMap] = useState<Record<string, number>>({});
+  const [goalAmount, setGoalAmount] = useState<number | null>(null);
+  const goalPreset = getGoalPreset(goalKey);
+
+  useEffect(() => {
+    const nextBudgets: Record<string, number> = {};
+
+    selectedCategoryKeys.forEach((key) => {
+      const category = CATEGORY_OPTIONS.find((option) => option.key === key);
+      if (category) {
+        nextBudgets[key] = category.budget;
+      }
+    });
+
+    if (customCategory.trim()) {
+      nextBudgets.customCategory = 200;
+    }
+
+    setBudgetMap(nextBudgets);
+    setGoalAmount(goalName.trim() ? goalPreset.budget : null);
+  }, [customCategory, goalName, goalPreset.budget, selectedCategoryKeys]);
+
+  const selectedExpenseItems: BudgetItem[] = selectedCategoryKeys
+    .map((key) => {
+      const category = CATEGORY_OPTIONS.find((option) => option.key === key);
+      if (!category) {
+        return null;
+      }
+
+      return {
+        id: key,
+        label: t(`onboarding.s5.${category.key}`),
+        icon: category.icon,
+        color: category.color,
+        bgLight: category.bgLight,
+        min: 0,
+        max: 2000,
+        step: 50,
+        initial: category.budget,
+      } satisfies BudgetItem;
+    })
+    .filter(Boolean) as BudgetItem[];
+
+  if (customCategory.trim()) {
+    selectedExpenseItems.push({
+      id: 'customCategory',
+      label: customCategory.trim(),
+      icon: 'cash',
+      color: '#64748B',
+      bgLight: '#E2E8F0',
+      min: 0,
+      max: 2000,
+      step: 50,
+      initial: 200,
+    });
+  }
+
+  const goalItems: BudgetItem[] = goalName.trim()
+    ? [
+        {
+          id: 'goal',
+          label: goalName.trim(),
+          icon: goalPreset.icon,
+          color: goalPreset.color,
+          bgLight: goalPreset.bgLight,
+          min: 0,
+          max: 10000,
+          step: 100,
+          initial: goalPreset.budget,
+        },
+      ]
+    : [];
+
+  const complete = async () => {
+    if (saving) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onFinish({
+        expenseBudgets: budgetMap,
+        customExpenseBudget: budgetMap.customCategory ?? 200,
+        goalTargetAmount: goalAmount ?? goalPreset.budget,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const formatAmount = (amount: number) =>
+    formatCurrencyAmount(amount, currency, language, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+
+  const updateBudget = (id: string, next: number) => {
+    setBudgetMap((prev) => ({ ...prev, [id]: next }));
+  };
+
+  return (
+    <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
+      <View
+        style={[styles.blobTopRight, { backgroundColor: theme.purple + '10' }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[styles.blobBottomLeft, { backgroundColor: theme.infoBg }]}
+        pointerEvents="none"
+      />
+
+      <Header theme={theme} onBack={onBack} onSkip={complete} step={step} showBack />
+
+      <ScrollView
+        contentContainerStyle={styles.screen7Content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.s7Hero}>
+          <View style={[styles.s7HeroIcon, { backgroundColor: theme.purple + '14' }]}>
+            <Ionicons name="cash" size={28} color={theme.purple} />
+          </View>
+          <Text style={[styles.headline, { color: theme.textPrimary, textAlign: 'center' }]}>
+            {t('onboarding.s7.titlePart1')}
+            <Text style={{ color: theme.purple }}>{t('onboarding.s7.titleAccent')}</Text>
+            {t('onboarding.s7.titlePart2')}
+          </Text>
+          <Text style={[styles.bodyText, { color: theme.textSecondary, textAlign: 'center' }]}>
+            {t('onboarding.s7.subtitle')}
+          </Text>
+        </View>
+
+        <View style={styles.s7Section}>
+          <Text style={[styles.s7SectionTitle, { color: theme.textTertiary }]}>
+            {t('onboarding.s7.expensesSection')}
+          </Text>
+          {selectedExpenseItems.length > 0 ? (
+            selectedExpenseItems.map((item) => {
+              const value = budgetMap[item.id] ?? item.initial;
+              return (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.s7Card,
+                    { backgroundColor: theme.cardBg, borderColor: theme.border },
+                  ]}>
+                  <View style={styles.s7CardTop}>
+                    <View style={[styles.s7IconBox, { backgroundColor: item.bgLight + '66' }]}>
+                      <Ionicons name={item.icon} size={20} color={item.color} />
+                    </View>
+                    <View style={styles.s7CardTextBlock}>
+                      <Text style={[styles.s7CardLabel, { color: theme.textPrimary }]}>
+                        {item.label}
+                      </Text>
+                      <Text style={[styles.s7CardAmount, { color: theme.textSecondary }]}>
+                        {formatAmount(value)}
+                      </Text>
+                    </View>
+                  </View>
+                  <BudgetSlider
+                    value={value}
+                    min={item.min}
+                    max={item.max}
+                    step={item.step}
+                    tintColor={item.color}
+                    trackColor={theme.border}
+                    thumbBorderColor={theme.cardBg}
+                    onChange={(next) => updateBudget(item.id, next)}
+                  />
+                </View>
+              );
+            })
+          ) : (
+            <View style={[styles.s7EmptyState, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+              <Text style={[styles.s7EmptyText, { color: theme.textSecondary }]}>
+                {t('onboarding.s7.emptyExpenses')}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.s7Section}>
+          <Text style={[styles.s7SectionTitle, { color: theme.textTertiary }]}>
+            {t('onboarding.s7.goalsSection')}
+          </Text>
+          {goalItems.length > 0 ? (
+            goalItems.map((item) => {
+              const value = goalAmount ?? item.initial;
+              return (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.s7Card,
+                    { backgroundColor: theme.cardBg, borderColor: theme.border },
+                  ]}>
+                  <View style={styles.s7CardTop}>
+                    <View style={[styles.s7IconBox, { backgroundColor: item.bgLight + '66' }]}>
+                      <Ionicons name={item.icon} size={20} color={item.color} />
+                    </View>
+                    <View style={styles.s7CardTextBlock}>
+                      <Text style={[styles.s7CardLabel, { color: theme.textPrimary }]}>
+                        {item.label}
+                      </Text>
+                      <Text style={[styles.s7CardAmount, { color: theme.textSecondary }]}>
+                        {formatAmount(value)}
+                      </Text>
+                    </View>
+                  </View>
+                  <BudgetSlider
+                    value={value}
+                    min={item.min}
+                    max={item.max}
+                    step={item.step}
+                    tintColor={item.color}
+                    trackColor={theme.border}
+                    thumbBorderColor={theme.cardBg}
+                    onChange={setGoalAmount}
+                  />
+                </View>
+              );
+            })
+          ) : (
+            <View style={[styles.s7EmptyState, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+              <Text style={[styles.s7EmptyText, { color: theme.textSecondary }]}>
+                {t('onboarding.s7.emptyGoals')}
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+        <CTAButton
+          label={t('onboarding.s7.cta')}
+          onPress={complete}
+          theme={theme}
+          icon="arrow-forward"
+          loading={saving}
+          disabled={saving}
+        />
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────
 // Root Onboarding Component
 // ─────────────────────────────────────────────
 export default function OnboardingScreen() {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -891,16 +1298,23 @@ export default function OnboardingScreen() {
   // Collected data from interactive screens
   const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
   const [customCategory, setCustomCategory] = useState('');
-  const [goalName] = useState('');
+  const [goalName, setGoalName] = useState('');
+  const [goalKey, setGoalKey] = useState<string | null>(null);
 
   const completeOnboarding = async (
     catKeys: string[] = selectedCategoryKeys,
     custom: string = customCategory,
-    goal: string = goalName
+    goal: string = goalName,
+    selectedGoal: string | null = goalKey,
+    budgetPlan?: BudgetPlan
   ) => {
     if (user) {
       const uid = user.uid;
       const periodStart = getCurrentMonthStartIso();
+      const goalPreset = getGoalPreset(selectedGoal);
+      const expenseBudgets = budgetPlan?.expenseBudgets ?? {};
+      const customBudget = budgetPlan?.customExpenseBudget ?? 200;
+      const goalTargetAmount = budgetPlan?.goalTargetAmount ?? 0;
 
       // Seed selected categories (skip default seeding in useBudget by pre-populating)
       const categoriesToCreate = CATEGORY_OPTIONS.filter((c) => catKeys.includes(c.key));
@@ -909,7 +1323,7 @@ export default function OnboardingScreen() {
           categoriesToCreate.map((cat) =>
             addDoc(collection(db, 'budgetCategories'), {
               name: cat.firestoreName,
-              budget: cat.budget,
+              budget: expenseBudgets[cat.key] ?? cat.budget,
               spent: 0,
               periodStart,
               icon: cat.icon,
@@ -925,7 +1339,7 @@ export default function OnboardingScreen() {
       if (custom) {
         await addDoc(collection(db, 'budgetCategories'), {
           name: custom,
-          budget: 200,
+          budget: customBudget,
           spent: 0,
           periodStart,
           icon: 'cash',
@@ -939,10 +1353,10 @@ export default function OnboardingScreen() {
       if (goal) {
         await addDoc(collection(db, 'goals'), {
           name: goal,
-          targetAmount: 0,
-          icon: 'flag',
-          colorLight: '#D1FAE5',
-          colorDark: '#10B981',
+          targetAmount: goalTargetAmount,
+          icon: goalPreset.icon,
+          colorLight: goalPreset.bgLight,
+          colorDark: goalPreset.color,
           userId: uid,
         });
       }
@@ -961,6 +1375,7 @@ export default function OnboardingScreen() {
   const shared: SharedProps = {
     theme,
     t,
+    language: i18n.language,
     onNext: next,
     onSkip: skip,
     onBack: back,
@@ -985,7 +1400,22 @@ export default function OnboardingScreen() {
       {step === 5 && (
         <Screen6
           {...shared}
-          onGoalChange={(goal) => completeOnboarding(selectedCategoryKeys, customCategory, goal)}
+          onGoalChange={(goal, nextGoalKey) => {
+            setGoalName(goal);
+            setGoalKey(nextGoalKey);
+          }}
+        />
+      )}
+      {step === 6 && (
+        <Screen7
+          {...shared}
+          selectedCategoryKeys={selectedCategoryKeys}
+          customCategory={customCategory}
+          goalName={goalName}
+          goalKey={goalKey}
+          onFinish={(plan) =>
+            completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey, plan)
+          }
         />
       )}
     </SafeAreaView>
@@ -1397,6 +1827,75 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   s5Input: { flex: 1, fontSize: 15, fontWeight: '500' },
+
+  // ── Screen 7 ──
+  screen7Content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 180 },
+  s7Hero: { alignItems: 'center', marginBottom: 26, gap: 12 },
+  s7HeroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s7Section: { gap: 12, marginBottom: 22 },
+  s7SectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginLeft: 2 },
+  s7Card: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  s7CardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  s7IconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s7CardTextBlock: { flex: 1, minWidth: 0 },
+  s7CardLabel: { fontSize: 14, fontWeight: '800' },
+  s7CardAmount: { fontSize: 12, fontWeight: '700', marginTop: 2 },
+  s7EmptyState: {
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  s7EmptyText: { fontSize: 14, lineHeight: 20, textAlign: 'center' },
+  s7SliderArea: { height: 28, justifyContent: 'center' },
+  s7SliderTrack: {
+    height: 4,
+    borderRadius: 999,
+    overflow: 'visible',
+    justifyContent: 'center',
+  },
+  s7SliderFill: {
+    position: 'absolute',
+    left: 0,
+    height: 4,
+    borderRadius: 999,
+  },
+  s7SliderThumb: {
+    position: 'absolute',
+    top: -7,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
 
   // ── Screen 6 ──
   screen6Content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 140 },
