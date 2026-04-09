@@ -262,6 +262,48 @@
       "insightBody": "When you can't see the path, every step feels risky. We help you find the ground beneath your feet.",
       "cta": "I feel that"
     },
+    "s4": {
+      "tagBadge": "NEW WAY",
+      "title": "You don't need a complicated budget.",
+      "titleStrike": "complicated budget.",
+      "subtitle": "You just need to know what's",
+      "subtitleAccent": "safe to spend",
+      "subtitleEnd": "right now.",
+      "cta": "Show me how",
+      "socialProof": "Join 5000+ people using \"anti-budgeting\" to save more."
+    },
+    "s5": {
+      "titlePart1": "No more ",
+      "titleAccent": "guessing",
+      "titlePart2": ".\nWhat expenses do you want to track?",
+      "subtitle": "Select all that apply to personalize your experience.",
+      "customLabel": "Other custom expense",
+      "customPlaceholder": "e.g. Wellness, Pet supplies",
+      "skipLabel": "Skip for now",
+      "cta": "Continue",
+      "opt_dining": "Dining out",
+      "opt_shopping": "Shopping",
+      "opt_travel": "Travel",
+      "opt_entertainment": "Entertainment",
+      "opt_rent": "Rent",
+      "opt_groceries": "Groceries",
+      "opt_utilities": "Utilities",
+      "opt_add": "Add More"
+    },
+    "s6": {
+      "titlePart1": "What ",
+      "titleAccent": "goals",
+      "titlePart2": " do you want to track?",
+      "subtitle": "Every sanctuary starts with a single intent. Tell us what you're working towards.",
+      "inputPlaceholder": "e.g. Dream trip to Bali or a new Tesla",
+      "chipsLabel": "Popular Sanctuary Targets",
+      "chip1": "Vacation",
+      "chip2": "New MacBook",
+      "chip3": "Emergency Fund",
+      "chip4": "Home Deposit",
+      "cta": "Set Goal",
+      "skipLabel": "Skip for now"
+    },
     "usecases": {
       "title": "Track What Matters to You",
       "description": "Dental debt, weekend trips, monthly groceries — create a budget for anything and watch your progress."

@@ -262,6 +262,44 @@
       "insightBody": "Cuando no puedes ver el camino, cada paso parece arriesgado. Te ayudamos a encontrar terreno firme bajo tus pies.",
       "cta": "Lo siento así"
     },
+    "s4": {
+      "tagBadge": "NUEVA FORMA",
+      "title": "No necesitas un presupuesto complicado.",
+      "titleStrike": "presupuesto complicado.",
+      "subtitle": "Solo necesitas saber qué es",
+      "subtitleAccent": "seguro gastar",
+      "subtitleEnd": "ahora mismo.",
+      "cta": "Muéstrame cómo",
+      "socialProof": "Únete a 5000+ personas que ahorran más con el \"anti-presupuesto\"."
+    },
+    "s5": {
+      "title": "Sin más adivinanzas.\n¿Qué gastos quieres rastrear?",
+      "subtitle": "Selecciona todo lo que aplique para personalizar tu experiencia.",
+      "customLabel": "Otro gasto personalizado",
+      "customPlaceholder": "ej. Bienestar, Mascotas",
+      "skipLabel": "Omitir por ahora",
+      "cta": "Continuar",
+      "opt_dining": "Comer fuera",
+      "opt_shopping": "Compras",
+      "opt_travel": "Viajes",
+      "opt_entertainment": "Entretenimiento",
+      "opt_rent": "Alquiler",
+      "opt_groceries": "Supermercado",
+      "opt_utilities": "Servicios",
+      "opt_add": "Agregar"
+    },
+    "s6": {
+      "title": "¿Qué metas quieres rastrear?",
+      "subtitle": "Todo santuario comienza con una intención. Dinos hacia qué trabajas.",
+      "inputPlaceholder": "ej. Viaje a Bali o un Tesla nuevo",
+      "chipsLabel": "Metas Populares",
+      "chip1": "Vacaciones",
+      "chip2": "Nuevo MacBook",
+      "chip3": "Fondo de Emergencia",
+      "chip4": "Entrada de Casa",
+      "cta": "Establecer Meta",
+      "skipLabel": "Omitir por ahora"
+    },
     "usecases": {
       "title": "Registra lo que importa",
       "description": "Deuda dental, viajes de fin de semana, compras mensuales — crea una categoría para cualquier cosa y sigue tu progreso."
