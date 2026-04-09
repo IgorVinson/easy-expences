@@ -238,6 +238,30 @@
     "next": "Siguiente",
     "getStarted": "Comenzar",
     "startTrial": "Iniciar Prueba Gratis",
+    "s1": {
+      "title": "El dinero no debería causar estrés.",
+      "titleAccent": "causar estrés",
+      "subtitle": "¿Alguna vez te sientes inseguro incluso después de revisar tu saldo? Te ayudamos a encontrar claridad y tranquilidad.",
+      "tagline": "Santuario Digital",
+      "cta": "Siguiente"
+    },
+    "s2": {
+      "title": "¿Sientes que el dinero simplemente desaparece?",
+      "subtitle": "Muchos de nosotros experimentamos un \"agujero negro\" en nuestros gastos. Identificar tus patrones es el primer paso hacia la serenidad.",
+      "cta": "Continuar",
+      "hint": "Toca una tarjeta para seleccionar tu principal preocupación",
+      "option1": "Dudo antes de gastar",
+      "option2": "No sé si puedo permitirme algo ahora",
+      "option3": "Me siento culpable después de gastar"
+    },
+    "s3": {
+      "title": "No se trata del dinero.",
+      "subtitle": "Se trata de no saber qué es seguro gastar.",
+      "subtitleAccent": "seguro gastar.",
+      "insightTitle": "La incertidumbre es la fricción.",
+      "insightBody": "Cuando no puedes ver el camino, cada paso parece arriesgado. Te ayudamos a encontrar terreno firme bajo tus pies.",
+      "cta": "Lo siento así"
+    },
     "usecases": {
       "title": "Registra lo que importa",
       "description": "Deuda dental, viajes de fin de semana, compras mensuales — crea una categoría para cualquier cosa y sigue tu progreso."
