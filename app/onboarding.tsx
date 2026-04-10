@@ -496,9 +496,7 @@ function Screen4({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
 
-      <ScrollView
-        contentContainerStyle={styles.screen4Content}
-        showsVerticalScrollIndicator={false}>
+      <View style={styles.screen4Content}>
         {/* Logo + badge */}
         <View style={styles.s4LogoWrapper}>
           <View style={[styles.s4LogoBox, { backgroundColor: theme.successBg }]}>
@@ -612,7 +610,7 @@ function Screen4({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
             </View>
           ))}
         </View>
-      </ScrollView>
+      </View>
 
       <View style={[styles.footer, { backgroundColor: theme.bg }]}>
         <CTAButton
