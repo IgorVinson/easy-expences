@@ -22,7 +22,9 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { PurchasesPackage } from 'react-native-purchases';
 
 const ONBOARDING_KEY = 'onboarding_completed';
 const TOTAL_STEPS = 8;
@@ -84,7 +86,6 @@ type SharedProps = {
   t: (key: string) => string;
   language: string;
   onNext: () => void;
-  onSkip: () => void;
   onBack: () => void;
   step: number;
 };
@@ -92,13 +93,11 @@ type SharedProps = {
 function Header({
   theme,
   onBack,
-  onSkip,
   step,
   showBack,
 }: {
   theme: ReturnType<typeof useTheme>['theme'];
   onBack: () => void;
-  onSkip: () => void;
   step: number;
   showBack?: boolean;
 }) {
@@ -126,9 +125,7 @@ function Header({
           ]}
         />
       </View>
-      <Pressable onPress={onSkip} hitSlop={12}>
-        <Ionicons name="close" size={22} color={theme.textSecondary} />
-      </Pressable>
+      <View style={{ width: 22 }} />
     </View>
   );
 }
@@ -169,12 +166,7 @@ function CTAButton({
 // ─────────────────────────────────────────────
 // Screen 1 — Emotional Welcome
 // ─────────────────────────────────────────────
-function Screen1({
-  theme,
-  t,
-  onNext,
-  onSkip,
-}: Pick<SharedProps, 'theme' | 't' | 'onNext' | 'onSkip'>) {
+function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext'>) {
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <View
@@ -201,9 +193,7 @@ function Screen1({
             ]}
           />
         </View>
-        <Pressable onPress={onSkip} hitSlop={12}>
-          <Ionicons name="close" size={22} color={theme.textSecondary} />
-        </Pressable>
+        <View style={{ width: 22 }} />
       </View>
 
       <ScrollView
@@ -298,7 +288,7 @@ const OPTION_ICONS: ('pause-circle' | 'help-circle' | 'sad')[] = [
   'sad',
 ];
 
-function Screen2({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
+function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const options = [
     t('onboarding.s2.option1'),
@@ -308,7 +298,7 @@ function Screen2({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
-      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
       <ScrollView
         contentContainerStyle={styles.screen2Content}
         showsVerticalScrollIndicator={false}>
@@ -365,10 +355,10 @@ function Screen2({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
 // ─────────────────────────────────────────────
 // Screen 3 — Emotional Insight
 // ─────────────────────────────────────────────
-function Screen3({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
+function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
-      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
       <ScrollView
         contentContainerStyle={styles.screen3Content}
         showsVerticalScrollIndicator={false}>
@@ -479,7 +469,7 @@ function Screen3({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
 // ─────────────────────────────────────────────
 // Screen 4 — Anti-Budgeting Value Prop
 // ─────────────────────────────────────────────
-function Screen4({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
+function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
   const DEMO_ROWS = [
     { date: '10/24', desc: 'Whole Foods', amount: '-$84.20' },
     { date: '10/25', desc: 'Rent Payment', amount: '-$1,200' },
@@ -494,7 +484,7 @@ function Screen4({ theme, t, onNext, onBack, onSkip, step }: SharedProps) {
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
-      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
 
       <View style={styles.screen4Content}>
         {/* Logo + badge */}
@@ -635,7 +625,6 @@ function Screen5({
   t,
   onNext,
   onBack,
-  onSkip,
   step,
   onSelectionsChange,
 }: SharedProps & { onSelectionsChange: (keys: string[], custom: string) => void }) {
@@ -663,7 +652,7 @@ function Screen5({
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
-      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
 
       <ScrollView
         contentContainerStyle={styles.screen5Content}
@@ -742,13 +731,6 @@ function Screen5({
             <Ionicons name="create-outline" size={18} color={theme.textTertiary} />
           )}
         </View>
-
-        {/* Skip */}
-        <Pressable onPress={onSkip} style={styles.skipButton}>
-          <Text style={[styles.skipText, { color: theme.textTertiary }]}>
-            {t('onboarding.s5.skipLabel')}
-          </Text>
-        </Pressable>
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: theme.bg }]}>
@@ -802,7 +784,6 @@ function Screen6({
   t,
   onNext,
   onBack,
-  onSkip,
   step,
   onGoalChange,
 }: SharedProps & { onGoalChange: (goal: string, goalKey: string | null) => void }) {
@@ -823,7 +804,7 @@ function Screen6({
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
-      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
       <ScrollView
         contentContainerStyle={styles.screen5Content}
         showsVerticalScrollIndicator={false}
@@ -900,13 +881,6 @@ function Screen6({
             <Ionicons name="create-outline" size={18} color={theme.textTertiary} />
           )}
         </View>
-
-        {/* Skip */}
-        <Pressable onPress={onSkip} style={styles.skipButton}>
-          <Text style={[styles.skipText, { color: theme.textTertiary }]}>
-            {t('onboarding.s6.skipLabel')}
-          </Text>
-        </Pressable>
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: theme.bg }]}>
@@ -1029,7 +1003,6 @@ function Screen7({
   theme,
   t,
   onBack,
-  onSkip,
   step,
   selectedCategoryKeys,
   customCategory,
@@ -1166,7 +1139,7 @@ function Screen7({
         pointerEvents="none"
       />
 
-      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
 
       <ScrollView
         contentContainerStyle={styles.screen7Content}
@@ -1359,17 +1332,55 @@ function Screen8({
 }) {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { offerings, subscribe, tier } = useSubscription();
 
   const handleGetStarted = async () => {
-    setLoading(true);
-    // Simulate subscription processing
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setLoading(false);
-    onFinish();
-  };
+    setError(null);
 
-  // Format price helper (available for future dynamic pricing)
-  // const formatPrice = (amount: number) => formatCurrencyAmount(amount, currency, 'en');
+    // Check if already subscribed
+    if (tier === 'premium' || tier === 'trial') {
+      onFinish();
+      return;
+    }
+
+    // Get the appropriate package based on selection
+    const currentOffering = offerings?.current;
+    if (!currentOffering) {
+      setError('Subscription options not available. Please try again.');
+      return;
+    }
+
+    let pkg: PurchasesPackage | null = null;
+    if (selectedPlan === 'annual') {
+      pkg =
+        currentOffering.availablePackages.find((p) => p.packageType === 'ANNUAL') ||
+        currentOffering.availablePackages[0];
+    } else {
+      pkg =
+        currentOffering.availablePackages.find((p) => p.packageType === 'MONTHLY') ||
+        currentOffering.availablePackages[0];
+    }
+
+    if (!pkg) {
+      setError('Selected plan not available. Please try again.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await subscribe(pkg);
+      // Purchase successful - proceed to app
+      onFinish();
+    } catch (err: any) {
+      // User cancelled or purchase failed
+      if (err?.code !== 'PURCHASE_CANCELLED') {
+        setError('Purchase failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
@@ -1379,7 +1390,7 @@ function Screen8({
         pointerEvents="none"
       />
 
-      <Header theme={theme} onBack={onBack} onSkip={onFinish} step={step} showBack />
+      <Header theme={theme} onBack={onBack} step={step} showBack />
 
       <View style={styles.s8Content}>
         {/* Hero image with floating badge */}
@@ -1518,11 +1529,23 @@ function Screen8({
 
       {/* Footer with CTA */}
       <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+        {error && (
+          <View style={[styles.s8ErrorContainer, { backgroundColor: theme.error + '15' }]}>
+            <Ionicons name="alert-circle" size={16} color={theme.error} />
+            <Text style={[styles.s8ErrorText, { color: theme.error }]}>{error}</Text>
+          </View>
+        )}
         <CTAButton
-          label={loading ? 'Processing...' : 'Get Started'}
+          label={
+            loading
+              ? 'Processing...'
+              : tier === 'premium' || tier === 'trial'
+                ? 'Continue'
+                : 'Subscribe'
+          }
           onPress={handleGetStarted}
           theme={theme}
-          icon="rocket"
+          icon={tier === 'premium' || tier === 'trial' ? 'arrow-forward' : 'card'}
           loading={loading}
         />
         <Text style={[styles.s8TermsText, { color: theme.textTertiary }]}>
@@ -1617,7 +1640,6 @@ export default function OnboardingScreen() {
 
   const next = () => setStep((s) => s + 1);
   const back = () => setStep((s) => Math.max(0, s - 1));
-  const skip = () => completeOnboarding([], '', '');
 
   const topPadding = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
@@ -1626,14 +1648,13 @@ export default function OnboardingScreen() {
     t,
     language: i18n.language,
     onNext: next,
-    onSkip: skip,
     onBack: back,
     step: step + 1,
   };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg, paddingTop: topPadding }]}>
-      {step === 0 && <Screen1 theme={theme} t={t} onNext={next} onSkip={skip} />}
+      {step === 0 && <Screen1 theme={theme} t={t} onNext={next} />}
       {step === 1 && <Screen2 {...shared} />}
       {step === 2 && <Screen3 {...shared} />}
       {step === 3 && <Screen4 {...shared} />}
@@ -2382,5 +2403,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     paddingHorizontal: 20,
+  },
+  s8ErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  s8ErrorText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
