@@ -291,7 +291,7 @@ function Screen1({
 // ─────────────────────────────────────────────
 // Screen 2 — Question Cards
 // ─────────────────────────────────────────────
-const OPTION_ICONS: Array<'pause-circle' | 'help-circle' | 'sad'> = [
+const OPTION_ICONS: ('pause-circle' | 'help-circle' | 'sad')[] = [
   'pause-circle',
   'help-circle',
   'sad',
@@ -646,7 +646,11 @@ function Screen5({
   const toggle = (key: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
       return next;
     });
   };
@@ -975,7 +979,8 @@ function BudgetSlider({
   const [trackWidth, setTrackWidth] = useState(0);
 
   const progress = max > min ? (value - min) / (max - min) : 0;
-  const thumbLeft = trackWidth * Math.min(Math.max(progress, 0), 1);
+  const normalizedProgress = Math.min(Math.max(progress, 0), 1);
+  const thumbLeft = trackWidth * normalizedProgress;
 
   const handleChange = (x: number) => {
     if (trackWidth <= 0) {
@@ -1010,7 +1015,7 @@ function BudgetSlider({
           style={[
             styles.s7SliderThumb,
             {
-              left: Math.max(thumbLeft - 9, 0),
+              left: Math.min(Math.max(thumbLeft - 9, 0), Math.max(trackWidth - 18, 0)),
               backgroundColor: tintColor,
               borderColor: thumbBorderColor ?? '#fff',
             },
@@ -1025,6 +1030,7 @@ function Screen7({
   theme,
   t,
   onBack,
+  onSkip,
   step,
   selectedCategoryKeys,
   customCategory,
@@ -1044,6 +1050,7 @@ function Screen7({
   const [budgetMap, setBudgetMap] = useState<Record<string, number>>({});
   const [goalAmount, setGoalAmount] = useState<number | null>(null);
   const goalPreset = getGoalPreset(goalKey);
+  const screenBackground = theme.isDark ? theme.bg : '#FDFCFE';
 
   useEffect(() => {
     const nextBudgets: Record<string, number> = {};
@@ -1136,23 +1143,31 @@ function Screen7({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     });
+  const title = `${t('onboarding.s7.titlePart1')}${t('onboarding.s7.titleAccent')}${t(
+    'onboarding.s7.titlePart2'
+  )}`;
 
   const updateBudget = (id: string, next: number) => {
     setBudgetMap((prev) => ({ ...prev, [id]: next }));
   };
 
   return (
-    <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
+    <View
+      style={[
+        styles.screenContainer,
+        styles.s7ScreenContainer,
+        { backgroundColor: screenBackground },
+      ]}>
       <View
-        style={[styles.blobTopRight, { backgroundColor: theme.purple + '10' }]}
+        style={[styles.blobTopRight, { backgroundColor: theme.purple + '0d' }]}
         pointerEvents="none"
       />
       <View
-        style={[styles.blobBottomLeft, { backgroundColor: theme.infoBg }]}
+        style={[styles.blobBottomLeft, { backgroundColor: '#3B82F60d' }]}
         pointerEvents="none"
       />
 
-      <Header theme={theme} onBack={onBack} onSkip={complete} step={step} showBack />
+      <Header theme={theme} onBack={onBack} onSkip={onSkip} step={step} showBack />
 
       <ScrollView
         contentContainerStyle={styles.screen7Content}
@@ -1160,21 +1175,17 @@ function Screen7({
         keyboardShouldPersistTaps="handled">
         <View style={styles.s7Hero}>
           <View style={[styles.s7HeroIcon, { backgroundColor: theme.purple + '14' }]}>
-            <Ionicons name="cash" size={28} color={theme.purple} />
+            <Ionicons name="cash-outline" size={28} color={theme.purple} />
           </View>
-          <Text style={[styles.headline, { color: theme.textPrimary, textAlign: 'center' }]}>
-            {t('onboarding.s7.titlePart1')}
-            <Text style={{ color: theme.purple }}>{t('onboarding.s7.titleAccent')}</Text>
-            {t('onboarding.s7.titlePart2')}
-          </Text>
-          <Text style={[styles.bodyText, { color: theme.textSecondary, textAlign: 'center' }]}>
+          <Text style={[styles.s7Title, { color: theme.textPrimary }]}>{title}</Text>
+          <Text style={[styles.s7Subtitle, { color: theme.textSecondary }]}>
             {t('onboarding.s7.subtitle')}
           </Text>
         </View>
 
         <View style={styles.s7Section}>
           <Text style={[styles.s7SectionTitle, { color: theme.textTertiary }]}>
-            {t('onboarding.s7.expensesSection')}
+            {t('onboarding.s7.expensesSection').toUpperCase()}
           </Text>
           {selectedExpenseItems.length > 0 ? (
             selectedExpenseItems.map((item) => {
@@ -1184,36 +1195,52 @@ function Screen7({
                   key={item.id}
                   style={[
                     styles.s7Card,
-                    { backgroundColor: theme.cardBg, borderColor: theme.border },
+                    {
+                      backgroundColor: theme.cardBg,
+                      borderColor: theme.isDark ? theme.border : '#F1F5F9',
+                    },
+                    !theme.isDark && styles.s7CardShadow,
                   ]}>
                   <View style={styles.s7CardTop}>
-                    <View style={[styles.s7IconBox, { backgroundColor: item.bgLight + '66' }]}>
+                    <View
+                      style={[
+                        styles.s7IconBox,
+                        { backgroundColor: theme.isDark ? item.color + '20' : item.bgLight },
+                      ]}>
                       <Ionicons name={item.icon} size={20} color={item.color} />
                     </View>
-                    <View style={styles.s7CardTextBlock}>
-                      <Text style={[styles.s7CardLabel, { color: theme.textPrimary }]}>
-                        {item.label}
-                      </Text>
-                      <Text style={[styles.s7CardAmount, { color: theme.textSecondary }]}>
-                        {formatAmount(value)}
-                      </Text>
+                    <View style={styles.s7CardContent}>
+                      <View style={styles.s7CardRow}>
+                        <Text
+                          style={[styles.s7CardLabel, { color: theme.textPrimary }]}
+                          numberOfLines={1}>
+                          {item.label}
+                        </Text>
+                        <Text style={[styles.s7CardAmount, { color: theme.textPrimary }]}>
+                          {formatAmount(value)}
+                        </Text>
+                      </View>
+                      <BudgetSlider
+                        value={value}
+                        min={item.min}
+                        max={item.max}
+                        step={item.step}
+                        tintColor={item.color}
+                        trackColor={theme.isDark ? theme.border : '#F1F5F9'}
+                        thumbBorderColor={theme.cardBg}
+                        onChange={(next) => updateBudget(item.id, next)}
+                      />
                     </View>
                   </View>
-                  <BudgetSlider
-                    value={value}
-                    min={item.min}
-                    max={item.max}
-                    step={item.step}
-                    tintColor={item.color}
-                    trackColor={theme.border}
-                    thumbBorderColor={theme.cardBg}
-                    onChange={(next) => updateBudget(item.id, next)}
-                  />
                 </View>
               );
             })
           ) : (
-            <View style={[styles.s7EmptyState, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.s7EmptyState,
+                { backgroundColor: theme.cardBg, borderColor: theme.border },
+              ]}>
               <Text style={[styles.s7EmptyText, { color: theme.textSecondary }]}>
                 {t('onboarding.s7.emptyExpenses')}
               </Text>
@@ -1223,7 +1250,7 @@ function Screen7({
 
         <View style={styles.s7Section}>
           <Text style={[styles.s7SectionTitle, { color: theme.textTertiary }]}>
-            {t('onboarding.s7.goalsSection')}
+            {t('onboarding.s7.goalsSection').toUpperCase()}
           </Text>
           {goalItems.length > 0 ? (
             goalItems.map((item) => {
@@ -1233,36 +1260,52 @@ function Screen7({
                   key={item.id}
                   style={[
                     styles.s7Card,
-                    { backgroundColor: theme.cardBg, borderColor: theme.border },
+                    {
+                      backgroundColor: theme.cardBg,
+                      borderColor: theme.isDark ? theme.border : '#F1F5F9',
+                    },
+                    !theme.isDark && styles.s7CardShadow,
                   ]}>
                   <View style={styles.s7CardTop}>
-                    <View style={[styles.s7IconBox, { backgroundColor: item.bgLight + '66' }]}>
+                    <View
+                      style={[
+                        styles.s7IconBox,
+                        { backgroundColor: theme.isDark ? item.color + '20' : item.bgLight },
+                      ]}>
                       <Ionicons name={item.icon} size={20} color={item.color} />
                     </View>
-                    <View style={styles.s7CardTextBlock}>
-                      <Text style={[styles.s7CardLabel, { color: theme.textPrimary }]}>
-                        {item.label}
-                      </Text>
-                      <Text style={[styles.s7CardAmount, { color: theme.textSecondary }]}>
-                        {formatAmount(value)}
-                      </Text>
+                    <View style={styles.s7CardContent}>
+                      <View style={styles.s7CardRow}>
+                        <Text
+                          style={[styles.s7CardLabel, { color: theme.textPrimary }]}
+                          numberOfLines={1}>
+                          {item.label}
+                        </Text>
+                        <Text style={[styles.s7CardAmount, { color: theme.textPrimary }]}>
+                          {formatAmount(value)}
+                        </Text>
+                      </View>
+                      <BudgetSlider
+                        value={value}
+                        min={item.min}
+                        max={item.max}
+                        step={item.step}
+                        tintColor={item.color}
+                        trackColor={theme.isDark ? theme.border : '#F1F5F9'}
+                        thumbBorderColor={theme.cardBg}
+                        onChange={setGoalAmount}
+                      />
                     </View>
                   </View>
-                  <BudgetSlider
-                    value={value}
-                    min={item.min}
-                    max={item.max}
-                    step={item.step}
-                    tintColor={item.color}
-                    trackColor={theme.border}
-                    thumbBorderColor={theme.cardBg}
-                    onChange={setGoalAmount}
-                  />
                 </View>
               );
             })
           ) : (
-            <View style={[styles.s7EmptyState, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+            <View
+              style={[
+                styles.s7EmptyState,
+                { backgroundColor: theme.cardBg, borderColor: theme.border },
+              ]}>
               <Text style={[styles.s7EmptyText, { color: theme.textSecondary }]}>
                 {t('onboarding.s7.emptyGoals')}
               </Text>
@@ -1271,15 +1314,31 @@ function Screen7({
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
-        <CTAButton
-          label={t('onboarding.s7.cta')}
-          onPress={complete}
-          theme={theme}
-          icon="arrow-forward"
-          loading={saving}
-          disabled={saving}
+      <View style={styles.s7Footer}>
+        <LinearGradient
+          pointerEvents="none"
+          colors={['transparent', screenBackground + 'F2', screenBackground]}
+          style={styles.s7FooterFade}
         />
+        <Pressable
+          onPress={complete}
+          style={styles.s7SaveButtonWrapper}
+          disabled={saving}
+          hitSlop={8}>
+          <LinearGradient
+            colors={[theme.purple, theme.purpleCard]}
+            style={[styles.s7SaveButton, saving ? { opacity: 0.88 } : null]}>
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Text style={styles.s7SaveButtonText}>{t('onboarding.s7.cta')}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#fff" />
+              </>
+            )}
+          </LinearGradient>
+        </Pressable>
+        <View style={styles.s7HomeIndicator} />
       </View>
     </View>
   );
@@ -1463,7 +1522,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#7C3AED',
+    shadowColor: '#a855f7',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -1829,29 +1888,73 @@ const styles = StyleSheet.create({
   s5Input: { flex: 1, fontSize: 15, fontWeight: '500' },
 
   // ── Screen 7 ──
-  screen7Content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 180 },
-  s7Hero: { alignItems: 'center', marginBottom: 26, gap: 12 },
-  s7HeroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 22,
+  s7ScreenContainer: { overflow: 'hidden' },
+  screen7Content: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 188 },
+  s7Header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  s7HeaderBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  s7Section: { gap: 12, marginBottom: 22 },
-  s7SectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginLeft: 2 },
-  s7Card: {
-    borderRadius: 24,
-    borderWidth: 1,
-    padding: 16,
-    gap: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
+  s7Logo: { fontSize: 18, fontWeight: '800', letterSpacing: -0.5 },
+  s7DotsWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 28,
   },
-  s7CardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  s7Dot: { height: 4, borderRadius: 999 },
+  s7Hero: { alignItems: 'center', marginBottom: 30, gap: 12, paddingHorizontal: 12 },
+  s7HeroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s7Title: {
+    fontSize: 28,
+    fontWeight: '800',
+    lineHeight: 34,
+    textAlign: 'center',
+    letterSpacing: -0.6,
+  },
+  s7Subtitle: { fontSize: 15, fontWeight: '500', lineHeight: 22, textAlign: 'center' },
+  s7Section: { gap: 12, marginBottom: 24 },
+  s7SectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginLeft: 8,
+    marginBottom: 0,
+  },
+  s7Card: {
+    minHeight: 82,
+    borderRadius: 24,
+    borderWidth: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  s7CardShadow: {
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  s7CardTop: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   s7IconBox: {
     width: 44,
     height: 44,
@@ -1859,18 +1962,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  s7CardTextBlock: { flex: 1, minWidth: 0 },
-  s7CardLabel: { fontSize: 14, fontWeight: '800' },
-  s7CardAmount: { fontSize: 12, fontWeight: '700', marginTop: 2 },
+  s7CardContent: { flex: 1, marginLeft: 16, minWidth: 0 },
+  s7CardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 12,
+  },
+  s7CardLabel: { fontSize: 14, fontWeight: '700', flex: 1 },
+  s7CardAmount: { fontSize: 13, fontWeight: '800' },
   s7EmptyState: {
     borderRadius: 24,
-    borderWidth: 1,
+    borderWidth: 2,
     paddingHorizontal: 18,
     paddingVertical: 20,
     alignItems: 'center',
   },
   s7EmptyText: { fontSize: 14, lineHeight: 20, textAlign: 'center' },
-  s7SliderArea: { height: 28, justifyContent: 'center' },
+  s7SliderArea: { height: 24, justifyContent: 'center' },
   s7SliderTrack: {
     height: 4,
     borderRadius: 999,
@@ -1890,11 +2000,48 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
-    shadowColor: '#000',
+    shadowColor: '#a855f7',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
+  },
+  s7Footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    alignItems: 'center',
+  },
+  s7FooterFade: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  s7SaveButtonWrapper: { width: '100%', maxWidth: 440 },
+  s7SaveButton: {
+    width: '100%',
+    minHeight: 60,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  s7SaveButtonText: { fontSize: 17, fontWeight: '800', color: '#fff' },
+  s7HomeIndicator: {
+    width: 128,
+    height: 4,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 2,
+    marginTop: 24,
   },
 
   // ── Screen 6 ──
