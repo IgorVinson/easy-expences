@@ -461,6 +461,9 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
           theme={theme}
           icon="arrow-forward"
         />
+        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+          {t('onboarding.s3.hint')}
+        </Text>
       </View>
     </View>
   );
@@ -740,6 +743,9 @@ function Screen5({
           theme={theme}
           icon="arrow-forward"
         />
+        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+          {t('onboarding.s5.hint')}
+        </Text>
       </View>
     </View>
   );
@@ -890,6 +896,9 @@ function Screen6({
           theme={theme}
           icon="arrow-forward"
         />
+        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+          {t('onboarding.s6.hint')}
+        </Text>
       </View>
     </View>
   );
@@ -1286,31 +1295,17 @@ function Screen7({
         </View>
       </ScrollView>
 
-      <View style={styles.s7Footer}>
-        <LinearGradient
-          pointerEvents="none"
-          colors={['transparent', screenBackground + 'F2', screenBackground]}
-          style={styles.s7FooterFade}
-        />
-        <Pressable
+      <View style={[styles.footer, { backgroundColor: screenBackground }]}>
+        <CTAButton
+          label={t('onboarding.s7.cta')}
           onPress={complete}
-          style={styles.s7SaveButtonWrapper}
-          disabled={saving}
-          hitSlop={8}>
-          <LinearGradient
-            colors={[theme.purple, theme.purpleCard]}
-            style={[styles.s7SaveButton, saving ? { opacity: 0.88 } : null]}>
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Text style={styles.s7SaveButtonText}>{t('onboarding.s7.cta')}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#fff" />
-              </>
-            )}
-          </LinearGradient>
-        </Pressable>
-        <View style={styles.s7HomeIndicator} />
+          theme={theme}
+          icon="chevron-forward"
+          loading={saving}
+        />
+        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+          {t('onboarding.s7.hint')}
+        </Text>
       </View>
     </View>
   );

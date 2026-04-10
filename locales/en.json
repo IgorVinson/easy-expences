@@ -260,7 +260,8 @@
       "subtitleAccent": "safe to spend.",
       "insightTitle": "Uncertainty is the friction.",
       "insightBody": "When you can't see the path, every step feels risky. We help you find the ground beneath your feet.",
-      "cta": "I feel that"
+      "cta": "I feel that",
+      "hint": "Understanding your spending patterns helps us guide you better."
     },
     "s4": {
       "tagBadge": "NEW WAY",
@@ -283,6 +284,7 @@
       "customPlaceholder": "e.g. Wellness, Pet supplies",
       "skipLabel": "Skip for now",
       "cta": "Continue",
+      "hint": "You can always add more categories later in settings.",
       "opt_dining": "Dining out",
       "opt_shopping": "Shopping",
       "opt_travel": "Travel",
@@ -304,7 +306,8 @@
       "chip3": "Emergency Fund",
       "chip4": "Home Deposit",
       "cta": "Set Goal",
-      "skipLabel": "Skip for now"
+      "skipLabel": "Skip for now",
+      "hint": "Setting a goal helps you stay focused on what matters most."
     },
     "s7": {
       "titlePart1": "Set your ",
@@ -315,7 +318,8 @@
       "goalsSection": "Financial Goals",
       "emptyExpenses": "Select at least one expense category on the previous screen.",
       "emptyGoals": "Pick a goal on the previous screen and set the amount here.",
-      "cta": "Save Budgets"
+      "cta": "Save Budgets",
+      "hint": "Adjust these limits anytime as your needs change."
     },
     "usecases": {
       "title": "Track What Matters to You",
