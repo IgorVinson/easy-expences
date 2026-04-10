@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Image,
   Platform,
   Pressable,
   SafeAreaView,
@@ -1391,7 +1392,13 @@ function Screen8({
               styles.s8ImageCard,
               { backgroundColor: theme.cardBg, borderColor: theme.border },
             ]}>
-            <Ionicons name="wallet" size={80} color={theme.purple} />
+            <Image
+              source={{
+                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSfoqHxeAi6k1VosFbuxNW4fwnC2IHPL09qimUrn-GHiNSGyCeIJT7-MC-68CTDnY-AGXMw6sgl8JzRrBdwdfeeWeL26xGxYls8fF1NiMHl3fj5REeDGFe__3mhtVe0C63h7Fxo3AtxIBVwXeV82mm2akg7HwTdagocanR3v4Ffnvqz15BS8rwuxezLPNmwxVWNL0ccGhFbDTZaPDLHR--IhT3gDizTaIIC6Iw5dr-wu4Cc9dWjdZvplOXlFXvisu9mC3xYoXUxM3K',
+              }}
+              style={styles.s8HeroImage}
+              resizeMode="contain"
+            />
             {/* Floating badge */}
             <View
               style={[
@@ -2299,6 +2306,11 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
     position: 'relative',
+  },
+  s8HeroImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 20,
   },
   s8FloatingBadge: {
     position: 'absolute',
