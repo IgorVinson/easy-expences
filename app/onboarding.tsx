@@ -1383,7 +1383,7 @@ function Screen8({
 
       <Header theme={theme} onBack={onBack} onSkip={onFinish} step={step} showBack />
 
-      <ScrollView contentContainerStyle={styles.s8Content} showsVerticalScrollIndicator={false}>
+      <View style={styles.s8Content}>
         {/* Hero image with floating badge */}
         <View style={styles.s8ImageWrapper}>
           <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
@@ -1516,7 +1516,7 @@ function Screen8({
             </View>
           </Pressable>
         </View>
-      </ScrollView>
+      </View>
 
       {/* Footer with CTA */}
       <View style={[styles.footer, { backgroundColor: theme.bg }]}>
