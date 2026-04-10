@@ -2299,7 +2299,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.1,
@@ -2308,9 +2307,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   s8HeroImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 20,
+    width: 180,
+    height: 180,
+    borderRadius: 40,
   },
   s8FloatingBadge: {
     position: 'absolute',
