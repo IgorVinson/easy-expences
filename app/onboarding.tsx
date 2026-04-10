@@ -24,7 +24,7 @@ import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const ONBOARDING_KEY = 'onboarding_completed';
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 function getCurrentMonthStartIso() {
   const now = new Date();
@@ -1345,6 +1345,191 @@ function Screen7({
 }
 
 // ─────────────────────────────────────────────
+// Screen 8 — Subscription / Paywall (Final Screen)
+// ─────────────────────────────────────────────
+type SubscriptionPlan = 'annual' | 'monthly';
+
+function Screen8({
+  theme,
+  t,
+  onFinish,
+  onBack,
+  step,
+}: SharedProps & {
+  onFinish: () => void;
+}) {
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
+  const [loading, setLoading] = useState(false);
+
+  const handleGetStarted = async () => {
+    setLoading(true);
+    // Simulate subscription processing
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setLoading(false);
+    onFinish();
+  };
+
+  // Format price helper (available for future dynamic pricing)
+  // const formatPrice = (amount: number) => formatCurrencyAmount(amount, currency, 'en');
+
+  return (
+    <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
+      {/* Gradient blob background */}
+      <View
+        style={[styles.s8Blob, { backgroundColor: theme.purple + '18' }]}
+        pointerEvents="none"
+      />
+
+      <Header theme={theme} onBack={onBack} onSkip={onFinish} step={step} showBack />
+
+      <ScrollView contentContainerStyle={styles.s8Content} showsVerticalScrollIndicator={false}>
+        {/* Hero image with floating badge */}
+        <View style={styles.s8ImageWrapper}>
+          <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
+          <View
+            style={[
+              styles.s8ImageCard,
+              { backgroundColor: theme.cardBg, borderColor: theme.border },
+            ]}>
+            <Ionicons name="wallet" size={80} color={theme.purple} />
+            {/* Floating badge */}
+            <View
+              style={[
+                styles.s8FloatingBadge,
+                { backgroundColor: theme.cardBg, borderColor: theme.border },
+              ]}>
+              <View style={[styles.s8BadgeIcon, { backgroundColor: theme.success }]}>
+                <Ionicons name="checkmark" size={12} color="#fff" />
+              </View>
+              <View>
+                <Text style={[styles.s8BadgeLabel, { color: theme.textSecondary }]}>
+                  Plan Ready
+                </Text>
+                <Text style={[styles.s8BadgeValue, { color: theme.textPrimary }]}>
+                  98% Accuracy
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Text content */}
+        <View style={styles.s8TextBlock}>
+          <View style={styles.s8TagRow}>
+            <View style={[styles.s8TagDot, { backgroundColor: theme.success }]} />
+            <Text style={[styles.s8TagText, { color: theme.success }]}>Onboarding Complete</Text>
+          </View>
+          <Text style={[styles.headline, { color: theme.textPrimary, textAlign: 'center' }]}>
+            Ready to experience total financial peace?
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              { color: theme.textSecondary, textAlign: 'center', marginTop: 12 },
+            ]}>
+            Your personalized plan for clarity and growth is ready. Join 50,000+ others who have
+            reclaimed their financial freedom.
+          </Text>
+        </View>
+
+        {/* Subscription options */}
+        <View style={styles.s8PlansContainer}>
+          {/* Annual Plan */}
+          <Pressable
+            onPress={() => setSelectedPlan('annual')}
+            style={[
+              styles.s8PlanCard,
+              {
+                backgroundColor: selectedPlan === 'annual' ? theme.cardBg : theme.iconBg,
+                borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
+                borderWidth: selectedPlan === 'annual' ? 2 : 1,
+              },
+            ]}>
+            <View style={styles.s8PlanLeft}>
+              <View
+                style={[
+                  styles.s8RadioCircle,
+                  {
+                    borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
+                  },
+                ]}>
+                {selectedPlan === 'annual' && (
+                  <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
+                )}
+              </View>
+              <View>
+                <Text style={[styles.s8PlanTitle, { color: theme.textPrimary }]}>Annual</Text>
+                <View style={styles.s8PlanPriceRow}>
+                  <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
+                    $59.99/year
+                  </Text>
+                  <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
+                    <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>Save 50%</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View style={styles.s8PlanRight}>
+              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
+              <Text style={[styles.s8PlanHighlight, { color: theme.purple }]}>$4.99/mo</Text>
+            </View>
+          </Pressable>
+
+          {/* Monthly Plan */}
+          <Pressable
+            onPress={() => setSelectedPlan('monthly')}
+            style={[
+              styles.s8PlanCard,
+              {
+                backgroundColor: selectedPlan === 'monthly' ? theme.cardBg : theme.iconBg,
+                borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
+                borderWidth: selectedPlan === 'monthly' ? 2 : 1,
+              },
+            ]}>
+            <View style={styles.s8PlanLeft}>
+              <View
+                style={[
+                  styles.s8RadioCircle,
+                  {
+                    borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
+                  },
+                ]}>
+                {selectedPlan === 'monthly' && (
+                  <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
+                )}
+              </View>
+              <View>
+                <Text style={[styles.s8PlanTitle, { color: theme.textPrimary }]}>Monthly</Text>
+                <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>$9.99/mo</Text>
+              </View>
+            </View>
+            <View style={styles.s8PlanRight}>
+              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
+              <Text style={[styles.s8PlanMonth, { color: theme.textPrimary }]}>Monthly</Text>
+            </View>
+          </Pressable>
+        </View>
+      </ScrollView>
+
+      {/* Footer with CTA */}
+      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+        <CTAButton
+          label={loading ? 'Processing...' : 'Get Started'}
+          onPress={handleGetStarted}
+          theme={theme}
+          icon="rocket"
+          loading={loading}
+        />
+        <Text style={[styles.s8TermsText, { color: theme.textTertiary }]}>
+          Secure payment. Cancel anytime in your account settings.{'\n'}
+          Terms of Service and Privacy Policy apply.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────
 // Root Onboarding Component
 // ─────────────────────────────────────────────
 export default function OnboardingScreen() {
@@ -1472,8 +1657,14 @@ export default function OnboardingScreen() {
           customCategory={customCategory}
           goalName={goalName}
           goalKey={goalKey}
-          onFinish={(plan) =>
-            completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey, plan)
+          onFinish={() => setStep(7)}
+        />
+      )}
+      {step === 7 && (
+        <Screen8
+          {...shared}
+          onFinish={() =>
+            completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
           }
         />
       )}
@@ -2069,4 +2260,118 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   s6ChipText: { fontSize: 14, fontWeight: '600' },
+
+  // ── Screen 8 ──
+  s8Blob: {
+    position: 'absolute',
+    top: 80,
+    left: '50%',
+    marginLeft: -128,
+    width: 256,
+    height: 256,
+    borderRadius: 128,
+    zIndex: -1,
+  },
+  s8Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 180 },
+  s8ImageWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+    height: 220,
+    position: 'relative',
+  },
+  s8ImageGlow: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+  },
+  s8ImageCard: {
+    width: 180,
+    height: 180,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+    position: 'relative',
+  },
+  s8FloatingBadge: {
+    position: 'absolute',
+    bottom: -12,
+    right: -12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  s8BadgeIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s8BadgeLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
+  s8BadgeValue: { fontSize: 12, fontWeight: '800' },
+  s8TextBlock: { alignItems: 'center', marginBottom: 28 },
+  s8TagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  s8TagDot: { width: 6, height: 6, borderRadius: 3 },
+  s8TagText: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
+  s8PlansContainer: { gap: 12, marginBottom: 24 },
+  s8PlanCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1.5,
+  },
+  s8PlanLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  s8RadioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s8RadioDot: { width: 12, height: 12, borderRadius: 6 },
+  s8PlanTitle: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  s8PlanPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  s8PlanPrice: { fontSize: 13, fontWeight: '500' },
+  s8SaveBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  s8SaveBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  s8PlanRight: { alignItems: 'flex-end' },
+  s8PlanSmall: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
+  s8PlanHighlight: { fontSize: 18, fontWeight: '800' },
+  s8PlanMonth: { fontSize: 16, fontWeight: '700' },
+  s8TermsText: {
+    marginTop: 16,
+    fontSize: 10,
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: 20,
+  },
 });
