@@ -317,6 +317,19 @@
       "emptyGoals": "Elige una meta en la pantalla anterior y fija el monto aquí.",
       "cta": "Guardar presupuestos"
     },
+    "s9": {
+      "eyebrow": "Gran decisión",
+      "title": "3 pasos simples para sentir calma y confianza con tu dinero.",
+      "subtitle": "Haz estas acciones sencillas cada día y Keelio te ayudará a mantener claridad, menos estrés y más control.",
+      "step1Title": "Agrega tu primer gasto o ahorro",
+      "step1Body": "Empieza manualmente o usa el micrófono para registrarlo en segundos cuando ocurra.",
+      "step2Title": "Revisa tus categorías y metas",
+      "step2Body": "Usa tu resumen para ver lo importante, seguir tus metas y saber cuánto es seguro gastar.",
+      "step3Title": "Vuelve 10 segundos al día",
+      "step3Body": "Un chequeo diario rápido es suficiente para mantener claridad, calma y control.",
+      "cta": "Entrar a Keelio",
+      "hint": "Las pequeñas decisiones consistentes crean una verdadera calma financiera."
+    },
     "usecases": {
       "title": "Registra lo que importa",
       "description": "Deuda dental, viajes de fin de semana, compras mensuales — crea una categoría para cualquier cosa y sigue tu progreso."

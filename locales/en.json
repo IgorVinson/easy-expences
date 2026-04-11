@@ -271,7 +271,7 @@
       "subtitleAccent": "safe to spend",
       "subtitleEnd": "right now.",
       "cta": "Show me how",
-      "socialProof": "Join 5000+ people using \"anti-budgeting\" to save more."
+      "socialProof": "Join 1000+ people using \"anti-budgeting\" to save more."
     },
     "s5": {
       "titlePart1": "No more ",
@@ -320,6 +320,19 @@
       "emptyGoals": "Pick a goal on the previous screen and set the amount here.",
       "cta": "Save Budgets",
       "hint": "Adjust these limits anytime as your needs change."
+    },
+    "s9": {
+      "eyebrow": "Great decision",
+      "title": "3 easy steps to feel calm and confident with money.",
+      "subtitle": "Do these simple actions each day and Keelio will help you stay clear, less stressed, and in control.",
+      "step1Title": "Add your first expense or saving",
+      "step1Body": "Start manually or use the mic to record it in seconds when the moment happens.",
+      "step2Title": "Check your categories and goals",
+      "step2Body": "Use your overview to see what matters, stay aligned with your goals, and know what is safe to spend.",
+      "step3Title": "Come back for 10 seconds daily",
+      "step3Body": "A quick daily check-in is enough to stay clear, calm, and in control.",
+      "cta": "Enter Keelio",
+      "hint": "Small consistent decisions create real financial calm."
     },
     "usecases": {
       "title": "Track What Matters to You",

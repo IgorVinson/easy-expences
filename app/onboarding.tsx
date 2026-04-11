@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -27,7 +27,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { PurchasesPackage } from 'react-native-purchases';
 
 const ONBOARDING_KEY = 'onboarding_completed';
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 function getCurrentMonthStartIso() {
   const now = new Date();
@@ -1328,13 +1328,20 @@ function Screen8({
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { offerings, subscribe, tier } = useSubscription();
+  const { offerings, subscribe, tier, loading: subscriptionLoading } = useSubscription();
+  const hadActiveTierOnOpen = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (subscriptionLoading || hadActiveTierOnOpen.current !== null) return;
+    hadActiveTierOnOpen.current = tier === 'premium' || tier === 'trial';
+  }, [subscriptionLoading, tier]);
+
+  const canContinueWithoutPurchase = hadActiveTierOnOpen.current === true;
 
   const handleGetStarted = async () => {
     setError(null);
 
-    // Check if already subscribed
-    if (tier === 'premium' || tier === 'trial') {
+    if (canContinueWithoutPurchase) {
       onFinish();
       return;
     }
@@ -1349,10 +1356,12 @@ function Screen8({
     let pkg: PurchasesPackage | null = null;
     if (selectedPlan === 'annual') {
       pkg =
+        currentOffering.annual ||
         currentOffering.availablePackages.find((p) => p.packageType === 'ANNUAL') ||
         currentOffering.availablePackages[0];
     } else {
       pkg =
+        currentOffering.monthly ||
         currentOffering.availablePackages.find((p) => p.packageType === 'MONTHLY') ||
         currentOffering.availablePackages[0];
     }
@@ -1438,7 +1447,7 @@ function Screen8({
               styles.bodyText,
               { color: theme.textSecondary, textAlign: 'center', marginTop: 12 },
             ]}>
-            Your personalized plan for clarity and growth is ready. Join 50,000+ others who have
+            Your personalized plan for clarity and growth is ready. Join 1,000+ others who have
             reclaimed their financial freedom.
           </Text>
         </View>
@@ -1531,21 +1540,129 @@ function Screen8({
           </View>
         )}
         <CTAButton
-          label={
-            loading
-              ? 'Processing...'
-              : tier === 'premium' || tier === 'trial'
-                ? 'Continue'
-                : 'Subscribe'
-          }
+          label={loading ? 'Processing...' : canContinueWithoutPurchase ? 'Continue' : 'Subscribe'}
           onPress={handleGetStarted}
           theme={theme}
-          icon={tier === 'premium' || tier === 'trial' ? 'arrow-forward' : 'card'}
+          icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
           loading={loading}
         />
         <Text style={[styles.s8TermsText, { color: theme.textTertiary }]}>
           Secure payment. Cancel anytime in your account settings.{'\n'}
           Terms of Service and Privacy Policy apply.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function Screen9({
+  theme,
+  t,
+  onFinish,
+  step,
+}: Pick<SharedProps, 'theme' | 't' | 'step'> & {
+  onFinish: () => void;
+}) {
+  const highlights = [
+    {
+      title: t('onboarding.s9.step1Title'),
+      body: t('onboarding.s9.step1Body'),
+      color: theme.success,
+      number: '1',
+    },
+    {
+      title: t('onboarding.s9.step2Title'),
+      body: t('onboarding.s9.step2Body'),
+      color: theme.purple,
+      number: '2',
+    },
+    {
+      title: t('onboarding.s9.step3Title'),
+      body: t('onboarding.s9.step3Body'),
+      color: '#F59E0B',
+      number: '3',
+    },
+  ];
+
+  return (
+    <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
+      <View
+        style={[styles.s9BlobTop, { backgroundColor: theme.success + '16' }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[styles.s9BlobBottom, { backgroundColor: theme.purple + '14' }]}
+        pointerEvents="none"
+      />
+
+      <Header theme={theme} onBack={() => {}} step={step} />
+
+      <View style={styles.s9Content}>
+        <View style={[styles.s9Hero, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+          <LinearGradient
+            colors={[theme.success, theme.purple]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.s9HeroGlow}
+          />
+          <View style={styles.s9HeroIconWrap}>
+            <View style={[styles.s9HeroIcon, { backgroundColor: '#fff' }]}>
+              <Ionicons name="checkmark" size={34} color={theme.success} />
+            </View>
+          </View>
+          <Text style={[styles.s9Eyebrow, { color: theme.success }]}>
+            {t('onboarding.s9.eyebrow')}
+          </Text>
+          <Text style={[styles.headline, styles.s9Title, { color: theme.textPrimary }]}>
+            {t('onboarding.s9.title')}
+          </Text>
+          <Text style={[styles.bodyText, styles.s9Subtitle, { color: theme.textSecondary }]}>
+            {t('onboarding.s9.subtitle')}
+          </Text>
+        </View>
+
+        <View style={styles.s9Highlights}>
+          {highlights.map((item) => (
+            <View
+              key={item.title}
+              style={[
+                styles.s9HighlightCard,
+                { backgroundColor: theme.cardBg, borderColor: theme.border },
+              ]}>
+              <View style={styles.s9StepRail}>
+                <View style={[styles.s9StepNumber, { backgroundColor: item.color }]}>
+                  <Text style={styles.s9StepNumberText}>{item.number}</Text>
+                </View>
+              </View>
+              <View style={styles.s9HighlightText}>
+                <View style={styles.s9HighlightTitleRow}>
+                  <Text style={[styles.s9HighlightTitle, { color: theme.textPrimary }]}>
+                    {item.title}
+                  </Text>
+                  {item.number === '1' && (
+                    <View style={styles.s9InlineMicBadge}>
+                      <Ionicons name="mic" size={11} color="#fff" />
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                  {item.body}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+        <CTAButton
+          label={t('onboarding.s9.cta')}
+          onPress={onFinish}
+          theme={theme}
+          icon="arrow-forward"
+        />
+        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+          {t('onboarding.s9.hint')}
         </Text>
       </View>
     </View>
@@ -1681,8 +1798,9 @@ export default function OnboardingScreen() {
           onFinish={() => setStep(7)}
         />
       )}
-      {step === 7 && (
-        <Screen8
+      {step === 7 && <Screen8 {...shared} onFinish={() => setStep(8)} />}
+      {step === 8 && (
+        <Screen9
           {...shared}
           onFinish={() =>
             completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
@@ -1709,6 +1827,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     height: 56,
+    zIndex: 2,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -1758,6 +1877,131 @@ const styles = StyleSheet.create({
   // Skip
   skipButton: { marginTop: 16, alignItems: 'center', paddingVertical: 8 },
   skipText: { fontSize: 14, fontWeight: '600' },
+
+  // Screen 9
+  s9BlobTop: {
+    position: 'absolute',
+    top: -90,
+    right: -80,
+    width: 260,
+    height: 260,
+    borderRadius: 140,
+  },
+  s9BlobBottom: {
+    position: 'absolute',
+    bottom: -120,
+    left: -100,
+    width: 280,
+    height: 280,
+    borderRadius: 160,
+  },
+  s9Content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 158,
+    justifyContent: 'space-between',
+    gap: 14,
+  },
+  s9Hero: {
+    borderWidth: 1,
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginTop: 10,
+  },
+  s9HeroGlow: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.08,
+  },
+  s9HeroIconWrap: {
+    marginBottom: 12,
+    padding: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  s9HeroIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s9Eyebrow: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  s9Title: {
+    textAlign: 'center',
+    fontSize: 24,
+    lineHeight: 30,
+  },
+  s9Subtitle: {
+    textAlign: 'center',
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  s9Highlights: {
+    gap: 10,
+  },
+  s9HighlightCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  s9StepRail: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 2,
+  },
+  s9StepNumber: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s9StepNumberText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  s9HighlightText: {
+    flex: 1,
+    gap: 2,
+  },
+  s9HighlightTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  s9HighlightTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  s9InlineMicBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EF4444',
+  },
+  s9HighlightBody: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
 
   // ── Screen 1 ──
   screen1Content: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140 },
