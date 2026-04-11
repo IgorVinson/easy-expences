@@ -1635,19 +1635,28 @@ function Screen9({
                 </View>
               </View>
               <View style={styles.s9HighlightText}>
-                <View style={styles.s9HighlightTitleRow}>
-                  <Text style={[styles.s9HighlightTitle, { color: theme.textPrimary }]}>
-                    {item.title}
-                  </Text>
-                  {item.number === '1' && (
-                    <View style={styles.s9InlineMicBadge}>
-                      <Ionicons name="mic" size={11} color="#fff" />
-                    </View>
+                <Text style={[styles.s9HighlightTitle, { color: theme.textPrimary }]}>
+                  {item.title}
+                </Text>
+                <View style={styles.s9HighlightBodyRow}>
+                  {item.number === '1' ? (
+                    <>
+                      <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                        {t('onboarding.s9.step1BodyPrefix')}
+                      </Text>
+                      <View style={styles.s9InlineMicBadge}>
+                        <Ionicons name="mic" size={12} color="#fff" />
+                      </View>
+                      <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                        {t('onboarding.s9.step1BodySuffix')}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                      {item.body}
+                    </Text>
                   )}
                 </View>
-                <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
-                  {item.body}
-                </Text>
               </View>
             </View>
           ))}
@@ -1948,47 +1957,43 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   s9Highlights: {
-    gap: 10,
+    gap: 12,
   },
   s9HighlightCard: {
     borderWidth: 1,
     borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
+    alignItems: 'center',
+    gap: 14,
+    minHeight: 92,
   },
   s9StepRail: {
+    width: 34,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 2,
+    alignSelf: 'stretch',
   },
   s9StepNumber: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
   s9StepNumberText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
   },
   s9HighlightText: {
     flex: 1,
-    gap: 2,
-  },
-  s9HighlightTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'wrap',
+    gap: 5,
   },
   s9HighlightTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
   },
   s9InlineMicBadge: {
     width: 18,
@@ -1997,10 +2002,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#EF4444',
+    marginTop: 1,
+  },
+  s9HighlightBodyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
   },
   s9HighlightBody: {
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
+    flexShrink: 1,
   },
 
   // ── Screen 1 ──

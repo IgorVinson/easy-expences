@@ -321,12 +321,14 @@
       "cta": "Save Budgets",
       "hint": "Adjust these limits anytime as your needs change."
     },
-    "s9": {
-      "eyebrow": "Great decision",
-      "title": "3 easy steps to feel calm and confident with money.",
-      "subtitle": "Do these simple actions each day and Keelio will help you stay clear, less stressed, and in control.",
+      "s9": {
+        "eyebrow": "Great decision",
+        "title": "Great choice. This is how financial calm starts.",
+        "subtitle": "Follow these 3 easy steps each day to feel calmer, more confident, and in control of your money.",
       "step1Title": "Add your first expense or saving",
-      "step1Body": "Start manually or use the mic to record it in seconds when the moment happens.",
+      "step1Body": "Start manually or record it in seconds when the moment happens.",
+      "step1BodyPrefix": "Start manually or record",
+      "step1BodySuffix": "it in seconds when the moment happens.",
       "step2Title": "Check your categories and goals",
       "step2Body": "Use your overview to see what matters, stay aligned with your goals, and know what is safe to spend.",
       "step3Title": "Come back for 10 seconds daily",
