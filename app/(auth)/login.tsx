@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
@@ -22,10 +22,17 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const { login, googleSignIn } = useAuth();
+  const params = useLocalSearchParams<{ email?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof params.email === 'string' && params.email.length > 0) {
+      setEmail(params.email);
+    }
+  }, [params.email]);
 
   const handleLogin = async () => {
     if (!email || !password) {

@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BASIC_VOICE_LIMIT, useSubscription } from '../contexts/SubscriptionContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface PaywallModalProps {
@@ -24,7 +24,6 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
   const { theme, isDarkMode } = useTheme();
   const { subscribe, restorePurchases, redeemPromoCode, offerings, trialDaysLeft, tier } =
     useSubscription();
-  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>('premium');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [purchasing, setPurchasing] = useState(false);
   const [showPromo, setShowPromo] = useState(false);
@@ -32,14 +31,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState('');
 
-  // RevenueCat packages — offerings should include basic_monthly, basic_annual, premium_monthly, premium_annual
-  // Fallback: use "monthly" and "annual" from current offering for premium
-  const basicMonthlyPkg = offerings?.current?.availablePackages.find(
-    (p) => p.identifier === 'basic_monthly'
-  ) ?? null;
-  const basicAnnualPkg = offerings?.current?.availablePackages.find(
-    (p) => p.identifier === 'basic_annual'
-  ) ?? null;
+  // RevenueCat packages — only premium plans are sold now.
   const premiumMonthlyPkg = offerings?.current?.availablePackages.find(
     (p) => p.identifier === 'premium_monthly'
   ) ?? offerings?.current?.monthly ?? null;
@@ -47,8 +39,6 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
     (p) => p.identifier === 'premium_annual'
   ) ?? offerings?.current?.annual ?? null;
 
-  const basicMonthlyPrice = basicMonthlyPkg?.product.priceString ?? '$2.99';
-  const basicAnnualPrice = basicAnnualPkg?.product.priceString ?? '$28.70';
   const premiumMonthlyPrice = premiumMonthlyPkg?.product.priceString ?? '$6.99';
   const premiumAnnualPrice = premiumAnnualPkg?.product.priceString ?? '$67.10';
 
@@ -56,52 +46,40 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
     {
       icon: 'mic' as const,
       title: t('paywall.features.voice'),
-      basic: `${BASIC_VOICE_LIMIT}/${t('common.month') || 'mo'}`,
-      premium: t('paywall.features.unlimited') || 'Unlim',
+      detail: t('paywall.features.unlimited') || 'Unlim',
     },
     {
       icon: 'create-outline' as const,
       title: t('paywall.features.manualExpenses'),
-      basic: '✓',
-      premium: '✓',
+      detail: '✓',
     },
     {
       icon: 'folder-outline' as const,
       title: t('paywall.features.categories'),
-      basic: '✓',
-      premium: '✓',
+      detail: '✓',
     },
     {
       icon: 'analytics-outline' as const,
       title: t('paywall.features.analytics'),
-      basic: '—',
-      premium: '✓',
+      detail: '✓',
     },
     {
       icon: 'cloud-upload-outline' as const,
       title: t('paywall.features.backup'),
-      basic: '—',
-      premium: '✓',
+      detail: '✓',
     },
     {
       icon: 'download-outline' as const,
       title: t('paywall.features.export'),
-      basic: '—',
-      premium: '✓',
+      detail: '✓',
     },
   ];
 
   const getSelectedPkg = () => {
-    if (selectedTier === 'basic') {
-      return billingCycle === 'annual' ? basicAnnualPkg : basicMonthlyPkg;
-    }
     return billingCycle === 'annual' ? premiumAnnualPkg : premiumMonthlyPkg;
   };
 
   const getSelectedPrice = () => {
-    if (selectedTier === 'basic') {
-      return billingCycle === 'annual' ? basicAnnualPrice : basicMonthlyPrice;
-    }
     return billingCycle === 'annual' ? premiumAnnualPrice : premiumMonthlyPrice;
   };
 
@@ -200,30 +178,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
               borderWidth: 1,
               borderColor: theme.border,
             }}>
-            {/* Header row */}
-            <View
-              className="mb-3 flex-row items-center border-b pb-3"
-              style={{ borderBottomColor: theme.border }}>
-              <View className="flex-1">
-                <Text
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: theme.textTertiary }}>
-                  {t('common.feature')}
-                </Text>
-              </View>
-              <View className="w-16 items-center">
-                <Text
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: theme.textTertiary }}>
-                  {t('common.basic')}
-                </Text>
-              </View>
-              <View className="w-16 items-center">
-                <Text className="text-xs font-bold uppercase" style={{ color: theme.purple }}>
-                  {t('common.premium')}
-                </Text>
-              </View>
-            </View>
+            <Text className="mb-3 text-xs font-bold uppercase" style={{ color: theme.purple }}>
+              {t('common.premium')}
+            </Text>
 
             {FEATURES.map((feature, index) => (
               <View
@@ -241,33 +198,21 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
                     {feature.title}
                   </Text>
                 </View>
-                <View className="w-16 items-center">
-                  <Text className="text-xs" style={{ color: theme.textTertiary }}>
-                    {feature.basic}
-                  </Text>
-                </View>
-                <View className="w-16 items-center">
-                  <Text className="text-xs font-semibold" style={{ color: theme.purple }}>
-                    {feature.premium}
-                  </Text>
-                </View>
+                <Text className="text-xs font-semibold" style={{ color: theme.purple }}>
+                  {feature.detail}
+                </Text>
               </View>
             ))}
           </View>
 
           {/* Plan Selection */}
           <View className="mb-3" style={{ gap: 10 }}>
-            {/* Premium Plan */}
-            <TouchableOpacity
-              onPress={() => setSelectedTier('premium')}
+            <View
               className="flex-row items-center rounded-2xl p-4"
               style={{
-backgroundColor:
-                  selectedTier === 'premium'
-                    ? isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF'
-                    : isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
-              borderWidth: selectedTier === 'premium' ? 2 : 1,
-              borderColor: selectedTier === 'premium' ? theme.purple : theme.border,
+                backgroundColor: isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF',
+                borderWidth: 2,
+                borderColor: theme.purple,
               }}>
               <View className="flex-1">
                 <View className="flex-row items-center">
@@ -292,49 +237,12 @@ backgroundColor:
                 className="h-6 w-6 items-center justify-center rounded-full"
                 style={{
                   borderWidth: 2,
-                  borderColor: selectedTier === 'premium' ? theme.purple : theme.border,
-                  backgroundColor: selectedTier === 'premium' ? theme.purple : 'transparent',
+                  borderColor: theme.purple,
+                  backgroundColor: theme.purple,
                 }}>
-                {selectedTier === 'premium' && (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                )}
+                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
               </View>
-            </TouchableOpacity>
-
-            {/* Basic Plan */}
-            <TouchableOpacity
-              onPress={() => setSelectedTier('basic')}
-              className="flex-row items-center rounded-2xl p-4"
-              style={{
-                backgroundColor:
-                  selectedTier === 'basic'
-                    ? isDarkMode ? 'rgba(139,92,246,0.12)' : '#F3E8FF'
-                    : isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
-                borderWidth: selectedTier === 'basic' ? 2 : 1,
-                borderColor: selectedTier === 'basic' ? theme.purple : theme.border,
-              }}>
-              <View className="flex-1">
-                <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
-                  {t('paywall.plans.basic')}
-                </Text>
-                <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
-                  {billingCycle === 'annual'
-                    ? t('paywall.plans.annualDetail', { monthly: basicAnnualPrice, annual: basicAnnualPrice })
-                    : t('paywall.plans.monthlyDetail', { price: basicMonthlyPrice })}
-                </Text>
-              </View>
-              <View
-                className="h-6 w-6 items-center justify-center rounded-full"
-                style={{
-                  borderWidth: 2,
-                  borderColor: selectedTier === 'basic' ? theme.purple : theme.border,
-                  backgroundColor: selectedTier === 'basic' ? theme.purple : 'transparent',
-                }}>
-                {selectedTier === 'basic' && (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                )}
-              </View>
-            </TouchableOpacity>
+            </View>
           </View>
 
           {/* Billing cycle toggle */}
@@ -370,7 +278,7 @@ backgroundColor:
             ) : (
               <Text className="text-base font-bold text-white">
                 {t('paywall.subscribe', {
-                  tier: selectedTier === 'premium' ? t('common.premium') : t('common.basic'),
+                  tier: t('common.premium'),
                   price: getSelectedPrice(),
                 })}
               </Text>

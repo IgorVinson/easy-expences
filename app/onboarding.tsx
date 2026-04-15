@@ -24,9 +24,9 @@ import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { getOnboardingStorageKey } from '../utils/onboarding';
 import { PurchasesPackage } from 'react-native-purchases';
 
-const ONBOARDING_KEY = 'onboarding_completed';
 const TOTAL_STEPS = 9;
 
 function getCurrentMonthStartIso() {
@@ -1330,6 +1330,33 @@ function Screen8({
   const [error, setError] = useState<string | null>(null);
   const { offerings, subscribe, tier, loading: subscriptionLoading } = useSubscription();
   const hadActiveTierOnOpen = useRef<boolean | null>(null);
+  const currentOffering = offerings?.current;
+  const annualPackage =
+    currentOffering?.availablePackages.find((p) => p.identifier === 'premium_annual') ||
+    currentOffering?.annual ||
+    currentOffering?.availablePackages.find((p) => p.packageType === 'ANNUAL') ||
+    null;
+  const monthlyPackage =
+    currentOffering?.availablePackages.find((p) => p.identifier === 'premium_monthly') ||
+    currentOffering?.monthly ||
+    currentOffering?.availablePackages.find((p) => p.packageType === 'MONTHLY') ||
+    null;
+
+  const annualPrice = annualPackage?.product.priceString ?? '$59.99/year';
+  const monthlyPrice = monthlyPackage?.product.priceString ?? '$9.99/mo';
+  const annualMonthlyEquivalent = annualPackage
+    ? new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: annualPackage.product.currencyCode,
+        maximumFractionDigits: 2,
+      }).format(annualPackage.product.price / 12)
+    : '$4.99';
+  const annualSavingsPercent = annualPackage && monthlyPackage
+    ? Math.max(
+        0,
+        Math.round((1 - annualPackage.product.price / (monthlyPackage.product.price * 12)) * 100)
+      )
+    : 50;
 
   useEffect(() => {
     if (subscriptionLoading || hadActiveTierOnOpen.current !== null) return;
@@ -1347,7 +1374,6 @@ function Screen8({
     }
 
     // Get the appropriate package based on selection
-    const currentOffering = offerings?.current;
     if (!currentOffering) {
       setError('Subscription options not available. Please try again.');
       return;
@@ -1423,10 +1449,10 @@ function Screen8({
               </View>
               <View>
                 <Text style={[styles.s8BadgeLabel, { color: theme.textSecondary }]}>
-                  Plan Ready
+                  {t('onboarding.s8.badgeLabel')}
                 </Text>
                 <Text style={[styles.s8BadgeValue, { color: theme.textPrimary }]}>
-                  98% Accuracy
+                  {t('onboarding.s8.badgeValue')}
                 </Text>
               </View>
             </View>
@@ -1437,18 +1463,26 @@ function Screen8({
         <View style={styles.s8TextBlock}>
           <View style={styles.s8TagRow}>
             <View style={[styles.s8TagDot, { backgroundColor: theme.success }]} />
-            <Text style={[styles.s8TagText, { color: theme.success }]}>Onboarding Complete</Text>
+            <Text style={[styles.s8TagText, { color: theme.success }]}>
+              {t('onboarding.s8.tag')}
+            </Text>
           </View>
           <Text style={[styles.headline, { color: theme.textPrimary, textAlign: 'center' }]}>
-            Ready to experience total financial peace?
+            {t('onboarding.s8.title')}
           </Text>
           <Text
             style={[
               styles.bodyText,
               { color: theme.textSecondary, textAlign: 'center', marginTop: 12 },
             ]}>
-            Your personalized plan for clarity and growth is ready. Join 1,000+ others who have
-            reclaimed their financial freedom.
+            {t('onboarding.s8.subtitle')}
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              { color: theme.purple, textAlign: 'center', marginTop: 10, fontWeight: '700' },
+            ]}>
+            {t('onboarding.s8.trialBanner')}
           </Text>
         </View>
 
@@ -1481,17 +1515,21 @@ function Screen8({
                 <Text style={[styles.s8PlanTitle, { color: theme.textPrimary }]}>Annual</Text>
                 <View style={styles.s8PlanPriceRow}>
                   <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                    $59.99/year
+                    {annualPrice}
                   </Text>
                   <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
-                    <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>Save 50%</Text>
+                    <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>
+                      Save {annualSavingsPercent}%
+                    </Text>
                   </View>
                 </View>
               </View>
             </View>
             <View style={styles.s8PlanRight}>
               <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
-              <Text style={[styles.s8PlanHighlight, { color: theme.purple }]}>$4.99/mo</Text>
+              <Text style={[styles.s8PlanHighlight, { color: theme.purple }]}>
+                {annualMonthlyEquivalent}/mo
+              </Text>
             </View>
           </Pressable>
 
@@ -1520,7 +1558,9 @@ function Screen8({
               </View>
               <View>
                 <Text style={[styles.s8PlanTitle, { color: theme.textPrimary }]}>Monthly</Text>
-                <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>$9.99/mo</Text>
+                <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
+                  {monthlyPrice}
+                </Text>
               </View>
             </View>
             <View style={styles.s8PlanRight}>
@@ -1540,15 +1580,20 @@ function Screen8({
           </View>
         )}
         <CTAButton
-          label={loading ? 'Processing...' : canContinueWithoutPurchase ? 'Continue' : 'Subscribe'}
+          label={
+            loading
+              ? t('onboarding.s8.processing')
+              : canContinueWithoutPurchase
+                ? t('onboarding.s8.continue')
+                : t('onboarding.s8.cta')
+          }
           onPress={handleGetStarted}
           theme={theme}
           icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
           loading={loading}
         />
         <Text style={[styles.s8TermsText, { color: theme.textTertiary }]}>
-          Secure payment. Cancel anytime in your account settings.{'\n'}
-          Terms of Service and Privacy Policy apply.
+          {t('onboarding.s8.terms')}
         </Text>
       </View>
     </View>
@@ -1755,7 +1800,9 @@ export default function OnboardingScreen() {
       }
     }
 
-    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+    if (user) {
+      await AsyncStorage.setItem(getOnboardingStorageKey(user.uid), 'true');
+    }
     router.replace('/(tabs)/overview');
   };
 
@@ -1820,7 +1867,6 @@ export default function OnboardingScreen() {
   );
 }
 
-export { ONBOARDING_KEY };
 
 // ─────────────────────────────────────────────
 // Styles

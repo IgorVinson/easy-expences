@@ -20,6 +20,7 @@ import { useCurrency } from '../../contexts/CurrencyContext';
 import { BASIC_VOICE_LIMIT, useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
+import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../../utils/onboarding';
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
@@ -417,7 +418,10 @@ export default function ProfileScreen() {
             {__DEV__ && (
               <TouchableOpacity
                 onPress={async () => {
-                  await AsyncStorage.removeItem('onboarding_completed');
+                  if (user) {
+                    await AsyncStorage.removeItem(getOnboardingStorageKey(user.uid));
+                  }
+                  await AsyncStorage.removeItem(LEGACY_ONBOARDING_KEY);
                   Alert.alert('Onboarding Reset', 'Restart the app to see onboarding again.');
                 }}
                 className="flex-row items-center justify-between py-4">

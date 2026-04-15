@@ -21,7 +21,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 export default function SignUpScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
-  const { signup, googleSignIn } = useAuth();
+  const { signup, googleSignIn, finishPostSignupRedirect } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,6 +43,23 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await signup(email, password, name);
+      Alert.alert(
+        t('auth.signupSuccessTitle'),
+        t('auth.signupSuccessMessage'),
+        [
+          {
+            text: t('auth.logIn'),
+            onPress: () => {
+              finishPostSignupRedirect();
+              router.replace({
+                pathname: '/(auth)/login',
+                params: { email: email.trim() },
+              });
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (error: any) {
       Alert.alert(t('auth.signupFailed'), error.message);
     } finally {

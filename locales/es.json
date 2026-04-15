@@ -317,6 +317,18 @@
       "emptyGoals": "Elige una meta en la pantalla anterior y fija el monto aquí.",
       "cta": "Guardar presupuestos"
     },
+    "s8": {
+      "tag": "Onboarding completado",
+      "badgeLabel": "Plan listo",
+      "badgeValue": "98% de precisión",
+      "title": "¿Listo para sentir una paz financiera total?",
+      "subtitle": "Tu plan personalizado para claridad y crecimiento está listo. Únete a 1,000+ personas que ya recuperaron su libertad financiera.",
+      "trialBanner": "Empieza con una prueba gratuita de 7 días y luego continúa con Premium mensual o anual.",
+      "cta": "Iniciar prueba gratuita de 7 días",
+      "continue": "Continuar",
+      "processing": "Procesando...",
+      "terms": "Pago seguro. Cancela cuando quieras en la configuración de tu cuenta.\nSe aplican los Términos de Servicio y la Política de Privacidad."
+    },
     "s9": {
       "eyebrow": "Gran decisión",
       "title": "Gran elección. Así empieza la calma financiera.",
@@ -365,6 +377,8 @@
     "confirmPassword": "Confirmar contraseña",
     "passwordsNoMatch": "Las contraseñas no coinciden",
     "signupFailed": "Error al registrarse",
+    "signupSuccessTitle": "Registro completado",
+    "signupSuccessMessage": "Perfecto, ya estás registrado. Ahora serás redirigido para iniciar sesión.",
     "alreadyHaveAccount": "¿Ya tienes una cuenta? ",
     "logIn": "Iniciar Sesión",
     "resetPassword": "Restablecer contraseña",

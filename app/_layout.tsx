@@ -8,10 +8,10 @@ import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionC
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
 import '../i18n';
-import { ONBOARDING_KEY } from './onboarding';
+import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../utils/onboarding';
 
 function RootLayoutNav() {
-  const { user, loading } = useAuth();
+  const { user, loading, postSignupRedirectPending } = useAuth();
   const { loading: subLoading } = useSubscription();
   const segments = useSegments();
   const router = useRouter();
@@ -22,6 +22,10 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === 'onboarding';
 
+    if (postSignupRedirectPending && inAuthGroup) {
+      return;
+    }
+
     if (!user) {
       if (!inAuthGroup) {
         router.replace('/(auth)/login');
@@ -31,15 +35,25 @@ function RootLayoutNav() {
 
     // Always read fresh from AsyncStorage — avoids stale state when
     // onboarding completes and segments change in the same cycle.
-    AsyncStorage.getItem(ONBOARDING_KEY).then((value) => {
-      const onboardingDone = value === 'true';
+    const onboardingKey = getOnboardingStorageKey(user.uid);
+
+    Promise.all([
+      AsyncStorage.getItem(onboardingKey),
+      AsyncStorage.getItem(LEGACY_ONBOARDING_KEY),
+    ]).then(async ([userScopedValue, legacyValue]) => {
+      const onboardingDone = userScopedValue === 'true' || legacyValue === 'true';
+
+      if (userScopedValue !== 'true' && legacyValue === 'true') {
+        await AsyncStorage.setItem(onboardingKey, 'true');
+      }
+
       if (!onboardingDone && !inOnboarding) {
         router.replace('/onboarding');
       } else if (onboardingDone && (inAuthGroup || inOnboarding)) {
         router.replace('/(tabs)/overview');
       }
     });
-  }, [user, loading, subLoading, segments, router]);
+  }, [user, loading, subLoading, segments, router, postSignupRedirectPending]);
 
   if (loading || subLoading) {
     return null;

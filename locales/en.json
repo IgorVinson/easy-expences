@@ -321,6 +321,18 @@
       "cta": "Save Budgets",
       "hint": "Adjust these limits anytime as your needs change."
     },
+    "s8": {
+      "tag": "Onboarding Complete",
+      "badgeLabel": "Plan Ready",
+      "badgeValue": "98% Accuracy",
+      "title": "Ready to experience total financial peace?",
+      "subtitle": "Your personalized plan for clarity and growth is ready. Join 1,000+ others who have reclaimed their financial freedom.",
+      "trialBanner": "Start with a 7-day free trial, then continue with Premium monthly or annual.",
+      "cta": "Start 7-Day Free Trial",
+      "continue": "Continue",
+      "processing": "Processing...",
+      "terms": "Secure payment. Cancel anytime in your account settings.\nTerms of Service and Privacy Policy apply."
+    },
       "s9": {
         "eyebrow": "Great decision",
         "title": "Great choice. This is how financial calm starts.",
@@ -369,6 +381,8 @@
     "confirmPassword": "Confirm Password",
     "passwordsNoMatch": "Passwords do not match",
     "signupFailed": "Sign Up Failed",
+    "signupSuccessTitle": "Registration complete",
+    "signupSuccessMessage": "Great, you are registered. You will now be redirected to log in.",
     "alreadyHaveAccount": "Already have an account? ",
     "logIn": "Log In",
     "resetPassword": "Reset Password",
