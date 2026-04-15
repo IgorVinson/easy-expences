@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Keelio",
-    "slug": "keelio",
+    "slug": "sayspend",
     "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,7 +31,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.keelio.app",
+      "bundleIdentifier": "com.sayspend.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "LSApplicationQueriesSchemes": ["mailto"]
@@ -39,7 +39,7 @@
     },
     "android": {
       "googleServicesFile": "./google-services.json",
-      "package": "com.keelio.app",
+      "package": "com.sayspend.app",
       "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -51,20 +51,22 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "com.keelio.app",
+              "scheme": "com.sayspend.app",
               "host": "oauth2redirect"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "permissions": ["android.permission.RECORD_AUDIO", "android.permission.MODIFY_AUDIO_SETTINGS"]
     },
-    "scheme": "keelio",
+    "scheme": "sayspend",
     "extra": {
       "router": {},
       "eas": {
         "projectId": "3337680d-d154-4367-ba89-263f6d5ef119"
       }
-    }
+    },
+    "owner": "igorvinson"
   }
 }

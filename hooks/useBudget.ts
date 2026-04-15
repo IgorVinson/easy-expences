@@ -13,46 +13,6 @@ import { db } from '../firebaseConfig';
 import { useTransactions } from './useTransactions';
 import { BudgetCategory, NewBudgetCategory } from '../types';
 
-// ─── Default categories (seeded for new users) ───────────────────────────────
-
-const DEFAULT_CATEGORIES: Omit<NewBudgetCategory, never>[] = [
-  {
-    name: 'Food & Dining',
-    budget: 500,
-    icon: 'restaurant',
-    colorLight: '#FED7AA',
-    colorDark: '#FB923C',
-  },
-  {
-    name: 'Transportation',
-    budget: 300,
-    icon: 'car',
-    colorLight: '#E2E8F0',
-    colorDark: '#94A3B8',
-  },
-  {
-    name: 'Utilities',
-    budget: 250,
-    icon: 'bulb',
-    colorLight: '#FEF08A',
-    colorDark: '#FACC15',
-  },
-  {
-    name: 'Entertainment',
-    budget: 200,
-    icon: 'ticket',
-    colorLight: '#FECACA',
-    colorDark: '#F87171',
-  },
-  {
-    name: 'Shopping',
-    budget: 400,
-    icon: 'cart',
-    colorLight: '#BFDBFE',
-    colorDark: '#60A5FA',
-  },
-];
-
 function getCurrentMonthStartIso() {
   const now = new Date();
   now.setDate(1);
@@ -82,13 +42,7 @@ export function useBudget(userId: string | null | undefined) {
 
     const unsubscribe = onSnapshot(
       q,
-      async (snapshot) => {
-        // First time a user connects — seed their default categories
-        if (snapshot.empty) {
-          await seedDefaultCategories(userId);
-          return; // onSnapshot will fire again with the newly created docs
-        }
-
+      (snapshot) => {
         const docs: BudgetCategory[] = snapshot.docs.map((d) => ({
           id: d.id,
           name: d.data().name ?? '',
@@ -114,20 +68,6 @@ export function useBudget(userId: string | null | undefined) {
 
     return unsubscribe;
   }, [userId]);
-
-  // ─── Seed helper ──────────────────────────────────────────────────────────
-
-  async function seedDefaultCategories(uid: string) {
-    const promises = DEFAULT_CATEGORIES.map((cat) =>
-      addDoc(collection(db, 'budgetCategories'), {
-        ...cat,
-        spent: 0,
-        periodStart: getCurrentMonthStartIso(),
-        userId: uid,
-      })
-    );
-    await Promise.all(promises);
-  }
 
   // ─── CRUD ─────────────────────────────────────────────────────────────────
 
