@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { addDoc, collection } from 'firebase/firestore';
@@ -473,6 +474,8 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
 // Screen 4 — Anti-Budgeting Value Prop
 // ─────────────────────────────────────────────
 function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
+  const { height } = useWindowDimensions();
+  const compactHeight = height < 760;
   const DEMO_ROWS = [
     { date: '10/24', desc: 'Whole Foods', amount: '-$84.20' },
     { date: '10/25', desc: 'Rent Payment', amount: '-$1,200' },
@@ -489,9 +492,10 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
-      <View style={styles.screen4Content}>
+      <View style={styles.screen4Layout}>
+        <View style={[styles.screen4Content, compactHeight && styles.screen4ContentCompact]}>
         {/* Logo + badge */}
-        <View style={styles.s4LogoWrapper}>
+        <View style={[styles.s4LogoWrapper, compactHeight && styles.s4LogoWrapperCompact]}>
           <View style={[styles.s4LogoBox, { backgroundColor: theme.successBg }]}>
             <View style={[styles.logoBox, { backgroundColor: theme.success + '33' }]}>
               <Ionicons name="wallet" size={22} color={theme.success} />
@@ -516,7 +520,11 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
         <Text
           style={[
             styles.bodyText,
-            { color: theme.textSecondary, textAlign: 'center', marginBottom: 24 },
+            {
+              color: theme.textSecondary,
+              textAlign: 'center',
+              marginBottom: compactHeight ? 16 : 24,
+            },
           ]}>
           {t('onboarding.s4.subtitle')}{' '}
           <Text style={{ color: theme.success, fontWeight: '700' }}>
@@ -530,6 +538,7 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
           <View
             style={[
               styles.s4Spreadsheet,
+              compactHeight && styles.s4SpreadsheetCompact,
               { backgroundColor: theme.iconBg, borderColor: theme.border },
             ]}>
             <View style={[styles.s4SheetHeader, { borderBottomColor: theme.border }]}>
@@ -573,7 +582,7 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
         </View>
 
         {/* Arrow transition */}
-        <View style={styles.s4Arrow}>
+        <View style={[styles.s4Arrow, compactHeight && styles.s4ArrowCompact]}>
           <View style={[styles.s4ArrowLine, { backgroundColor: theme.border }]} />
           <View
             style={[
@@ -586,7 +595,11 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
 
         {/* Keelio categories card */}
         <View
-          style={[styles.s4CatCard, { backgroundColor: theme.cardBg, borderColor: theme.success }]}>
+          style={[
+            styles.s4CatCard,
+            compactHeight && styles.s4CatCardCompact,
+            { backgroundColor: theme.cardBg, borderColor: theme.success },
+          ]}>
           {DEMO_CATS.map((cat, i) => (
             <View
               key={i}
@@ -603,18 +616,19 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
             </View>
           ))}
         </View>
-      </View>
+        </View>
 
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
-        <CTAButton
-          label={t('onboarding.s4.cta')}
-          onPress={onNext}
-          theme={theme}
-          icon="arrow-forward"
-        />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
-          {t('onboarding.s4.socialProof')}
-        </Text>
+        <View style={[styles.footerStatic, compactHeight && styles.footerStaticCompact]}>
+          <CTAButton
+            label={t('onboarding.s4.cta')}
+            onPress={onNext}
+            theme={theme}
+            icon="arrow-forward"
+          />
+          <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+            {t('onboarding.s4.socialProof')}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -959,17 +973,27 @@ function BudgetSlider({
   onChange: (next: number) => void;
 }) {
   const [trackWidth, setTrackWidth] = useState(0);
+  const [trackPageX, setTrackPageX] = useState(0);
+  const sliderRef = useRef<View | null>(null);
 
   const progress = max > min ? (value - min) / (max - min) : 0;
   const normalizedProgress = Math.min(Math.max(progress, 0), 1);
   const thumbLeft = trackWidth * normalizedProgress;
 
-  const handleChange = (x: number) => {
+  const updateTrackMetrics = () => {
+    sliderRef.current?.measureInWindow((x, _y, width) => {
+      setTrackPageX(x);
+      setTrackWidth(width);
+    });
+  };
+
+  const handleChange = (pageX: number) => {
     if (trackWidth <= 0) {
       return;
     }
 
-    const clampedX = Math.min(Math.max(x, 0), trackWidth);
+    const relativeX = pageX - trackPageX;
+    const clampedX = Math.min(Math.max(relativeX, 0), trackWidth);
     const nextRaw = min + (clampedX / trackWidth) * (max - min);
     const next = Math.max(min, Math.min(max, Math.round(nextRaw / step) * step));
     onChange(next);
@@ -977,12 +1001,16 @@ function BudgetSlider({
 
   return (
     <View
+      ref={sliderRef}
       style={styles.s7SliderArea}
-      onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
+      onLayout={updateTrackMetrics}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}
-      onResponderGrant={(event) => handleChange(event.nativeEvent.locationX)}
-      onResponderMove={(event) => handleChange(event.nativeEvent.locationX)}>
+      onResponderGrant={(event) => {
+        updateTrackMetrics();
+        handleChange(event.nativeEvent.pageX);
+      }}
+      onResponderMove={(event) => handleChange(event.nativeEvent.pageX)}>
       <View style={[styles.s7SliderTrack, { backgroundColor: trackColor ?? '#E2E8F0' }]}>
         <View
           style={[
@@ -1325,6 +1353,9 @@ function Screen8({
 }: SharedProps & {
   onFinish: () => void;
 }) {
+  const { height, width } = useWindowDimensions();
+  const compactHeight = height < 760;
+  const narrowWidth = width < 380;
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1422,26 +1453,29 @@ function Screen8({
 
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
-      <View style={styles.s8Content}>
+      <View style={styles.s8Layout}>
+        <View style={[styles.s8Content, compactHeight && styles.s8ContentCompact]}>
         {/* Hero image with floating badge */}
-        <View style={styles.s8ImageWrapper}>
+        <View style={[styles.s8ImageWrapper, compactHeight && styles.s8ImageWrapperCompact]}>
           <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
           <View
             style={[
               styles.s8ImageCard,
+              compactHeight && styles.s8ImageCardCompact,
               { backgroundColor: theme.cardBg, borderColor: theme.border },
             ]}>
             <Image
               source={{
                 uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSfoqHxeAi6k1VosFbuxNW4fwnC2IHPL09qimUrn-GHiNSGyCeIJT7-MC-68CTDnY-AGXMw6sgl8JzRrBdwdfeeWeL26xGxYls8fF1NiMHl3fj5REeDGFe__3mhtVe0C63h7Fxo3AtxIBVwXeV82mm2akg7HwTdagocanR3v4Ffnvqz15BS8rwuxezLPNmwxVWNL0ccGhFbDTZaPDLHR--IhT3gDizTaIIC6Iw5dr-wu4Cc9dWjdZvplOXlFXvisu9mC3xYoXUxM3K',
               }}
-              style={styles.s8HeroImage}
+              style={[styles.s8HeroImage, compactHeight && styles.s8HeroImageCompact]}
               resizeMode="contain"
             />
             {/* Floating badge */}
             <View
               style={[
                 styles.s8FloatingBadge,
+                compactHeight && styles.s8FloatingBadgeCompact,
                 { backgroundColor: theme.cardBg, borderColor: theme.border },
               ]}>
               <View style={[styles.s8BadgeIcon, { backgroundColor: theme.success }]}>
@@ -1493,6 +1527,7 @@ function Screen8({
             onPress={() => setSelectedPlan('annual')}
             style={[
               styles.s8PlanCard,
+              narrowWidth && styles.s8PlanCardCompact,
               {
                 backgroundColor: selectedPlan === 'annual' ? theme.cardBg : theme.iconBg,
                 borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
@@ -1512,8 +1547,15 @@ function Screen8({
                 )}
               </View>
               <View>
-                <Text style={[styles.s8PlanTitle, { color: theme.textPrimary }]}>Annual</Text>
-                <View style={styles.s8PlanPriceRow}>
+                <Text
+                  style={[
+                    styles.s8PlanTitle,
+                    narrowWidth && styles.s8PlanTitleCompact,
+                    { color: theme.textPrimary },
+                  ]}>
+                  Annual
+                </Text>
+                <View style={[styles.s8PlanPriceRow, narrowWidth && styles.s8PlanPriceRowCompact]}>
                   <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
                     {annualPrice}
                   </Text>
@@ -1525,9 +1567,14 @@ function Screen8({
                 </View>
               </View>
             </View>
-            <View style={styles.s8PlanRight}>
+            <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
               <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
-              <Text style={[styles.s8PlanHighlight, { color: theme.purple }]}>
+              <Text
+                style={[
+                  styles.s8PlanHighlight,
+                  narrowWidth && styles.s8PlanHighlightCompact,
+                  { color: theme.purple },
+                ]}>
                 {annualMonthlyEquivalent}/mo
               </Text>
             </View>
@@ -1538,6 +1585,7 @@ function Screen8({
             onPress={() => setSelectedPlan('monthly')}
             style={[
               styles.s8PlanCard,
+              narrowWidth && styles.s8PlanCardCompact,
               {
                 backgroundColor: selectedPlan === 'monthly' ? theme.cardBg : theme.iconBg,
                 borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
@@ -1557,22 +1605,34 @@ function Screen8({
                 )}
               </View>
               <View>
-                <Text style={[styles.s8PlanTitle, { color: theme.textPrimary }]}>Monthly</Text>
+                <Text
+                  style={[
+                    styles.s8PlanTitle,
+                    narrowWidth && styles.s8PlanTitleCompact,
+                    { color: theme.textPrimary },
+                  ]}>
+                  Monthly
+                </Text>
                 <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
                   {monthlyPrice}
                 </Text>
               </View>
             </View>
-            <View style={styles.s8PlanRight}>
+            <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
               <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
-              <Text style={[styles.s8PlanMonth, { color: theme.textPrimary }]}>Monthly</Text>
+              <Text
+                style={[
+                  styles.s8PlanMonth,
+                  narrowWidth && styles.s8PlanMonthCompact,
+                  { color: theme.textPrimary },
+                ]}>
+                Monthly
+              </Text>
             </View>
           </Pressable>
         </View>
-      </View>
 
-      {/* Footer with CTA */}
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+        <View style={[styles.footerStatic, compactHeight && styles.footerStaticCompact]}>
         {error && (
           <View style={[styles.s8ErrorContainer, { backgroundColor: theme.error + '15' }]}>
             <Ionicons name="alert-circle" size={16} color={theme.error} />
@@ -1595,6 +1655,8 @@ function Screen8({
         <Text style={[styles.s8TermsText, { color: theme.textTertiary }]}>
           {t('onboarding.s8.terms')}
         </Text>
+        </View>
+        </View>
       </View>
     </View>
   );
@@ -1608,6 +1670,8 @@ function Screen9({
 }: Pick<SharedProps, 'theme' | 't' | 'step'> & {
   onFinish: () => void;
 }) {
+  const { height } = useWindowDimensions();
+  const compactHeight = height < 760;
   const highlights = [
     {
       title: t('onboarding.s9.step1Title'),
@@ -1642,8 +1706,19 @@ function Screen9({
 
       <Header theme={theme} onBack={() => {}} step={step} />
 
-      <View style={styles.s9Content}>
-        <View style={[styles.s9Hero, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.s9ScrollContent,
+          compactHeight && styles.s9ScrollContentCompact,
+        ]}
+        showsVerticalScrollIndicator={false}>
+        <View style={[styles.s9Content, compactHeight && styles.s9ContentCompact]}>
+        <View
+          style={[
+            styles.s9Hero,
+            compactHeight && styles.s9HeroCompact,
+            { backgroundColor: theme.cardBg, borderColor: theme.border },
+          ]}>
           <LinearGradient
             colors={[theme.success, theme.purple]}
             start={{ x: 0, y: 0 }}
@@ -1672,6 +1747,7 @@ function Screen9({
               key={item.title}
               style={[
                 styles.s9HighlightCard,
+                compactHeight && styles.s9HighlightCardCompact,
                 { backgroundColor: theme.cardBg, borderColor: theme.border },
               ]}>
               <View style={styles.s9StepRail}>
@@ -1706,9 +1782,9 @@ function Screen9({
             </View>
           ))}
         </View>
-      </View>
+        </View>
 
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+      <View style={[styles.footerStatic, compactHeight && styles.footerStaticCompact]}>
         <CTAButton
           label={t('onboarding.s9.cta')}
           onPress={onFinish}
@@ -1719,6 +1795,7 @@ function Screen9({
           {t('onboarding.s9.hint')}
         </Text>
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -1928,6 +2005,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerHint: { marginTop: 12, fontSize: 12, textAlign: 'center' },
+  footerStatic: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    alignItems: 'center',
+  },
+  footerStaticCompact: {
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 20,
+  },
 
   // Skip
   skipButton: { marginTop: 16, alignItems: 'center', paddingVertical: 8 },
@@ -1950,13 +2037,21 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 160,
   },
+  s9ScrollContent: {
+    paddingBottom: Platform.OS === 'ios' ? 12 : 8,
+  },
+  s9ScrollContentCompact: {
+    paddingBottom: 4,
+  },
   s9Content: {
-    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 158,
-    justifyContent: 'space-between',
+    paddingBottom: 16,
     gap: 14,
+  },
+  s9ContentCompact: {
+    paddingTop: 10,
+    gap: 10,
   },
   s9Hero: {
     borderWidth: 1,
@@ -1966,6 +2061,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     marginTop: 10,
+  },
+  s9HeroCompact: {
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    marginTop: 4,
   },
   s9HeroGlow: {
     ...StyleSheet.absoluteFillObject,
@@ -2014,6 +2114,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     minHeight: 92,
+  },
+  s9HighlightCardCompact: {
+    minHeight: 78,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 12,
   },
   s9StepRail: {
     width: 34,
@@ -2252,8 +2358,11 @@ const styles = StyleSheet.create({
   insightBody: { fontSize: 13, lineHeight: 20, fontWeight: '500' },
 
   // ── Screen 4 ──
-  screen4Content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 140 },
+  screen4Layout: { flex: 1, justifyContent: 'space-between' },
+  screen4Content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 8 },
+  screen4ContentCompact: { paddingTop: 6, paddingBottom: 4 },
   s4LogoWrapper: { alignItems: 'center', marginBottom: 20, position: 'relative' },
+  s4LogoWrapperCompact: { marginBottom: 8 },
   s4LogoBox: {
     width: 72,
     height: 72,
@@ -2277,6 +2386,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   s4Spreadsheet: { borderWidth: 1, borderRadius: 14, padding: 12, width: '90%' },
+  s4SpreadsheetCompact: { width: '100%', padding: 8 },
   s4SheetHeader: {
     flexDirection: 'row',
     borderBottomWidth: 1,
@@ -2318,6 +2428,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   s4Arrow: { alignItems: 'center', marginVertical: 12 },
+  s4ArrowCompact: { marginVertical: 6 },
   s4ArrowLine: { width: 1, height: 24 },
   s4ArrowCircle: {
     width: 36,
@@ -2336,6 +2447,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
+  },
+  s4CatCardCompact: {
+    padding: 14,
   },
   s4CatRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   s4CatLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -2596,13 +2710,19 @@ const styles = StyleSheet.create({
     borderRadius: 128,
     zIndex: -1,
   },
-  s8Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 180 },
+  s8Layout: { flex: 1, justifyContent: 'space-between' },
+  s8Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
+  s8ContentCompact: { paddingTop: 2, paddingBottom: 4 },
   s8ImageWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 28,
+    marginBottom: 20,
     height: 220,
     position: 'relative',
+  },
+  s8ImageWrapperCompact: {
+    marginBottom: 12,
+    height: 144,
   },
   s8ImageGlow: {
     position: 'absolute',
@@ -2623,10 +2743,20 @@ const styles = StyleSheet.create({
     elevation: 8,
     position: 'relative',
   },
+  s8ImageCardCompact: {
+    width: 120,
+    height: 120,
+    borderRadius: 28,
+  },
   s8HeroImage: {
     width: 180,
     height: 180,
     borderRadius: 40,
+  },
+  s8HeroImageCompact: {
+    width: 120,
+    height: 120,
+    borderRadius: 28,
   },
   s8FloatingBadge: {
     position: 'absolute',
@@ -2645,6 +2775,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  s8FloatingBadgeCompact: {
+    bottom: -2,
+    right: -2,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
   s8BadgeIcon: {
     width: 24,
     height: 24,
@@ -2654,7 +2790,7 @@ const styles = StyleSheet.create({
   },
   s8BadgeLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
   s8BadgeValue: { fontSize: 12, fontWeight: '800' },
-  s8TextBlock: { alignItems: 'center', marginBottom: 28 },
+  s8TextBlock: { alignItems: 'center', marginBottom: 16 },
   s8TagRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2663,7 +2799,7 @@ const styles = StyleSheet.create({
   },
   s8TagDot: { width: 6, height: 6, borderRadius: 3 },
   s8TagText: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
-  s8PlansContainer: { gap: 12, marginBottom: 24 },
+  s8PlansContainer: { gap: 10, marginBottom: 12 },
   s8PlanCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2672,7 +2808,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
   },
-  s8PlanLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  s8PlanCardCompact: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  s8PlanLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 },
   s8RadioCircle: {
     width: 24,
     height: 24,
@@ -2683,7 +2823,9 @@ const styles = StyleSheet.create({
   },
   s8RadioDot: { width: 12, height: 12, borderRadius: 6 },
   s8PlanTitle: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
-  s8PlanPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  s8PlanTitleCompact: { fontSize: 14 },
+  s8PlanPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  s8PlanPriceRowCompact: { gap: 6 },
   s8PlanPrice: { fontSize: 13, fontWeight: '500' },
   s8SaveBadge: {
     paddingHorizontal: 8,
@@ -2691,15 +2833,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   s8SaveBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
-  s8PlanRight: { alignItems: 'flex-end' },
+  s8PlanRight: { alignItems: 'flex-end', flexShrink: 0, marginLeft: 10, maxWidth: '42%' },
+  s8PlanRightCompact: { maxWidth: '44%' },
   s8PlanSmall: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
   s8PlanHighlight: { fontSize: 18, fontWeight: '800' },
+  s8PlanHighlightCompact: { fontSize: 15 },
   s8PlanMonth: { fontSize: 16, fontWeight: '700' },
+  s8PlanMonthCompact: { fontSize: 14 },
   s8TermsText: {
-    marginTop: 16,
+    marginTop: 12,
     fontSize: 10,
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 14,
     paddingHorizontal: 20,
   },
   s8ErrorContainer: {
