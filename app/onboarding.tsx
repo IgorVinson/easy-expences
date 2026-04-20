@@ -296,6 +296,15 @@ function AdaptiveStepContent({
 // ─────────────────────────────────────────────
 function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext'>) {
   const layout = useAdaptiveOnboardingLayout();
+  const screen1Title = t('onboarding.s1.title');
+  const screen1TitleAccent = t('onboarding.s1.titleAccent');
+  const screen1AccentIndex = screen1Title.indexOf(screen1TitleAccent);
+  const screen1TitlePrefix =
+    screen1AccentIndex >= 0 ? screen1Title.slice(0, screen1AccentIndex) : screen1Title;
+  const screen1TitleSuffix =
+    screen1AccentIndex >= 0
+      ? screen1Title.slice(screen1AccentIndex + screen1TitleAccent.length)
+      : '';
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
@@ -368,7 +377,7 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
             styles.decorativeCluster,
             {
               height: layout.screen1ClusterHeight,
-              marginBottom: clampNumber(layout.height * 0.035, 20, 32),
+              marginBottom: clampNumber(layout.height * 0.05, 28, 44),
             },
           ]}>
           <View
@@ -444,20 +453,27 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
                   styles.floatingBadgeLabel,
                   { color: theme.textSecondary, fontSize: layout.eyebrowSize },
                 ]}>
-                Inner Wealth
+                {t('onboarding.s1.badgeLabel')}
               </Text>
               <Text
                 style={[
                   styles.floatingBadgeValue,
                   { color: theme.textPrimary, fontSize: clampNumber(layout.bodySize, 14, 16) },
                 ]}>
-                +12% Clarity
+                {t('onboarding.s1.badgeValue')}
               </Text>
             </View>
           </View>
         </View>
 
-        <View style={[styles.screen1Text, { gap: clampNumber(layout.height * 0.014, 10, 12) }]}>
+        <View
+          style={[
+            styles.screen1Text,
+            {
+              gap: clampNumber(layout.height * 0.014, 10, 12),
+              marginTop: clampNumber(layout.height * -0.012, -10, -4),
+            },
+          ]}>
           <Text
             style={[
               styles.headline,
@@ -467,11 +483,15 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
                 lineHeight: layout.titleLineHeight,
               },
             ]}>
-            {"Money shouldn't "}
-            <Text style={{ color: theme.purple, fontStyle: 'italic' }}>
-              {t('onboarding.s1.titleAccent')}
-            </Text>
-            {'.'}
+            {screen1TitlePrefix}
+            {screen1AccentIndex >= 0 ? (
+              <>
+                <Text style={{ color: theme.purple, fontStyle: 'italic' }}>
+                  {screen1TitleAccent}
+                </Text>
+                {screen1TitleSuffix}
+              </>
+            ) : null}
           </Text>
           <Text
             style={[
@@ -527,7 +547,7 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
               marginTop: layout.footerHintMargin,
             },
           ]}>
-          Tap to begin your journey to financial serenity.
+          {t('onboarding.s1.hint')}
         </Text>
       </View>
     </View>
@@ -3182,7 +3202,7 @@ const styles = StyleSheet.create({
   },
   floatingBadgeLabel: { fontSize: 11, fontWeight: '500' },
   floatingBadgeValue: { fontSize: 15, fontWeight: '700' },
-  screen1Text: { gap: 12 },
+  screen1Text: { gap: 12, position: 'relative', zIndex: 20, elevation: 20 },
   headline: { fontSize: 30, fontWeight: '800', lineHeight: 38, letterSpacing: -0.5, flexShrink: 1 },
   bodyText: { fontSize: 16, lineHeight: 24, flexShrink: 1 },
   taglineRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },

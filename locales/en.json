@@ -257,8 +257,11 @@
       "title": "Money shouldn't feel stressful.",
       "titleAccent": "feel stressful",
       "subtitle": "Do you ever feel unsure even after checking your balance? We help you find clarity and peace of mind.",
+      "badgeLabel": "Inner Calm",
+      "badgeValue": "Clarity + Control",
       "tagline": "Digital Sanctuary",
-      "cta": "Next"
+      "cta": "Next",
+      "hint": "Tap to begin your journey to financial calm."
     },
     "s2": {
       "title": "Do you ever feel like money disappears?",
@@ -348,10 +351,10 @@
       "processing": "Processing...",
       "terms": "Secure payment. Cancel anytime in your account settings.\nTerms of Service and Privacy Policy apply."
     },
-      "s9": {
-        "eyebrow": "Great decision",
-        "title": "Great choice. This is how financial calm starts.",
-        "subtitle": "Follow these 3 easy steps each day to feel calmer, more confident, and in control of your money.",
+    "s9": {
+      "eyebrow": "Great decision",
+      "title": "Great choice. This is how financial calm starts.",
+      "subtitle": "Follow these 3 easy steps each day to feel calmer, more confident, and in control of your money.",
       "step1Title": "Add your first expense or saving",
       "step1Body": "Start manually or record it in seconds when the moment happens.",
       "step1BodyPrefix": "Start manually or record",

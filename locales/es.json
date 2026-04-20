@@ -257,8 +257,11 @@
       "title": "El dinero no debería causar estrés.",
       "titleAccent": "causar estrés",
       "subtitle": "¿Alguna vez te sientes inseguro incluso después de revisar tu saldo? Te ayudamos a encontrar claridad y tranquilidad.",
+      "badgeLabel": "Calma interior",
+      "badgeValue": "Claridad + Control",
       "tagline": "Santuario Digital",
-      "cta": "Siguiente"
+      "cta": "Siguiente",
+      "hint": "Toca para comenzar tu camino hacia la calma financiera."
     },
     "s2": {
       "title": "¿Sientes que el dinero simplemente desaparece?",
