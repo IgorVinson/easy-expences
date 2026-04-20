@@ -73,7 +73,7 @@ function useAdaptiveOnboardingLayout() {
     bodyLineHeight: clampNumber(shortEdge * 0.05, 16, 26),
     eyebrowSize: clampNumber(shortEdge * 0.025, 8, 12),
     cardRadius: clampNumber(shortEdge * 0.035, 10, 24),
-    screen1ClusterHeight: clampNumber(height * 0.22, 100, 270),
+    screen1ClusterHeight: clampNumber(height * 0.19, 96, 240),
     screen1CardPadding: clampNumber(shortEdge * 0.04, 8, 24),
     screen1BadgePadding: clampNumber(shortEdge * 0.025, 6, 14),
     optionCardPadding: clampNumber(shortEdge * 0.035, 8, 18),
@@ -385,7 +385,7 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
               styles.decorCardBg,
               {
                 backgroundColor: theme.purple + '33',
-                height: clampNumber(layout.screen1ClusterHeight * 0.74, 150, 200),
+                height: clampNumber(layout.screen1ClusterHeight * 0.7, 132, 184),
                 borderRadius: layout.cardRadius,
                 transform: [{ rotate: '3deg' }],
               },
@@ -693,6 +693,15 @@ function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
 // ─────────────────────────────────────────────
 function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
   const layout = useAdaptiveOnboardingLayout();
+  const screen3Subtitle = t('onboarding.s3.subtitle');
+  const screen3SubtitleAccent = t('onboarding.s3.subtitleAccent');
+  const screen3AccentIndex = screen3Subtitle.indexOf(screen3SubtitleAccent);
+  const screen3SubtitlePrefix =
+    screen3AccentIndex >= 0 ? screen3Subtitle.slice(0, screen3AccentIndex) : screen3Subtitle;
+  const screen3SubtitleSuffix =
+    screen3AccentIndex >= 0
+      ? screen3Subtitle.slice(screen3AccentIndex + screen3SubtitleAccent.length)
+      : '';
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
@@ -836,10 +845,15 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
                 lineHeight: layout.bodyLineHeight,
               },
             ]}>
-            {"It's about not knowing what's "}
-            <Text style={{ color: theme.success, fontWeight: '700' }}>
-              {t('onboarding.s3.subtitleAccent')}
-            </Text>
+            {screen3SubtitlePrefix}
+            {screen3AccentIndex >= 0 ? (
+              <>
+                <Text style={{ color: theme.success, fontWeight: '700' }}>
+                  {screen3SubtitleAccent}
+                </Text>
+                {screen3SubtitleSuffix}
+              </>
+            ) : null}
           </Text>
         </View>
 
