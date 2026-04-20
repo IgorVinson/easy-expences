@@ -24,6 +24,7 @@
     "yesterday": "Yesterday",
     "past": "Past",
     "noExpensesToday": "No expenses today yet",
+    "tapAddExpense": "Tap \"+\" to add your first expense.",
     "loading": "Loading expenses…",
     "deleteTitle": "Delete Expense",
     "deleteConfirm": "Are you sure you want to delete this expense?",

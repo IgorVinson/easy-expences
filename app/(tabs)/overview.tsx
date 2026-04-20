@@ -234,14 +234,35 @@ export default function OverviewScreen() {
             </View>
             {todayTransactions.length === 0 ? (
               <View
-                className="rounded-2xl px-6 py-6"
+                className="rounded-2xl"
                 style={[
                   { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
                   !isDarkMode && { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 },
                 ]}>
-                <Text className="text-center text-sm" style={{ color: theme.textTertiary }}>
-                  {t('overview.noExpensesToday')}
-                </Text>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(true)}
+                  style={{ alignItems: 'center', paddingVertical: 28, paddingHorizontal: 24 }}>
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 14,
+                      backgroundColor: isDarkMode ? 'rgba(139,92,246,0.16)' : '#EDE9FE',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 10,
+                    }}>
+                    <Ionicons name="receipt-outline" size={24} color={theme.purple} />
+                  </View>
+                  <Text className="text-sm font-bold" style={{ color: theme.textSecondary }}>
+                    {t('overview.noExpensesToday')}
+                  </Text>
+                  {allTransactions.length === 0 && (
+                    <Text className="text-xs" style={{ color: theme.textTertiary, marginTop: 4 }}>
+                      {t('overview.tapAddExpense')}
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
             ) : (
               <View

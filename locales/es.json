@@ -24,6 +24,7 @@
     "yesterday": "Ayer",
     "past": "Anterior",
     "noExpensesToday": "Aún no hay gastos hoy",
+    "tapAddExpense": "Toca \"+\" para agregar tu primer gasto.",
     "loading": "Cargando gastos…",
     "deleteTitle": "Eliminar gasto",
     "deleteConfirm": "¿Estás seguro de que quieres eliminar este gasto?",
