@@ -121,7 +121,19 @@
     "noEmailClient": "На цьому пристрої немає поштового клієнта.",
     "describeIssue": "Опишіть вашу проблему...",
     "supportHelpText": "Напишіть нам, що вам потрібно, і ми надішлемо це в підтримку.",
-    "send": "Надіслати"
+    "send": "Надіслати",
+    "deleteAccount": "Видалити акаунт",
+    "deleteAccountHint": "Назавжди видалити акаунт і дані",
+    "deleteAccountTitle": "Видалити акаунт?",
+    "deleteAccountDescription": "Це назавжди видалить ваш акаунт, бюджети, цілі, транзакції та збережені налаштування.",
+    "deleteAccountTypeLabel": "Введіть DELETE для підтвердження",
+    "deleteAccountPlaceholder": "DELETE",
+    "deleteAccountInstruction": "Для безпеки введіть DELETE великими літерами точно як показано.",
+    "deleteAccountTypedRequired": "Будь ласка, введіть DELETE великими літерами, щоб продовжити.",
+    "deleteAccountConfirm": "Видалити акаунт",
+    "deleteAccountReauthRequired": "З міркувань безпеки увійдіть ще раз, а потім повторіть видалення акаунта.",
+    "deleteAccountFarewellTitle": "Нам було приємно бути корисними",
+    "deleteAccountFarewellMessage": "Ваш акаунт видалено. Сподіваємося побачити вас знову скоро."
   },
   "addExpense": {
     "title": "Додати витрату",
@@ -386,6 +398,7 @@
     "sendInstructions": "Надіслати інструкції",
     "backToLogin": "Назад до входу",
     "checkEmail": "Перевірте пошту",
-    "resetEmailSent": "Посилання для скидання пароля надіслано на вашу пошту."
+    "resetEmailSent": "Якщо акаунт із цією поштою існує, посилання для скидання пароля надіслано.",
+    "resetEmailHelp": "Перевірте спам або вкладку промоакцій. Якщо ви зазвичай входите через Google, скористайтеся входом через Google замість скидання пароля."
   }
 }

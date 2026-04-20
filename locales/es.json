@@ -121,7 +121,19 @@
     "noEmailClient": "No hay cliente de email en este dispositivo.",
     "describeIssue": "Describe tu problema...",
     "supportHelpText": "Cuéntanos qué necesitas y lo enviaremos a soporte.",
-    "send": "Enviar"
+    "send": "Enviar",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountHint": "Eliminar permanentemente tu cuenta y tus datos",
+    "deleteAccountTitle": "¿Eliminar cuenta?",
+    "deleteAccountDescription": "Esto elimina permanentemente tu cuenta, presupuestos, metas, transacciones y configuraciones guardadas.",
+    "deleteAccountTypeLabel": "Escribe DELETE para confirmar",
+    "deleteAccountPlaceholder": "DELETE",
+    "deleteAccountInstruction": "Por seguridad, escribe DELETE en mayúsculas exactamente como aparece.",
+    "deleteAccountTypedRequired": "Por favor escribe DELETE en mayúsculas para continuar.",
+    "deleteAccountConfirm": "Eliminar cuenta",
+    "deleteAccountReauthRequired": "Por seguridad, inicia sesión nuevamente y luego vuelve a intentar eliminar tu cuenta.",
+    "deleteAccountFarewellTitle": "Fue un placer servirte",
+    "deleteAccountFarewellMessage": "Tu cuenta ha sido eliminada. Esperamos verte de nuevo pronto."
   },
   "addExpense": {
     "title": "Añadir Gasto",

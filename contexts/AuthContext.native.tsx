@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../firebaseConfig';
+import { deleteCurrentUserAccount } from '../utils/accountDeletion';
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -24,6 +25,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string) => Promise<void>;
   finishPostSignupRedirect: () => void;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   googleSignIn: () => Promise<void>;
 }
 
@@ -66,6 +68,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signOut(auth);
   };
 
+  const deleteAccount = async () => {
+    if (!auth.currentUser) {
+      throw new Error('No authenticated user found.');
+    }
+
+    await deleteCurrentUserAccount(auth.currentUser);
+  };
+
   const googleSignIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
@@ -92,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup,
         finishPostSignupRedirect,
         logout,
+        deleteAccount,
         googleSignIn,
       }}
     >

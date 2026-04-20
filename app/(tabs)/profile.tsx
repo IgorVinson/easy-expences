@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Modal,
@@ -25,16 +26,20 @@ import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../../utils/onbo
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
-  const { logout, user } = useAuth();
+  const { logout, deleteAccount, user } = useAuth();
   const { currency, currencies, loading: currencyLoading, setCurrency } = useCurrency();
   const { tier, customerInfo, voiceRecordingsLeft, trialDaysLeft, presentCustomerCenter } = useSubscription();
   const entitlementInfo = customerInfo?.entitlements.active['SaySpend Premium']
     ?? customerInfo?.entitlements.active['SaySpend Pro'];
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = React.useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = React.useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = React.useState(false);
   const [supportMessage, setSupportMessage] = React.useState('');
+  const [deleteConfirmationText, setDeleteConfirmationText] = React.useState('');
+  const [deleteAccountLoading, setDeleteAccountLoading] = React.useState(false);
   const supportEmail = process.env.EXPO_PUBLIC_SUPPORT_EMAIL;
+  const isDeletePhraseValid = deleteConfirmationText === 'DELETE';
 
   const handleLogout = () => {
     const doLogout = async () => {
@@ -103,6 +108,30 @@ export default function ProfileScreen() {
     await Linking.openURL(mailtoUrl);
     setSupportMessage('');
     setIsSupportModalOpen(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!isDeletePhraseValid) {
+      Alert.alert(t('profile.deleteAccountTitle'), t('profile.deleteAccountTypedRequired'));
+      return;
+    }
+
+    setDeleteAccountLoading(true);
+
+    try {
+      await deleteAccount();
+      setIsDeleteAccountModalOpen(false);
+      setDeleteConfirmationText('');
+    } catch (error: any) {
+      const errorCode = error?.code as string | undefined;
+      const message =
+        errorCode === 'auth/requires-recent-login'
+          ? t('profile.deleteAccountReauthRequired')
+          : error?.message ?? t('common.tryAgain');
+      Alert.alert(t('common.error'), message);
+    } finally {
+      setDeleteAccountLoading(false);
+    }
   };
 
   return (
@@ -398,6 +427,29 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
             </TouchableOpacity>
 
+            {/* Delete Account */}
+            <TouchableOpacity
+              onPress={() => setIsDeleteAccountModalOpen(true)}
+              className="flex-row items-center justify-between border-b py-4"
+              style={{ borderBottomColor: theme.border }}>
+              <View className="flex-row items-center">
+                <View
+                  className="h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(220,38,38,0.16)' : '#FEE2E2' }}>
+                  <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                </View>
+                <View className="ml-4">
+                  <Text className="text-base font-medium" style={{ color: '#DC2626' }}>
+                    {t('profile.deleteAccount')}
+                  </Text>
+                  <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                    {t('profile.deleteAccountHint')}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+            </TouchableOpacity>
+
             {/* Log Out */}
             <TouchableOpacity
               onPress={handleLogout}
@@ -557,6 +609,92 @@ export default function ProfileScreen() {
                 <Text className="text-sm font-semibold" style={{ color: '#FFFFFF' }}>
                   {t('profile.send')}
                 </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isDeleteAccountModalOpen}
+        onRequestClose={() => {
+          if (!deleteAccountLoading) {
+            setIsDeleteAccountModalOpen(false);
+            setDeleteConfirmationText('');
+          }
+        }}>
+        <View
+          className="flex-1 items-center justify-center px-6"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <View
+            className="w-full rounded-2xl p-6"
+            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+            <View
+              className="h-12 w-12 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: isDarkMode ? 'rgba(220,38,38,0.16)' : '#FEE2E2' }}>
+              <Ionicons name="warning-outline" size={24} color="#DC2626" />
+            </View>
+
+            <Text className="mt-4 text-xl font-bold" style={{ color: theme.textPrimary }}>
+              {t('profile.deleteAccountTitle')}
+            </Text>
+            <Text className="mt-2 text-sm" style={{ color: theme.textSecondary }}>
+              {t('profile.deleteAccountDescription')}
+            </Text>
+            <Text className="mt-4 text-xs font-semibold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
+              {t('profile.deleteAccountTypeLabel')}
+            </Text>
+
+            <TextInput
+              value={deleteConfirmationText}
+              onChangeText={setDeleteConfirmationText}
+              placeholder={t('profile.deleteAccountPlaceholder')}
+              placeholderTextColor={theme.textTertiary}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!deleteAccountLoading}
+              className="mt-3 rounded-xl px-4 py-3 text-base"
+              style={{
+                backgroundColor: theme.bg,
+                borderWidth: 1,
+                borderColor: isDeletePhraseValid ? '#DC2626' : theme.border,
+                color: theme.textPrimary,
+              }}
+            />
+
+            <Text className="mt-3 text-xs" style={{ color: theme.textSecondary }}>
+              {t('profile.deleteAccountInstruction')}
+            </Text>
+
+            <View className="mt-5 flex-row items-center justify-end">
+              <TouchableOpacity
+                onPress={() => {
+                  setIsDeleteAccountModalOpen(false);
+                  setDeleteConfirmationText('');
+                }}
+                disabled={deleteAccountLoading}
+                className="mr-3 rounded-full px-4 py-2"
+                style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#E2E8F0' }}>
+                <Text className="text-sm font-semibold" style={{ color: theme.textSecondary }}>
+                  {t('common.cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDeleteAccount}
+                disabled={!isDeletePhraseValid || deleteAccountLoading}
+                className="rounded-full px-4 py-2"
+                style={{
+                  backgroundColor: !isDeletePhraseValid || deleteAccountLoading ? '#FCA5A5' : '#DC2626',
+                }}>
+                {deleteAccountLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text className="text-sm font-semibold" style={{ color: '#FFFFFF' }}>
+                    {t('profile.deleteAccountConfirm')}
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

@@ -121,7 +121,19 @@
     "noEmailClient": "No email client is available on this device.",
     "describeIssue": "Describe your issue...",
     "supportHelpText": "Tell us what you need and we will send it to support.",
-    "send": "Send"
+    "send": "Send",
+    "deleteAccount": "Delete Account",
+    "deleteAccountHint": "Permanently remove your account and data",
+    "deleteAccountTitle": "Delete account?",
+    "deleteAccountDescription": "This permanently deletes your account, budgets, goals, transactions, and saved settings.",
+    "deleteAccountTypeLabel": "Type DELETE to confirm",
+    "deleteAccountPlaceholder": "DELETE",
+    "deleteAccountInstruction": "For safety, enter DELETE in uppercase exactly as shown.",
+    "deleteAccountTypedRequired": "Please type DELETE in uppercase to continue.",
+    "deleteAccountConfirm": "Delete account",
+    "deleteAccountReauthRequired": "For security, please log in again and then retry deleting your account.",
+    "deleteAccountFarewellTitle": "We were happy to serve you",
+    "deleteAccountFarewellMessage": "Your account has been deleted. We hope to see you again soon."
   },
   "addExpense": {
     "title": "Add Expense",
@@ -390,6 +402,7 @@
     "sendInstructions": "Send Instructions",
     "backToLogin": "Back to Log In",
     "checkEmail": "Check your email",
-    "resetEmailSent": "A password reset link has been sent to your email."
+    "resetEmailSent": "If an account with that email exists, a password reset link has been sent.",
+    "resetEmailHelp": "Check spam or promotions. If you usually sign in with Google, use Google sign-in instead of password reset."
   }
 }

@@ -27,14 +27,16 @@ export default function ForgotPasswordScreen() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleResetPassword = async () => {
-    if (!email) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
       Alert.alert(t('common.error'), t('auth.email') || 'Please enter your email');
       return;
     }
 
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, normalizedEmail);
       setIsSuccess(true);
     } catch (error: any) {
       Alert.alert(t('common.error'), error.message);
@@ -86,6 +88,9 @@ export default function ForgotPasswordScreen() {
                  </View>
                  <Text className="mb-2 text-center text-2xl font-bold" style={{ color: theme.textPrimary }}>{t('auth.checkEmail')}</Text>
                  <Text className="mb-8 text-center text-base" style={{ color: theme.textSecondary }}>{t('auth.resetEmailSent')}</Text>
+                 <Text className="mb-8 text-center text-sm" style={{ color: theme.textSecondary }}>
+                   {t('auth.resetEmailHelp')}
+                 </Text>
                  <TouchableOpacity
                     onPress={() => router.replace('/(auth)/login')}
                     className="w-full overflow-hidden rounded-2xl">

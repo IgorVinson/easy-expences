@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -7,6 +8,7 @@ import {
     ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StatusBar,
@@ -17,6 +19,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { ACCOUNT_DELETION_FAREWELL_KEY } from '../../utils/accountDeletion';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -27,12 +30,34 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showFarewellModal, setShowFarewellModal] = useState(false);
 
   useEffect(() => {
     if (typeof params.email === 'string' && params.email.length > 0) {
       setEmail(params.email);
     }
   }, [params.email]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFarewellState = async () => {
+      const shouldShowFarewell = await AsyncStorage.getItem(ACCOUNT_DELETION_FAREWELL_KEY);
+
+      if (!isMounted || shouldShowFarewell !== 'true') {
+        return;
+      }
+
+      await AsyncStorage.removeItem(ACCOUNT_DELETION_FAREWELL_KEY);
+      setShowFarewellModal(true);
+    };
+
+    loadFarewellState().catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -209,6 +234,40 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={showFarewellModal}
+        onRequestClose={() => setShowFarewellModal(false)}>
+        <View
+          className="flex-1 items-center justify-center px-6"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <View
+            className="w-full rounded-3xl p-6"
+            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+            <View
+              className="h-14 w-14 items-center justify-center rounded-2xl"
+              style={{ backgroundColor: isDarkMode ? 'rgba(139,92,246,0.18)' : '#EDE9FE' }}>
+              <Ionicons name="heart-outline" size={26} color={theme.purple} />
+            </View>
+
+            <Text className="mt-4 text-2xl font-bold" style={{ color: theme.textPrimary }}>
+              {t('profile.deleteAccountFarewellTitle')}
+            </Text>
+            <Text className="mt-2 text-sm" style={{ color: theme.textSecondary }}>
+              {t('profile.deleteAccountFarewellMessage')}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setShowFarewellModal(false)}
+              className="mt-6 items-center justify-center rounded-2xl py-3"
+              style={{ backgroundColor: theme.purple }}>
+              <Text className="text-base font-bold text-white">{t('common.cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
