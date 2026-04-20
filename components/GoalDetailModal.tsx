@@ -22,7 +22,7 @@ export const GoalDetailModal: React.FC<GoalDetailModalProps> = ({
 }) => {
   const { theme } = useTheme();
   const { currency } = useCurrency();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   if (!goal) return null;
 
@@ -90,7 +90,7 @@ export const GoalDetailModal: React.FC<GoalDetailModalProps> = ({
               <View style={{ alignItems: 'center', paddingVertical: 32 }}>
                 <Ionicons name="cash-outline" size={40} color={theme.textTertiary} />
                 <Text style={{ color: theme.textTertiary, fontSize: 14, marginTop: 12, textAlign: 'center' }}>
-                  No contributions yet.{'\n'}Add income and assign it to this goal.
+                  {t('goals.noContributionsYet')}{'\n'}{t('goals.addContributionToGoal')}
                 </Text>
               </View>
             ) : (

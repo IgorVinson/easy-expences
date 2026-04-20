@@ -55,6 +55,8 @@
     "budgetsSection": "Budgets",
     "goalsSection": "Goals",
     "noGoals": "No goals yet",
+    "noContributionsYet": "No contributions yet.",
+    "addContributionToGoal": "Add a contribution and assign it to this goal.",
     "tapAddBudget": "Tap \"+\" to create your first budget.",
     "tapAddGoal": "Tap \"+\" to create your first savings goal.",
     "saved": "saved",
@@ -76,15 +78,15 @@
   },
   "addTransaction": {
     "expenseTab": "Expense",
-    "incomeTab": "Income",
-    "addIncomeTitle": "Add Income",
-    "incomeNamePlaceholder": "e.g. Salary",
+    "incomeTab": "Contribution",
+    "addIncomeTitle": "Add Contribution",
+    "incomeNamePlaceholder": "e.g. Vacation deposit",
     "assignToGoal": "Assign to Goal",
     "noGoal": "No goal",
     "noGoalsYet": "No goals yet. Add a goal first.",
     "noGoalTitle": "No goal selected",
-    "selectGoal": "Please select a goal for this income.",
-    "saveIncome": "Save Income"
+    "selectGoal": "Please select a goal for this contribution.",
+    "saveIncome": "Save Contribution"
   },
   "profile": {
     "title": "My Profile",
@@ -157,12 +159,12 @@
   },
   "editExpense": {
     "title": "Edit Expense",
-    "titleIncome": "Edit Income",
+    "titleIncome": "Edit Contribution",
     "save": "Save Changes",
-    "saveIncome": "Save Income",
+    "saveIncome": "Save Contribution",
     "delete": "Delete Expense",
-    "deleteIncome": "Delete Income",
-    "deleteIncomeTitle": "Delete Income",
+    "deleteIncome": "Delete Contribution",
+    "deleteIncomeTitle": "Delete Contribution",
     "deleteConfirmSpecific": "Are you sure you want to delete \"{{title}}\"?"
   },
   "addCategory": {

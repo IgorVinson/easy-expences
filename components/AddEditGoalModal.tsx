@@ -310,7 +310,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                             borderColor: theme.border,
                           }}>
                           <Text style={{ fontSize: 14, color: theme.textTertiary }}>
-                            No contributions yet.
+                            {t('goals.noContributionsYet')}
                           </Text>
                         </View>
                       ) : (

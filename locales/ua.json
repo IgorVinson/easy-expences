@@ -55,6 +55,8 @@
     "budgetsSection": "Бюджети",
     "goalsSection": "Цілі",
     "noGoals": "Цілей ще немає",
+    "noContributionsYet": "Внесків ще немає.",
+    "addContributionToGoal": "Додайте внесок і прив'яжіть його до цієї цілі.",
     "tapAddBudget": "Натисніть \"+\", щоб створити перший бюджет.",
     "tapAddGoal": "Натисніть \"+\", щоб створити першу ціль.",
     "saved": "збережено",
@@ -76,15 +78,15 @@
   },
   "addTransaction": {
     "expenseTab": "Витрата",
-    "incomeTab": "Дохід",
-    "addIncomeTitle": "Додати дохід",
-    "incomeNamePlaceholder": "напр. Зарплата",
+    "incomeTab": "Внесок",
+    "addIncomeTitle": "Додати внесок",
+    "incomeNamePlaceholder": "напр. Внесок на відпустку",
     "assignToGoal": "Призначити ціль",
     "noGoal": "Без цілі",
     "noGoalsYet": "Немає цілей. Спочатку додайте ціль.",
     "noGoalTitle": "Ціль не обрана",
-    "selectGoal": "Будь ласка, оберіть ціль для цього доходу.",
-    "saveIncome": "Зберегти дохід"
+    "selectGoal": "Будь ласка, оберіть ціль для цього внеску.",
+    "saveIncome": "Зберегти внесок"
   },
   "profile": {
     "title": "Мій профіль",
@@ -157,12 +159,12 @@
   },
   "editExpense": {
     "title": "Редагувати витрату",
-    "titleIncome": "Редагувати дохід",
+    "titleIncome": "Редагувати внесок",
     "save": "Зберегти зміни",
-    "saveIncome": "Зберегти дохід",
+    "saveIncome": "Зберегти внесок",
     "delete": "Видалити витрату",
-    "deleteIncome": "Видалити дохід",
-    "deleteIncomeTitle": "Видалити дохід",
+    "deleteIncome": "Видалити внесок",
+    "deleteIncomeTitle": "Видалити внесок",
     "deleteConfirmSpecific": "Ви впевнені, що хочете видалити \"{{title}}\"?"
   },
   "addCategory": {

@@ -55,6 +55,8 @@
     "budgetsSection": "Presupuestos",
     "goalsSection": "Metas",
     "noGoals": "Aún no hay metas",
+    "noContributionsYet": "Todavía no hay aportes.",
+    "addContributionToGoal": "Agrega un aporte y asígnalo a esta meta.",
     "tapAddBudget": "Toca \"+\" para crear tu primer presupuesto.",
     "tapAddGoal": "Toca \"+\" para crear tu primera meta.",
     "saved": "guardado",
@@ -76,15 +78,15 @@
   },
   "addTransaction": {
     "expenseTab": "Gasto",
-    "incomeTab": "Ingreso",
-    "addIncomeTitle": "Agregar ingreso",
-    "incomeNamePlaceholder": "ej. Salario",
+    "incomeTab": "Aporte",
+    "addIncomeTitle": "Agregar aporte",
+    "incomeNamePlaceholder": "ej. Aporte para vacaciones",
     "assignToGoal": "Asignar a meta",
     "noGoal": "Sin meta",
     "noGoalsYet": "Sin metas. Agrega una meta primero.",
     "noGoalTitle": "Sin meta seleccionada",
-    "selectGoal": "Por favor selecciona una meta para este ingreso.",
-    "saveIncome": "Guardar ingreso"
+    "selectGoal": "Por favor selecciona una meta para este aporte.",
+    "saveIncome": "Guardar aporte"
   },
   "profile": {
     "title": "Mi Perfil",
@@ -157,12 +159,12 @@
   },
   "editExpense": {
     "title": "Editar Gasto",
-    "titleIncome": "Editar Ingreso",
+    "titleIncome": "Editar Aporte",
     "save": "Guardar Cambios",
-    "saveIncome": "Guardar Ingreso",
+    "saveIncome": "Guardar Aporte",
     "delete": "Eliminar Gasto",
-    "deleteIncome": "Eliminar Ingreso",
-    "deleteIncomeTitle": "Eliminar Ingreso",
+    "deleteIncome": "Eliminar Aporte",
+    "deleteIncomeTitle": "Eliminar Aporte",
     "deleteConfirmSpecific": "¿Estás seguro de que quieres eliminar \"{{title}}\"?"
   },
   "addCategory": {
