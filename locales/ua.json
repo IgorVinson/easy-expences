@@ -34,7 +34,7 @@
     "totalSpent": "Всього витрачено",
     "totalBudget": "Загальний бюджет",
     "budgetsOverview": "Огляд бюджету",
-    "remaining": "Залишилось",
+    "remaining": "Ще",
     "overBudget": "Перевищення",
     "budgetUsed": "Використано {{percent}}% бюджету",
     "budgets": "Бюджети",
@@ -220,13 +220,13 @@
     }
   },
   "expenseItem": {
-    "left": "Залишилось {{amount}}",
+    "left": "Ще {{amount}}",
     "goalProgress": "Заповнено {{percent}}%"
   },
   "budgetCategoryItem": {
     "spent": "Витрачено {{amount}}",
     "over": "Перевищення {{amount}}",
-    "left": "Залишилось {{amount}}"
+    "left": "Ще {{amount}}"
   },
   "monthlyReview": {
     "title": "Огляд нового місяця",

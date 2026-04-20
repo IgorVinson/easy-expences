@@ -1,7 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { addDoc, collection } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,25 +11,97 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StatusBar,
+  StyleProp,
   StyleSheet,
   Text,
   TextInput,
   useWindowDimensions,
   View,
+  ViewStyle,
 } from 'react-native';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { useAuth } from '../contexts/AuthContext';
+import { PurchasesPackage } from 'react-native-purchases';
 import { formatCurrencyAmount } from '../config/currencies';
+import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { db } from '../firebaseConfig';
 import { getOnboardingStorageKey } from '../utils/onboarding';
-import { PurchasesPackage } from 'react-native-purchases';
 
 const TOTAL_STEPS = 9;
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function useAdaptiveOnboardingLayout() {
+  const { height, width } = useWindowDimensions();
+  const shortEdge = Math.min(width, height);
+
+  return {
+    width,
+    height,
+    shortEdge,
+    isShort: height < 700,
+    isNarrow: width < 375,
+    horizontalPadding: clampNumber(width * 0.05, 12, 28),
+    headerHeight: clampNumber(height * 0.058, 40, 60),
+    headerIconSize: clampNumber(shortEdge * 0.045, 16, 22),
+    headerGap: clampNumber(width * 0.02, 4, 10),
+    logoBoxSize: clampNumber(shortEdge * 0.07, 24, 34),
+    logoBoxRadius: clampNumber(shortEdge * 0.018, 6, 10),
+    logoTextSize: clampNumber(shortEdge * 0.04, 14, 21),
+    progressHeight: clampNumber(height * 0.004, 3, 5),
+    progressMargin: clampNumber(width * 0.03, 6, 18),
+    contentTop: clampNumber(height * 0.01, 2, 20),
+    contentBottom: clampNumber(height * 0.006, 2, 24),
+    footerTop: clampNumber(height * 0.006, 2, 18),
+    footerBottom:
+      Platform.OS === 'ios'
+        ? clampNumber(height * 0.018, 6, 34)
+        : clampNumber(height * 0.013, 4, 24),
+    footerHintSize: clampNumber(shortEdge * 0.025, 9, 12.5),
+    footerHintMargin: clampNumber(height * 0.006, 4, 12),
+    ctaVerticalPadding: clampNumber(height * 0.012, 8, 18),
+    ctaRadius: clampNumber(shortEdge * 0.1, 16, 50),
+    ctaTextSize: clampNumber(shortEdge * 0.036, 13, 18),
+    ctaIconSize: clampNumber(shortEdge * 0.04, 14, 20),
+    titleSize: clampNumber(shortEdge * 0.065, 20, 34),
+    titleLineHeight: clampNumber(shortEdge * 0.08, 26, 42),
+    bodySize: clampNumber(shortEdge * 0.035, 12, 17),
+    bodyLineHeight: clampNumber(shortEdge * 0.05, 16, 26),
+    eyebrowSize: clampNumber(shortEdge * 0.025, 8, 12),
+    cardRadius: clampNumber(shortEdge * 0.035, 10, 24),
+    screen1ClusterHeight: clampNumber(height * 0.22, 100, 270),
+    screen1CardPadding: clampNumber(shortEdge * 0.04, 8, 24),
+    screen1BadgePadding: clampNumber(shortEdge * 0.025, 6, 14),
+    optionCardPadding: clampNumber(shortEdge * 0.035, 8, 18),
+    optionIconBoxSize: clampNumber(shortEdge * 0.1, 28, 52),
+    screen3IllustrationHeight: clampNumber(height * 0.18, 100, 240),
+    screen3GlowSize: clampNumber(shortEdge * 0.38, 100, 220),
+    fragmentWidth: clampNumber(shortEdge * 0.17, 50, 80),
+    fragmentHeight: clampNumber(height * 0.05, 30, 70),
+    s5GridGap: clampNumber(width * 0.02, 6, 12),
+    s5TilePadding: clampNumber(shortEdge * 0.032, 8, 18),
+    s5IconBoxSize: clampNumber(shortEdge * 0.08, 24, 44),
+    inputPaddingY: clampNumber(height * 0.01, 8, 14),
+    inputFontSize: clampNumber(shortEdge * 0.032, 12, 15),
+    s7HeroIconSize: clampNumber(shortEdge * 0.1, 28, 64),
+    s7TitleSize: clampNumber(shortEdge * 0.06, 18, 30),
+    s7TitleLineHeight: clampNumber(shortEdge * 0.07, 24, 36),
+    s7SubtitleSize: clampNumber(shortEdge * 0.032, 12, 15),
+    s7CardPaddingY: clampNumber(height * 0.01, 6, 14),
+    s7CardPaddingX: clampNumber(width * 0.025, 8, 16),
+    s8ImageWrapperHeight: clampNumber(height * 0.18, 80, 220),
+    s8HeroSize: clampNumber(shortEdge * 0.32, 70, 180),
+    s8HeroRadius: clampNumber(shortEdge * 0.07, 18, 40),
+    s8PlanPadding: clampNumber(shortEdge * 0.025, 8, 16),
+    s9HeroIconSize: clampNumber(shortEdge * 0.1, 24, 52),
+    s9HighlightMinHeight: clampNumber(height * 0.065, 44, 92),
+    s9CardPaddingY: clampNumber(height * 0.01, 6, 16),
+  };
+}
 
 function getCurrentMonthStartIso() {
   const now = new Date();
@@ -102,23 +175,52 @@ function Header({
   step: number;
   showBack?: boolean;
 }) {
+  const layout = useAdaptiveOnboardingLayout();
+
   return (
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
+    <View
+      style={[
+        styles.header,
+        { paddingHorizontal: layout.horizontalPadding, height: layout.headerHeight },
+      ]}>
+      <View style={[styles.headerLeft, { gap: layout.headerGap }]}>
         {showBack ? (
           <Pressable onPress={onBack} hitSlop={12}>
-            <Ionicons name="arrow-back" size={22} color={theme.textSecondary} />
+            <Ionicons name="arrow-back" size={layout.headerIconSize} color={theme.textSecondary} />
           </Pressable>
         ) : (
-          <View style={styles.logoBox2}>
-            <View style={[styles.logoBox, { backgroundColor: theme.purple + '22' }]}>
-              <Ionicons name="wallet" size={18} color={theme.purple} />
+          <View style={[styles.logoBox2, { width: layout.logoBoxSize }]}>
+            <View
+              style={[
+                styles.logoBox,
+                {
+                  width: layout.logoBoxSize,
+                  height: layout.logoBoxSize,
+                  borderRadius: layout.logoBoxRadius,
+                  backgroundColor: theme.purple + '22',
+                },
+              ]}>
+              <Ionicons
+                name="wallet"
+                size={clampNumber(layout.headerIconSize - 2, 16, 20)}
+                color={theme.purple}
+              />
             </View>
           </View>
         )}
-        <Text style={[styles.logoText, { color: theme.purple }]}>Keelio</Text>
+        <Text style={[styles.logoText, { color: theme.purple, fontSize: layout.logoTextSize }]}>
+          Keelio
+        </Text>
       </View>
-      <View style={[styles.progressTrack, { backgroundColor: theme.border }]}>
+      <View
+        style={[
+          styles.progressTrack,
+          {
+            backgroundColor: theme.border,
+            height: layout.progressHeight,
+            marginHorizontal: layout.progressMargin,
+          },
+        ]}>
         <View
           style={[
             styles.progressFill,
@@ -146,17 +248,32 @@ function CTAButton({
   loading?: boolean;
   disabled?: boolean;
 }) {
+  const layout = useAdaptiveOnboardingLayout();
+
   return (
-    <Pressable onPress={onPress} style={styles.ctaButtonWrapper} disabled={disabled || loading}>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.ctaButtonWrapper,
+        { maxWidth: Math.min(440, layout.width - layout.horizontalPadding * 2) },
+      ]}
+      disabled={disabled || loading}>
       <LinearGradient
         colors={[theme.purple, theme.purpleCard]}
-        style={[styles.ctaButton, disabled || loading ? { opacity: 0.88 } : null]}>
+        style={[
+          styles.ctaButton,
+          {
+            paddingVertical: layout.ctaVerticalPadding,
+            borderRadius: layout.ctaRadius,
+          },
+          disabled || loading ? { opacity: 0.88 } : null,
+        ]}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <>
-            <Text style={styles.ctaButtonText}>{label}</Text>
-            {icon && <Ionicons name={icon} size={20} color="#fff" />}
+            <Text style={[styles.ctaButtonText, { fontSize: layout.ctaTextSize }]}>{label}</Text>
+            {icon && <Ionicons name={icon} size={layout.ctaIconSize} color="#fff" />}
           </>
         )}
       </LinearGradient>
@@ -164,10 +281,22 @@ function CTAButton({
   );
 }
 
+function AdaptiveStepContent({
+  contentContainerStyle,
+  children,
+}: {
+  contentContainerStyle: StyleProp<ViewStyle>;
+  children: React.ReactNode;
+}) {
+  return <View style={contentContainerStyle}>{children}</View>;
+}
+
 // ─────────────────────────────────────────────
 // Screen 1 — Emotional Welcome
 // ─────────────────────────────────────────────
 function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext'>) {
+  const layout = useAdaptiveOnboardingLayout();
+
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <View
@@ -179,14 +308,41 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
         pointerEvents="none"
       />
 
-      <View style={styles.header}>
-        <View style={styles.logoRow}>
-          <View style={[styles.logoBox, { backgroundColor: theme.purple + '22' }]}>
-            <Ionicons name="wallet" size={18} color={theme.purple} />
+      <View
+        style={[
+          styles.header,
+          { paddingHorizontal: layout.horizontalPadding, height: layout.headerHeight },
+        ]}>
+        <View style={[styles.logoRow, { gap: layout.headerGap }]}>
+          <View
+            style={[
+              styles.logoBox,
+              {
+                width: layout.logoBoxSize,
+                height: layout.logoBoxSize,
+                borderRadius: layout.logoBoxRadius,
+                backgroundColor: theme.purple + '22',
+              },
+            ]}>
+            <Ionicons
+              name="wallet"
+              size={clampNumber(layout.headerIconSize - 2, 16, 20)}
+              color={theme.purple}
+            />
           </View>
-          <Text style={[styles.logoText, { color: theme.purple }]}>Keelio</Text>
+          <Text style={[styles.logoText, { color: theme.purple, fontSize: layout.logoTextSize }]}>
+            Keelio
+          </Text>
         </View>
-        <View style={[styles.progressTrack, { backgroundColor: theme.border }]}>
+        <View
+          style={[
+            styles.progressTrack,
+            {
+              backgroundColor: theme.border,
+              height: layout.progressHeight,
+              marginHorizontal: layout.progressMargin,
+            },
+          ]}>
           <View
             style={[
               styles.progressFill,
@@ -197,22 +353,55 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
         <View style={{ width: 22 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.screen1Content}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.decorativeCluster}>
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen1Content,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.contentTop,
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
+        <View
+          style={[
+            styles.decorativeCluster,
+            {
+              height: layout.screen1ClusterHeight,
+              marginBottom: clampNumber(layout.height * 0.035, 20, 32),
+            },
+          ]}>
           <View
             style={[
               styles.decorCardBg,
-              { backgroundColor: theme.purple + '33', transform: [{ rotate: '3deg' }] },
+              {
+                backgroundColor: theme.purple + '33',
+                height: clampNumber(layout.screen1ClusterHeight * 0.74, 150, 200),
+                borderRadius: layout.cardRadius,
+                transform: [{ rotate: '3deg' }],
+              },
             ]}
           />
           <View
             style={[
               styles.decorCard,
-              { backgroundColor: theme.cardBg, transform: [{ rotate: '-2deg' }] },
+              {
+                backgroundColor: theme.cardBg,
+                padding: layout.screen1CardPadding,
+                borderRadius: layout.cardRadius,
+                transform: [{ rotate: '-2deg' }],
+              },
             ]}>
-            <View style={[styles.decorIconBox, { backgroundColor: theme.purple + '22' }]}>
+            <View
+              style={[
+                styles.decorIconBox,
+                {
+                  width: layout.s5IconBoxSize,
+                  height: layout.s5IconBoxSize,
+                  borderRadius: clampNumber(layout.s5IconBoxSize / 3, 12, 16),
+                  backgroundColor: theme.purple + '22',
+                },
+              ]}>
               <Ionicons name="heart" size={22} color={theme.purple} />
             </View>
             <View style={styles.decorLines}>
@@ -229,50 +418,115 @@ function Screen1({ theme, t, onNext }: Pick<SharedProps, 'theme' | 't' | 'onNext
           <View
             style={[
               styles.floatingBadge,
-              { backgroundColor: theme.cardBg, borderColor: theme.border },
+              {
+                backgroundColor: theme.cardBg,
+                borderColor: theme.border,
+                padding: layout.screen1BadgePadding,
+                borderRadius: clampNumber(layout.cardRadius - 4, 14, 20),
+                gap: layout.headerGap,
+              },
             ]}>
-            <View style={[styles.floatingBadgeIcon, { backgroundColor: theme.success }]}>
+            <View
+              style={[
+                styles.floatingBadgeIcon,
+                {
+                  width: clampNumber(layout.shortEdge * 0.092, 32, 36),
+                  height: clampNumber(layout.shortEdge * 0.092, 32, 36),
+                  borderRadius: clampNumber(layout.shortEdge * 0.046, 16, 18),
+                  backgroundColor: theme.success,
+                },
+              ]}>
               <Ionicons name="leaf" size={14} color="#fff" />
             </View>
             <View>
-              <Text style={[styles.floatingBadgeLabel, { color: theme.textSecondary }]}>
+              <Text
+                style={[
+                  styles.floatingBadgeLabel,
+                  { color: theme.textSecondary, fontSize: layout.eyebrowSize },
+                ]}>
                 Inner Wealth
               </Text>
-              <Text style={[styles.floatingBadgeValue, { color: theme.textPrimary }]}>
+              <Text
+                style={[
+                  styles.floatingBadgeValue,
+                  { color: theme.textPrimary, fontSize: clampNumber(layout.bodySize, 14, 16) },
+                ]}>
                 +12% Clarity
               </Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.screen1Text}>
-          <Text style={[styles.headline, { color: theme.textPrimary }]}>
+        <View style={[styles.screen1Text, { gap: clampNumber(layout.height * 0.014, 10, 12) }]}>
+          <Text
+            style={[
+              styles.headline,
+              {
+                color: theme.textPrimary,
+                fontSize: layout.titleSize,
+                lineHeight: layout.titleLineHeight,
+              },
+            ]}>
             {"Money shouldn't "}
             <Text style={{ color: theme.purple, fontStyle: 'italic' }}>
               {t('onboarding.s1.titleAccent')}
             </Text>
             {'.'}
           </Text>
-          <Text style={[styles.bodyText, { color: theme.textSecondary }]}>
+          <Text
+            style={[
+              styles.bodyText,
+              {
+                color: theme.textSecondary,
+                fontSize: layout.bodySize,
+                lineHeight: layout.bodyLineHeight,
+              },
+            ]}>
             {t('onboarding.s1.subtitle')}
           </Text>
-          <View style={styles.taglineRow}>
-            <View style={[styles.taglineLine, { backgroundColor: theme.success }]} />
-            <Text style={[styles.taglineText, { color: theme.success }]}>
+          <View style={[styles.taglineRow, { gap: layout.headerGap }]}>
+            <View
+              style={[
+                styles.taglineLine,
+                {
+                  backgroundColor: theme.success,
+                  width: clampNumber(layout.shortEdge * 0.103, 32, 40),
+                },
+              ]}
+            />
+            <Text
+              style={[styles.taglineText, { color: theme.success, fontSize: layout.eyebrowSize }]}>
               {t('onboarding.s1.tagline').toUpperCase()}
             </Text>
           </View>
         </View>
-      </ScrollView>
+      </AdaptiveStepContent>
 
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.bg,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
         <CTAButton
           label={t('onboarding.s1.cta')}
           onPress={onNext}
           theme={theme}
           icon="arrow-forward"
         />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+        <Text
+          style={[
+            styles.footerHint,
+            {
+              color: theme.textTertiary,
+              fontSize: layout.footerHintSize,
+              marginTop: layout.footerHintMargin,
+            },
+          ]}>
           Tap to begin your journey to financial serenity.
         </Text>
       </View>
@@ -290,6 +544,8 @@ const OPTION_ICONS: ('pause-circle' | 'help-circle' | 'sad')[] = [
 ];
 
 function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
+  const layout = useAdaptiveOnboardingLayout();
+
   const [selected, setSelected] = useState<number | null>(null);
   const options = [
     t('onboarding.s2.option1'),
@@ -300,13 +556,38 @@ function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} step={step} showBack />
-      <ScrollView
-        contentContainerStyle={styles.screen2Content}
-        showsVerticalScrollIndicator={false}>
-        <Text style={[styles.headline, { color: theme.textPrimary, marginBottom: 8 }]}>
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen2Content,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.contentTop,
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
+        <Text
+          style={[
+            styles.headline,
+            {
+              color: theme.textPrimary,
+              marginBottom: 8,
+              fontSize: layout.titleSize,
+              lineHeight: layout.titleLineHeight,
+            },
+          ]}>
           {t('onboarding.s2.title')}
         </Text>
-        <Text style={[styles.bodyText, { color: theme.textSecondary, marginBottom: 28 }]}>
+        <Text
+          style={[
+            styles.bodyText,
+            {
+              color: theme.textSecondary,
+              marginBottom: clampNumber(layout.height * 0.032, 18, 28),
+              fontSize: layout.bodySize,
+              lineHeight: layout.bodyLineHeight,
+            },
+          ]}>
           {t('onboarding.s2.subtitle')}
         </Text>
         {options.map((option, i) => {
@@ -321,13 +602,21 @@ function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
                   backgroundColor: theme.cardBg,
                   borderColor: isSelected ? theme.purple : theme.border,
                   borderWidth: isSelected ? 1.5 : 1,
+                  padding: layout.optionCardPadding,
+                  borderRadius: layout.cardRadius,
+                  gap: clampNumber(layout.shortEdge * 0.036, 10, 14),
                   marginBottom: 12,
                 },
               ]}>
               <View
                 style={[
                   styles.optionIconBox,
-                  { backgroundColor: isSelected ? theme.purple + '22' : theme.iconBg },
+                  {
+                    width: layout.optionIconBoxSize,
+                    height: layout.optionIconBoxSize,
+                    borderRadius: layout.optionIconBoxSize / 2,
+                    backgroundColor: isSelected ? theme.purple + '22' : theme.iconBg,
+                  },
                 ]}>
                 <Ionicons
                   name={OPTION_ICONS[i]}
@@ -335,17 +624,43 @@ function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
                   color={isSelected ? theme.purple : theme.textSecondary}
                 />
               </View>
-              <Text style={[styles.optionText, { color: theme.textPrimary, flex: 1 }]}>
+              <Text
+                style={[
+                  styles.optionText,
+                  {
+                    color: theme.textPrimary,
+                    flex: 1,
+                    fontSize: clampNumber(layout.bodySize + 0.5, 15, 16),
+                    lineHeight: clampNumber(layout.bodyLineHeight - 2, 20, 22),
+                  },
+                ]}>
                 {option}
               </Text>
               {isSelected && <Ionicons name="checkmark-circle" size={22} color={theme.purple} />}
             </Pressable>
           );
         })}
-      </ScrollView>
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+      </AdaptiveStepContent>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.bg,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
         <CTAButton label={t('onboarding.s2.cta')} onPress={onNext} theme={theme} />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+        <Text
+          style={[
+            styles.footerHint,
+            {
+              color: theme.textTertiary,
+              fontSize: layout.footerHintSize,
+              marginTop: layout.footerHintMargin,
+            },
+          ]}>
           {t('onboarding.s2.hint')}
         </Text>
       </View>
@@ -357,19 +672,51 @@ function Screen2({ theme, t, onNext, onBack, step }: SharedProps) {
 // Screen 3 — Emotional Insight
 // ─────────────────────────────────────────────
 function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
+  const layout = useAdaptiveOnboardingLayout();
+
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} step={step} showBack />
-      <ScrollView
-        contentContainerStyle={styles.screen3Content}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.screen3Illustration}>
-          <View style={[styles.glowCircle, { backgroundColor: theme.purple + '18' }]} />
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen3Content,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: clampNumber(layout.contentTop - 4, 6, 14),
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
+        <View
+          style={[
+            styles.screen3Illustration,
+            {
+              height: layout.screen3IllustrationHeight,
+              marginBottom: clampNumber(layout.height * 0.03, 18, 28),
+            },
+          ]}>
+          <View
+            style={[
+              styles.glowCircle,
+              {
+                backgroundColor: theme.purple + '18',
+                width: layout.screen3GlowSize,
+                height: layout.screen3GlowSize,
+                borderRadius: layout.screen3GlowSize / 2,
+              },
+            ]}
+          />
           <View
             style={[
               styles.fragmentCard,
               styles.fragmentTopLeft,
-              { backgroundColor: theme.iconBg, transform: [{ rotate: '-6deg' }] },
+              {
+                backgroundColor: theme.iconBg,
+                width: layout.fragmentWidth,
+                height: layout.fragmentHeight,
+                borderRadius: layout.cardRadius - 2,
+                transform: [{ rotate: '-6deg' }],
+              },
             ]}>
             <Ionicons name="help-circle-outline" size={28} color={theme.border} />
           </View>
@@ -377,7 +724,13 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
             style={[
               styles.fragmentCard,
               styles.fragmentTopRight,
-              { backgroundColor: theme.border, transform: [{ rotate: '4deg' }] },
+              {
+                backgroundColor: theme.border,
+                width: layout.fragmentWidth,
+                height: layout.fragmentHeight,
+                borderRadius: layout.cardRadius - 2,
+                transform: [{ rotate: '4deg' }],
+              },
             ]}>
             <View
               style={[
@@ -392,13 +745,27 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
               ]}
             />
           </View>
-          <View style={[styles.gemCenter, { backgroundColor: theme.purple }]}>
+          <View
+            style={[
+              styles.gemCenter,
+              {
+                backgroundColor: theme.purple,
+                width: clampNumber(layout.shortEdge * 0.144, 48, 56),
+                height: clampNumber(layout.shortEdge * 0.144, 48, 56),
+                borderRadius: clampNumber(layout.shortEdge * 0.072, 24, 28),
+              },
+            ]}>
             <Ionicons name="sparkles" size={22} color="#fff" />
           </View>
           <View
             style={[
               styles.resolvedCard,
-              { backgroundColor: theme.cardBg, borderColor: theme.border },
+              {
+                backgroundColor: theme.cardBg,
+                borderColor: theme.border,
+                padding: clampNumber(layout.shortEdge * 0.041, 14, 16),
+                borderRadius: layout.cardRadius,
+              },
             ]}>
             <View style={styles.resolvedCardRow}>
               <View
@@ -421,14 +788,33 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
           </View>
         </View>
 
-        <View style={styles.screen3TextBlock}>
-          <Text style={[styles.headline, { color: theme.textPrimary, textAlign: 'center' }]}>
+        <View
+          style={[
+            styles.screen3TextBlock,
+            { marginBottom: clampNumber(layout.height * 0.028, 18, 24) },
+          ]}>
+          <Text
+            style={[
+              styles.headline,
+              {
+                color: theme.textPrimary,
+                textAlign: 'center',
+                fontSize: layout.titleSize,
+                lineHeight: layout.titleLineHeight,
+              },
+            ]}>
             {t('onboarding.s3.title')}
           </Text>
           <Text
             style={[
               styles.bodyText,
-              { color: theme.textSecondary, textAlign: 'center', marginTop: 8 },
+              {
+                color: theme.textSecondary,
+                textAlign: 'center',
+                marginTop: 8,
+                fontSize: layout.bodySize,
+                lineHeight: layout.bodyLineHeight,
+              },
             ]}>
             {"It's about not knowing what's "}
             <Text style={{ color: theme.success, fontWeight: '700' }}>
@@ -440,29 +826,73 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
         <View
           style={[
             styles.insightCard,
-            { backgroundColor: theme.iconBg, borderColor: theme.border },
+            {
+              backgroundColor: theme.iconBg,
+              borderColor: theme.border,
+              padding: clampNumber(layout.shortEdge * 0.051, 16, 20),
+              borderRadius: layout.cardRadius,
+              gap: clampNumber(layout.shortEdge * 0.036, 10, 14),
+            },
           ]}>
-          <View style={[styles.insightIconBox, { backgroundColor: theme.cardBg }]}>
+          <View
+            style={[
+              styles.insightIconBox,
+              {
+                backgroundColor: theme.cardBg,
+                width: clampNumber(layout.shortEdge * 0.103, 36, 40),
+                height: clampNumber(layout.shortEdge * 0.103, 36, 40),
+                borderRadius: clampNumber(layout.shortEdge * 0.051, 18, 20),
+              },
+            ]}>
             <Ionicons name="bulb-outline" size={20} color={theme.purple} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.insightTitle, { color: theme.textPrimary }]}>
+            <Text
+              style={[
+                styles.insightTitle,
+                { color: theme.textPrimary, fontSize: clampNumber(layout.bodySize, 14, 15) },
+              ]}>
               {t('onboarding.s3.insightTitle')}
             </Text>
-            <Text style={[styles.insightBody, { color: theme.textSecondary }]}>
+            <Text
+              style={[
+                styles.insightBody,
+                {
+                  color: theme.textSecondary,
+                  fontSize: clampNumber(layout.bodySize - 1, 13, 14),
+                  lineHeight: clampNumber(layout.bodyLineHeight - 4, 19, 22),
+                },
+              ]}>
               {t('onboarding.s3.insightBody')}
             </Text>
           </View>
         </View>
-      </ScrollView>
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+      </AdaptiveStepContent>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.bg,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
         <CTAButton
           label={t('onboarding.s3.cta')}
           onPress={onNext}
           theme={theme}
           icon="arrow-forward"
         />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+        <Text
+          style={[
+            styles.footerHint,
+            {
+              color: theme.textTertiary,
+              fontSize: layout.footerHintSize,
+              marginTop: layout.footerHintMargin,
+            },
+          ]}>
           {t('onboarding.s3.hint')}
         </Text>
       </View>
@@ -474,8 +904,9 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
 // Screen 4 — Anti-Budgeting Value Prop
 // ─────────────────────────────────────────────
 function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
-  const { height } = useWindowDimensions();
-  const compactHeight = height < 760;
+  const layout = useAdaptiveOnboardingLayout();
+  const compactHeight = layout.isShort;
+
   const DEMO_ROWS = [
     { date: '10/24', desc: 'Whole Foods', amount: '-$84.20' },
     { date: '10/25', desc: 'Rent Payment', amount: '-$1,200' },
@@ -487,21 +918,69 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
     { icon: 'airplane' as const, label: 'Weekend trip', color: '#38BDF8', left: '$800' },
     { icon: 'film' as const, label: 'Entertainment', color: theme.purple, left: '$200' },
   ];
+  const compressedHeight = layout.height < 780;
+  const logoBoxSize = clampNumber(layout.shortEdge * (compressedHeight ? 0.16 : 0.19), 56, 72);
+  const logoIconSize = clampNumber(logoBoxSize * 0.3, 18, 22);
+  const badgeTop = compressedHeight ? -6 : -8;
+  const titleBottom = compressedHeight ? 2 : 4;
+  const subtitleBottom = compressedHeight ? 6 : compactHeight ? 8 : 16;
+  const sheetWidth = compressedHeight ? '100%' : '90%';
+  const sheetPadding = compressedHeight ? 6 : 8;
+  const sheetRadius = compressedHeight ? 12 : 14;
+  const sheetHeaderPad = compressedHeight ? 4 : 6;
+  const sheetHeaderMargin = compressedHeight ? 4 : 6;
+  const sheetRowMargin = compressedHeight ? 3 : 4;
+  const sheetFontSize = compressedHeight ? 8 : 9;
+  const sheetHeaderFontSize = compressedHeight ? 7 : 8;
+  const sheetFooterPad = compressedHeight ? 4 : 6;
+  const sheetFooterMargin = compressedHeight ? 3 : 4;
+  const sheetRows = compressedHeight ? DEMO_ROWS.slice(0, 3) : DEMO_ROWS;
+  const xBadgeSize = compressedHeight ? 22 : 26;
+  const xBadgeIcon = compressedHeight ? 12 : 14;
+  const arrowLineHeight = compressedHeight ? 14 : 24;
+  const arrowCircleSize = compressedHeight ? 28 : 36;
+  const arrowIconSize = compressedHeight ? 14 : 18;
+  const catCardPadding = compressedHeight ? 10 : compactHeight ? 12 : 14;
+  const catRowMargin = compressedHeight ? 8 : 10;
+  const catIconSize = compressedHeight ? 32 : 38;
+  const catIconRadius = compressedHeight ? 9 : 10;
+  const catLabelSize = compressedHeight ? 13 : 14;
+  const catLeftSize = compressedHeight ? 12 : 13;
+  const catGap = compressedHeight ? 8 : 10;
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
-      <View style={styles.screen4Layout}>
-        <View style={[styles.screen4Content, compactHeight && styles.screen4ContentCompact]}>
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen4Content,
+          compactHeight && styles.screen4ContentCompact,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: clampNumber(layout.contentTop - 2, 4, 18),
+            paddingBottom: layout.contentBottom,
+            justifyContent: 'space-between',
+          },
+        ]}>
         {/* Logo + badge */}
         <View style={[styles.s4LogoWrapper, compactHeight && styles.s4LogoWrapperCompact]}>
-          <View style={[styles.s4LogoBox, { backgroundColor: theme.successBg }]}>
+          <View
+            style={[
+              styles.s4LogoBox,
+              {
+                backgroundColor: theme.successBg,
+                width: logoBoxSize,
+                height: logoBoxSize,
+                borderRadius: clampNumber(logoBoxSize * 0.28, 16, 20),
+              },
+            ]}>
             <View style={[styles.logoBox, { backgroundColor: theme.success + '33' }]}>
-              <Ionicons name="wallet" size={22} color={theme.success} />
+              <Ionicons name="wallet" size={logoIconSize} color={theme.success} />
             </View>
           </View>
-          <View style={[styles.s4Badge, { backgroundColor: theme.purple }]}>
+          <View style={[styles.s4Badge, { backgroundColor: theme.purple, top: badgeTop }]}>
             <Text style={styles.s4BadgeText}>{t('onboarding.s4.tagBadge')}</Text>
           </View>
         </View>
@@ -510,7 +989,13 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
         <Text
           style={[
             styles.headline,
-            { color: theme.textPrimary, textAlign: 'center', marginBottom: 4 },
+            {
+              color: theme.textPrimary,
+              textAlign: 'center',
+              marginBottom: titleBottom,
+              fontSize: layout.titleSize,
+              lineHeight: layout.titleLineHeight,
+            },
           ]}>
           {t('onboarding.s4.title').replace(t('onboarding.s4.titleStrike'), '')}
           <Text style={{ textDecorationLine: 'line-through', color: theme.textTertiary }}>
@@ -523,7 +1008,9 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
             {
               color: theme.textSecondary,
               textAlign: 'center',
-              marginBottom: compactHeight ? 16 : 24,
+              marginBottom: subtitleBottom,
+              fontSize: layout.bodySize,
+              lineHeight: layout.bodyLineHeight,
             },
           ]}>
           {t('onboarding.s4.subtitle')}{' '}
@@ -539,57 +1026,122 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
             style={[
               styles.s4Spreadsheet,
               compactHeight && styles.s4SpreadsheetCompact,
-              { backgroundColor: theme.iconBg, borderColor: theme.border },
+              {
+                backgroundColor: theme.iconBg,
+                borderColor: theme.border,
+                width: sheetWidth,
+                padding: sheetPadding,
+                borderRadius: sheetRadius,
+              },
             ]}>
-            <View style={[styles.s4SheetHeader, { borderBottomColor: theme.border }]}>
+            <View
+              style={[
+                styles.s4SheetHeader,
+                {
+                  borderBottomColor: theme.border,
+                  paddingBottom: sheetHeaderPad,
+                  marginBottom: sheetHeaderMargin,
+                },
+              ]}>
               {['Date', 'Description', 'Amount', 'Bal'].map((h) => (
                 <Text
                   key={h}
                   style={[
                     styles.s4SheetHeaderCell,
-                    { color: theme.textTertiary, flex: h === 'Description' ? 2 : 1 },
+                    {
+                      color: theme.textTertiary,
+                      flex: h === 'Description' ? 2 : 1,
+                      fontSize: sheetHeaderFontSize,
+                    },
                   ]}>
                   {h}
                 </Text>
               ))}
             </View>
-            {DEMO_ROWS.map((row, i) => (
-              <View key={i} style={styles.s4SheetRow}>
-                <Text style={[styles.s4SheetCell, { color: theme.textSecondary, flex: 1 }]}>
+            {sheetRows.map((row, i) => (
+              <View key={i} style={[styles.s4SheetRow, { marginBottom: sheetRowMargin }]}>
+                <Text
+                  style={[
+                    styles.s4SheetCell,
+                    { color: theme.textSecondary, flex: 1, fontSize: sheetFontSize },
+                  ]}>
                   {row.date}
                 </Text>
                 <Text
-                  style={[styles.s4SheetCell, { color: theme.textSecondary, flex: 2 }]}
+                  style={[
+                    styles.s4SheetCell,
+                    { color: theme.textSecondary, flex: 2, fontSize: sheetFontSize },
+                  ]}
                   numberOfLines={1}>
                   {row.desc}
                 </Text>
                 <Text
-                  style={[styles.s4SheetCell, { color: theme.error, flex: 1, textAlign: 'right' }]}>
+                  style={[
+                    styles.s4SheetCell,
+                    { color: theme.error, flex: 1, textAlign: 'right', fontSize: sheetFontSize },
+                  ]}>
                   {row.amount}
                 </Text>
               </View>
             ))}
-            <View style={[styles.s4SheetFooter, { borderTopColor: theme.border }]}>
-              <Text style={[styles.s4SheetFooterLabel, { color: theme.textPrimary }]}>TOTAL</Text>
-              <Text style={[styles.s4SheetFooterValue, { color: theme.error }]}>-$1,304.69</Text>
+            <View
+              style={[
+                styles.s4SheetFooter,
+                {
+                  borderTopColor: theme.border,
+                  paddingTop: sheetFooterPad,
+                  marginTop: sheetFooterMargin,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.s4SheetFooterLabel,
+                  { color: theme.textPrimary, fontSize: sheetHeaderFontSize },
+                ]}>
+                TOTAL
+              </Text>
+              <Text
+                style={[
+                  styles.s4SheetFooterValue,
+                  { color: theme.error, fontSize: sheetFontSize },
+                ]}>
+                -$1,304.69
+              </Text>
             </View>
           </View>
           {/* X badge */}
           <View
-            style={[styles.s4XBadge, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-            <Ionicons name="close" size={14} color={theme.error} />
+            style={[
+              styles.s4XBadge,
+              {
+                backgroundColor: theme.cardBg,
+                borderColor: theme.border,
+                width: xBadgeSize,
+                height: xBadgeSize,
+                borderRadius: xBadgeSize / 2,
+              },
+            ]}>
+            <Ionicons name="close" size={xBadgeIcon} color={theme.error} />
           </View>
         </View>
 
         {/* Arrow transition */}
         <View style={[styles.s4Arrow, compactHeight && styles.s4ArrowCompact]}>
-          <View style={[styles.s4ArrowLine, { backgroundColor: theme.border }]} />
+          <View
+            style={[styles.s4ArrowLine, { backgroundColor: theme.border, height: arrowLineHeight }]}
+          />
           <View
             style={[
               styles.s4ArrowCircle,
-              { backgroundColor: theme.successBg, borderColor: theme.success + '44' },
+              {
+                backgroundColor: theme.successBg,
+                borderColor: theme.success + '44',
+                width: arrowCircleSize,
+                height: arrowCircleSize,
+                borderRadius: arrowCircleSize / 2,
+              },
             ]}>
-            <Ionicons name="arrow-down" size={18} color={theme.success} />
+            <Ionicons name="arrow-down" size={arrowIconSize} color={theme.success} />
           </View>
         </View>
 
@@ -598,37 +1150,73 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
           style={[
             styles.s4CatCard,
             compactHeight && styles.s4CatCardCompact,
-            { backgroundColor: theme.cardBg, borderColor: theme.success },
+            {
+              backgroundColor: theme.cardBg,
+              borderColor: theme.success,
+              padding: catCardPadding,
+            },
           ]}>
           {DEMO_CATS.map((cat, i) => (
             <View
               key={i}
-              style={[styles.s4CatRow, i < DEMO_CATS.length - 1 && { marginBottom: 16 }]}>
-              <View style={styles.s4CatLeft}>
-                <View style={[styles.s4CatIcon, { backgroundColor: cat.color + '22' }]}>
+              style={[styles.s4CatRow, i < DEMO_CATS.length - 1 && { marginBottom: catRowMargin }]}>
+              <View style={[styles.s4CatLeft, { gap: catGap }]}>
+                <View
+                  style={[
+                    styles.s4CatIcon,
+                    {
+                      backgroundColor: cat.color + '22',
+                      width: catIconSize,
+                      height: catIconSize,
+                      borderRadius: catIconRadius,
+                    },
+                  ]}>
                   <Ionicons name={cat.icon} size={18} color={cat.color} />
                 </View>
-                <Text style={[styles.s4CatLabel, { color: theme.textPrimary }]}>{cat.label}</Text>
+                <Text
+                  style={[styles.s4CatLabel, { color: theme.textPrimary, fontSize: catLabelSize }]}>
+                  {cat.label}
+                </Text>
               </View>
-              <Text style={[styles.s4CatLeft_left, { color: theme.textPrimary }]}>
+              <Text
+                style={[
+                  styles.s4CatLeft_left,
+                  { color: theme.textPrimary, fontSize: catLeftSize },
+                ]}>
                 {cat.left} left
               </Text>
             </View>
           ))}
         </View>
-        </View>
+      </AdaptiveStepContent>
 
-        <View style={[styles.footerStatic, compactHeight && styles.footerStaticCompact]}>
-          <CTAButton
-            label={t('onboarding.s4.cta')}
-            onPress={onNext}
-            theme={theme}
-            icon="arrow-forward"
-          />
-          <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
-            {t('onboarding.s4.socialProof')}
-          </Text>
-        </View>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.bg,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
+        <CTAButton
+          label={t('onboarding.s4.cta')}
+          onPress={onNext}
+          theme={theme}
+          icon="arrow-forward"
+        />
+        <Text
+          style={[
+            styles.footerHint,
+            {
+              color: theme.textTertiary,
+              fontSize: layout.footerHintSize,
+              marginTop: layout.footerHintMargin,
+            },
+          ]}>
+          {t('onboarding.s4.socialProof')}
+        </Text>
       </View>
     </View>
   );
@@ -645,6 +1233,8 @@ function Screen5({
   step,
   onSelectionsChange,
 }: SharedProps & { onSelectionsChange: (keys: string[], custom: string) => void }) {
+  const layout = useAdaptiveOnboardingLayout();
+
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [customText, setCustomText] = useState('');
 
@@ -671,11 +1261,26 @@ function Screen5({
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
-      <ScrollView
-        contentContainerStyle={styles.screen5Content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
-        <Text style={[styles.headline, { color: theme.textPrimary, marginBottom: 6 }]}>
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen5Content,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.contentTop,
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
+        <Text
+          style={[
+            styles.headline,
+            {
+              color: theme.textPrimary,
+              marginBottom: 6,
+              fontSize: layout.titleSize,
+              lineHeight: layout.titleLineHeight,
+            },
+          ]}>
           {t('onboarding.s5.titlePart1')}
           <Text style={{ color: theme.info }}>{t('onboarding.s5.titleAccent')}</Text>
           <Text>
@@ -684,12 +1289,25 @@ function Screen5({
             {t('onboarding.s5.titlePart2Suffix')}
           </Text>
         </Text>
-        <Text style={[styles.bodyText, { color: theme.textSecondary, marginBottom: 20 }]}>
+        <Text
+          style={[
+            styles.bodyText,
+            {
+              color: theme.textSecondary,
+              marginBottom: clampNumber(layout.height * 0.024, 14, 20),
+              fontSize: layout.bodySize,
+              lineHeight: layout.bodyLineHeight,
+            },
+          ]}>
           {t('onboarding.s5.subtitle')}
         </Text>
 
         {/* 2-column grid — 4 category tiles */}
-        <View style={styles.s5Grid}>
+        <View
+          style={[
+            styles.s5Grid,
+            { gap: layout.s5GridGap, marginBottom: clampNumber(layout.height * 0.028, 18, 24) },
+          ]}>
           {CATEGORY_OPTIONS.map((cat) => {
             const isSelected = selected.has(cat.key);
             return (
@@ -702,6 +1320,8 @@ function Screen5({
                     backgroundColor: theme.cardBg,
                     borderColor: isSelected ? theme.purple : theme.border,
                     borderWidth: isSelected ? 1.5 : 1,
+                    padding: layout.s5TilePadding,
+                    borderRadius: layout.cardRadius,
                   },
                 ]}>
                 {isSelected && (
@@ -709,10 +1329,23 @@ function Screen5({
                     <Ionicons name="checkmark" size={12} color="#fff" />
                   </View>
                 )}
-                <View style={[styles.s5IconBox, { backgroundColor: cat.bgLight + '44' }]}>
+                <View
+                  style={[
+                    styles.s5IconBox,
+                    {
+                      width: layout.s5IconBoxSize,
+                      height: layout.s5IconBoxSize,
+                      borderRadius: clampNumber(layout.s5IconBoxSize / 3, 12, 14),
+                      backgroundColor: cat.bgLight + '44',
+                    },
+                  ]}>
                   <Ionicons name={cat.icon} size={22} color={cat.color} />
                 </View>
-                <Text style={[styles.s5ItemLabel, { color: theme.textPrimary }]}>
+                <Text
+                  style={[
+                    styles.s5ItemLabel,
+                    { color: theme.textPrimary, fontSize: clampNumber(layout.bodySize, 14, 15) },
+                  ]}>
                   {t(`onboarding.s5.${cat.key}`)}
                 </Text>
               </Pressable>
@@ -721,7 +1354,11 @@ function Screen5({
         </View>
 
         {/* Custom expense input — always visible below the grid */}
-        <Text style={[styles.s5CustomLabel, { color: theme.purple }]}>
+        <Text
+          style={[
+            styles.s5CustomLabel,
+            { color: theme.purple, fontSize: layout.eyebrowSize, marginBottom: 8 },
+          ]}>
           {t('onboarding.s5.customLabel').toUpperCase()}
         </Text>
         <View
@@ -731,35 +1368,43 @@ function Screen5({
               backgroundColor: theme.cardBg,
               borderColor: customText ? theme.purple : theme.border,
               borderWidth: customText ? 1.5 : 1,
+              paddingVertical: layout.inputPaddingY,
+              borderRadius: clampNumber(layout.cardRadius - 2, 14, 20),
             },
           ]}>
           <TextInput
             ref={inputRef}
-            style={[styles.s5Input, { color: theme.textPrimary }]}
+            style={[styles.s5Input, { color: theme.textPrimary, fontSize: layout.inputFontSize }]}
             placeholder={t('onboarding.s5.customPlaceholder')}
             placeholderTextColor={theme.textTertiary}
             value={customText}
             onChangeText={setCustomText}
             returnKeyType="done"
           />
+
           {customText.length > 0 ? (
             <Ionicons name="checkmark-circle" size={18} color={theme.purple} />
           ) : (
             <Ionicons name="create-outline" size={18} color={theme.textTertiary} />
           )}
         </View>
-      </ScrollView>
-
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+      </AdaptiveStepContent>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.bg,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
         <CTAButton
           label={t('onboarding.s5.cta')}
           onPress={handleNext}
           theme={theme}
           icon="arrow-forward"
         />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
-          {t('onboarding.s5.hint')}
-        </Text>
       </View>
     </View>
   );
@@ -807,6 +1452,8 @@ function Screen6({
   step,
   onGoalChange,
 }: SharedProps & { onGoalChange: (goal: string, goalKey: string | null) => void }) {
+  const layout = useAdaptiveOnboardingLayout();
+
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [customGoal, setCustomGoal] = useState('');
   const inputRef = React.useRef<TextInput>(null);
@@ -825,21 +1472,50 @@ function Screen6({
   return (
     <View style={[styles.screenContainer, { backgroundColor: theme.bg }]}>
       <Header theme={theme} onBack={onBack} step={step} showBack />
-      <ScrollView
-        contentContainerStyle={styles.screen5Content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
-        <Text style={[styles.headline, { color: theme.textPrimary, marginBottom: 6 }]}>
+
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen6Content,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.contentTop,
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
+        <Text
+          style={[
+            styles.headline,
+            {
+              color: theme.textPrimary,
+              marginBottom: 6,
+              fontSize: layout.titleSize,
+              lineHeight: layout.titleLineHeight,
+            },
+          ]}>
           {t('onboarding.s6.titlePart1')}
           <Text style={{ color: theme.success }}>{t('onboarding.s6.titleAccent')}</Text>
           {t('onboarding.s6.titlePart2')}
         </Text>
-        <Text style={[styles.bodyText, { color: theme.textSecondary, marginBottom: 20 }]}>
+        <Text
+          style={[
+            styles.bodyText,
+            {
+              color: theme.textSecondary,
+              marginBottom: clampNumber(layout.height * 0.024, 14, 20),
+              fontSize: layout.bodySize,
+              lineHeight: layout.bodyLineHeight,
+            },
+          ]}>
           {t('onboarding.s6.subtitle')}
         </Text>
 
         {/* 2x2 goal grid */}
-        <View style={styles.s5Grid}>
+        <View
+          style={[
+            styles.s5Grid,
+            { gap: layout.s5GridGap, marginBottom: clampNumber(layout.height * 0.028, 18, 24) },
+          ]}>
           {GOAL_OPTIONS.map((goal) => {
             const isSelected = selectedGoal === goal.key;
             return (
@@ -852,6 +1528,8 @@ function Screen6({
                     backgroundColor: theme.cardBg,
                     borderColor: isSelected ? theme.purple : theme.border,
                     borderWidth: isSelected ? 1.5 : 1,
+                    padding: layout.s5TilePadding,
+                    borderRadius: layout.cardRadius,
                   },
                 ]}>
                 {isSelected && (
@@ -859,10 +1537,23 @@ function Screen6({
                     <Ionicons name="checkmark" size={12} color="#fff" />
                   </View>
                 )}
-                <View style={[styles.s5IconBox, { backgroundColor: goal.bgLight + '88' }]}>
+                <View
+                  style={[
+                    styles.s5IconBox,
+                    {
+                      width: layout.s5IconBoxSize,
+                      height: layout.s5IconBoxSize,
+                      borderRadius: clampNumber(layout.s5IconBoxSize / 3, 12, 14),
+                      backgroundColor: goal.bgLight + '88',
+                    },
+                  ]}>
                   <Ionicons name={goal.icon} size={24} color={goal.color} />
                 </View>
-                <Text style={[styles.s5ItemLabel, { color: theme.textPrimary }]}>
+                <Text
+                  style={[
+                    styles.s5ItemLabel,
+                    { color: theme.textPrimary, fontSize: clampNumber(layout.bodySize, 14, 15) },
+                  ]}>
                   {t(`onboarding.s6.${goal.key}`)}
                 </Text>
               </Pressable>
@@ -871,7 +1562,11 @@ function Screen6({
         </View>
 
         {/* Custom goal input */}
-        <Text style={[styles.s5CustomLabel, { color: theme.purple }]}>
+        <Text
+          style={[
+            styles.s5CustomLabel,
+            { color: theme.purple, fontSize: layout.eyebrowSize, marginBottom: 8 },
+          ]}>
           {t('onboarding.s6.inputPlaceholder').split(' ').slice(0, 2).join(' ').toUpperCase()}
         </Text>
         <View
@@ -881,11 +1576,13 @@ function Screen6({
               backgroundColor: theme.cardBg,
               borderColor: customGoal ? theme.purple : theme.border,
               borderWidth: customGoal ? 1.5 : 1,
+              paddingVertical: layout.inputPaddingY,
+              borderRadius: clampNumber(layout.cardRadius - 2, 14, 20),
             },
           ]}>
           <TextInput
             ref={inputRef}
-            style={[styles.s5Input, { color: theme.textPrimary }]}
+            style={[styles.s5Input, { color: theme.textPrimary, fontSize: layout.inputFontSize }]}
             placeholder={t('onboarding.s6.inputPlaceholder')}
             placeholderTextColor={theme.textTertiary}
             value={customGoal}
@@ -901,18 +1598,24 @@ function Screen6({
             <Ionicons name="create-outline" size={18} color={theme.textTertiary} />
           )}
         </View>
-      </ScrollView>
+      </AdaptiveStepContent>
 
-      <View style={[styles.footer, { backgroundColor: theme.bg }]}>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: theme.bg,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
         <CTAButton
           label={t('onboarding.s6.cta')}
           onPress={handleNext}
           theme={theme}
           icon="arrow-forward"
         />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
-          {t('onboarding.s6.hint')}
-        </Text>
       </View>
     </View>
   );
@@ -1054,6 +1757,7 @@ function Screen7({
   goalKey: string | null;
   onFinish: (plan: BudgetPlan) => Promise<void> | void;
 }) {
+  const layout = useAdaptiveOnboardingLayout();
   const { currency } = useCurrency();
   const [saving, setSaving] = useState(false);
   const [budgetMap, setBudgetMap] = useState<Record<string, number>>({});
@@ -1178,22 +1882,67 @@ function Screen7({
 
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
-      <ScrollView
-        contentContainerStyle={styles.screen7Content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.s7Hero}>
-          <View style={[styles.s7HeroIcon, { backgroundColor: theme.purple + '14' }]}>
+      <AdaptiveStepContent
+        contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.screen7Content,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: clampNumber(layout.contentTop - 6, 4, 12),
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
+        <View
+          style={[
+            styles.s7Hero,
+            {
+              marginBottom: clampNumber(layout.height * 0.03, 22, 30),
+              gap: clampNumber(layout.height * 0.014, 10, 12),
+            },
+          ]}>
+          <View
+            style={[
+              styles.s7HeroIcon,
+              {
+                width: layout.s7HeroIconSize,
+                height: layout.s7HeroIconSize,
+                borderRadius: clampNumber(layout.s7HeroIconSize * 0.38, 20, 24),
+                backgroundColor: theme.purple + '14',
+              },
+            ]}>
             <Ionicons name="cash-outline" size={28} color={theme.purple} />
           </View>
-          <Text style={[styles.s7Title, { color: theme.textPrimary }]}>{title}</Text>
-          <Text style={[styles.s7Subtitle, { color: theme.textSecondary }]}>
+          <Text
+            style={[
+              styles.s7Title,
+              {
+                color: theme.textPrimary,
+                fontSize: layout.s7TitleSize,
+                lineHeight: layout.s7TitleLineHeight,
+              },
+            ]}>
+            {title}
+          </Text>
+          <Text
+            style={[
+              styles.s7Subtitle,
+              {
+                color: theme.textSecondary,
+                fontSize: layout.s7SubtitleSize,
+                lineHeight: clampNumber(layout.bodyLineHeight - 3, 20, 22),
+              },
+            ]}>
             {t('onboarding.s7.subtitle')}
           </Text>
         </View>
 
-        <View style={styles.s7Section}>
-          <Text style={[styles.s7SectionTitle, { color: theme.textTertiary }]}>
+        <View
+          style={[styles.s7Section, { marginBottom: clampNumber(layout.height * 0.028, 18, 24) }]}>
+          <Text
+            style={[
+              styles.s7SectionTitle,
+              { color: theme.textTertiary, fontSize: layout.eyebrowSize },
+            ]}>
             {t('onboarding.s7.expensesSection').toUpperCase()}
           </Text>
           {selectedExpenseItems.length > 0 ? (
@@ -1207,6 +1956,9 @@ function Screen7({
                     {
                       backgroundColor: theme.cardBg,
                       borderColor: theme.isDark ? theme.border : '#F1F5F9',
+                      paddingHorizontal: layout.s7CardPaddingX,
+                      paddingVertical: layout.s7CardPaddingY,
+                      borderRadius: layout.cardRadius,
                     },
                     !theme.isDark && styles.s7CardShadow,
                   ]}>
@@ -1225,7 +1977,14 @@ function Screen7({
                           numberOfLines={1}>
                           {item.label}
                         </Text>
-                        <Text style={[styles.s7CardAmount, { color: theme.textPrimary }]}>
+                        <Text
+                          style={[
+                            styles.s7CardAmount,
+                            {
+                              color: theme.textPrimary,
+                              fontSize: clampNumber(layout.bodySize - 1, 13, 14),
+                            },
+                          ]}>
                           {formatAmount(value)}
                         </Text>
                       </View>
@@ -1258,7 +2017,11 @@ function Screen7({
         </View>
 
         <View style={styles.s7Section}>
-          <Text style={[styles.s7SectionTitle, { color: theme.textTertiary }]}>
+          <Text
+            style={[
+              styles.s7SectionTitle,
+              { color: theme.textTertiary, fontSize: layout.eyebrowSize },
+            ]}>
             {t('onboarding.s7.goalsSection').toUpperCase()}
           </Text>
           {goalItems.length > 0 ? (
@@ -1272,6 +2035,9 @@ function Screen7({
                     {
                       backgroundColor: theme.cardBg,
                       borderColor: theme.isDark ? theme.border : '#F1F5F9',
+                      paddingHorizontal: layout.s7CardPaddingX,
+                      paddingVertical: layout.s7CardPaddingY,
+                      borderRadius: layout.cardRadius,
                     },
                     !theme.isDark && styles.s7CardShadow,
                   ]}>
@@ -1290,7 +2056,14 @@ function Screen7({
                           numberOfLines={1}>
                           {item.label}
                         </Text>
-                        <Text style={[styles.s7CardAmount, { color: theme.textPrimary }]}>
+                        <Text
+                          style={[
+                            styles.s7CardAmount,
+                            {
+                              color: theme.textPrimary,
+                              fontSize: clampNumber(layout.bodySize - 1, 13, 14),
+                            },
+                          ]}>
                           {formatAmount(value)}
                         </Text>
                       </View>
@@ -1321,9 +2094,18 @@ function Screen7({
             </View>
           )}
         </View>
-      </ScrollView>
+      </AdaptiveStepContent>
 
-      <View style={[styles.footer, { backgroundColor: screenBackground }]}>
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: screenBackground,
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.footerTop,
+            paddingBottom: layout.footerBottom,
+          },
+        ]}>
         <CTAButton
           label={t('onboarding.s7.cta')}
           onPress={complete}
@@ -1331,7 +2113,15 @@ function Screen7({
           icon="chevron-forward"
           loading={saving}
         />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
+        <Text
+          style={[
+            styles.footerHint,
+            {
+              color: theme.textTertiary,
+              fontSize: layout.footerHintSize,
+              marginTop: layout.footerHintMargin,
+            },
+          ]}>
           {t('onboarding.s7.hint')}
         </Text>
       </View>
@@ -1353,9 +2143,10 @@ function Screen8({
 }: SharedProps & {
   onFinish: () => void;
 }) {
-  const { height, width } = useWindowDimensions();
-  const compactHeight = height < 760;
-  const narrowWidth = width < 380;
+  const layout = useAdaptiveOnboardingLayout();
+  const compactHeight = layout.isShort;
+  const narrowWidth = layout.isNarrow;
+
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1382,12 +2173,13 @@ function Screen8({
         maximumFractionDigits: 2,
       }).format(annualPackage.product.price / 12)
     : '$4.99';
-  const annualSavingsPercent = annualPackage && monthlyPackage
-    ? Math.max(
-        0,
-        Math.round((1 - annualPackage.product.price / (monthlyPackage.product.price * 12)) * 100)
-      )
-    : 50;
+  const annualSavingsPercent =
+    annualPackage && monthlyPackage
+      ? Math.max(
+          0,
+          Math.round((1 - annualPackage.product.price / (monthlyPackage.product.price * 12)) * 100)
+        )
+      : 50;
 
   useEffect(() => {
     if (subscriptionLoading || hadActiveTierOnOpen.current !== null) return;
@@ -1454,209 +2246,285 @@ function Screen8({
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
       <View style={styles.s8Layout}>
-        <View style={[styles.s8Content, compactHeight && styles.s8ContentCompact]}>
-        {/* Hero image with floating badge */}
-        <View style={[styles.s8ImageWrapper, compactHeight && styles.s8ImageWrapperCompact]}>
-          <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
+        <AdaptiveStepContent
+          contentContainerStyle={[
+            styles.scrollContentGrow,
+            styles.s8Content,
+            compactHeight && styles.s8ContentCompact,
+            {
+              paddingHorizontal: layout.horizontalPadding,
+              paddingTop: clampNumber(layout.contentTop - 6, 2, 10),
+              paddingBottom: layout.contentBottom,
+            },
+          ]}>
+          {/* Hero image with floating badge */}
           <View
             style={[
-              styles.s8ImageCard,
-              compactHeight && styles.s8ImageCardCompact,
-              { backgroundColor: theme.cardBg, borderColor: theme.border },
-            ]}>
-            <Image
-              source={{
-                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSfoqHxeAi6k1VosFbuxNW4fwnC2IHPL09qimUrn-GHiNSGyCeIJT7-MC-68CTDnY-AGXMw6sgl8JzRrBdwdfeeWeL26xGxYls8fF1NiMHl3fj5REeDGFe__3mhtVe0C63h7Fxo3AtxIBVwXeV82mm2akg7HwTdagocanR3v4Ffnvqz15BS8rwuxezLPNmwxVWNL0ccGhFbDTZaPDLHR--IhT3gDizTaIIC6Iw5dr-wu4Cc9dWjdZvplOXlFXvisu9mC3xYoXUxM3K',
-              }}
-              style={[styles.s8HeroImage, compactHeight && styles.s8HeroImageCompact]}
-              resizeMode="contain"
-            />
-            {/* Floating badge */}
-            <View
-              style={[
-                styles.s8FloatingBadge,
-                compactHeight && styles.s8FloatingBadgeCompact,
-                { backgroundColor: theme.cardBg, borderColor: theme.border },
-              ]}>
-              <View style={[styles.s8BadgeIcon, { backgroundColor: theme.success }]}>
-                <Ionicons name="checkmark" size={12} color="#fff" />
-              </View>
-              <View>
-                <Text style={[styles.s8BadgeLabel, { color: theme.textSecondary }]}>
-                  {t('onboarding.s8.badgeLabel')}
-                </Text>
-                <Text style={[styles.s8BadgeValue, { color: theme.textPrimary }]}>
-                  {t('onboarding.s8.badgeValue')}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Text content */}
-        <View style={styles.s8TextBlock}>
-          <View style={styles.s8TagRow}>
-            <View style={[styles.s8TagDot, { backgroundColor: theme.success }]} />
-            <Text style={[styles.s8TagText, { color: theme.success }]}>
-              {t('onboarding.s8.tag')}
-            </Text>
-          </View>
-          <Text style={[styles.headline, { color: theme.textPrimary, textAlign: 'center' }]}>
-            {t('onboarding.s8.title')}
-          </Text>
-          <Text
-            style={[
-              styles.bodyText,
-              { color: theme.textSecondary, textAlign: 'center', marginTop: 12 },
-            ]}>
-            {t('onboarding.s8.subtitle')}
-          </Text>
-          <Text
-            style={[
-              styles.bodyText,
-              { color: theme.purple, textAlign: 'center', marginTop: 10, fontWeight: '700' },
-            ]}>
-            {t('onboarding.s8.trialBanner')}
-          </Text>
-        </View>
-
-        {/* Subscription options */}
-        <View style={styles.s8PlansContainer}>
-          {/* Annual Plan */}
-          <Pressable
-            onPress={() => setSelectedPlan('annual')}
-            style={[
-              styles.s8PlanCard,
-              narrowWidth && styles.s8PlanCardCompact,
+              styles.s8ImageWrapper,
+              compactHeight && styles.s8ImageWrapperCompact,
               {
-                backgroundColor: selectedPlan === 'annual' ? theme.cardBg : theme.iconBg,
-                borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
-                borderWidth: selectedPlan === 'annual' ? 2 : 1,
+                height: layout.s8ImageWrapperHeight,
+                marginBottom: clampNumber(layout.height * 0.02, 12, 20),
               },
             ]}>
-            <View style={styles.s8PlanLeft}>
+            <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
+            <View
+              style={[
+                styles.s8ImageCard,
+                compactHeight && styles.s8ImageCardCompact,
+                {
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.border,
+                  width: layout.s8HeroSize,
+                  height: layout.s8HeroSize,
+                  borderRadius: layout.s8HeroRadius,
+                },
+              ]}>
+              <Image
+                source={{
+                  uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSfoqHxeAi6k1VosFbuxNW4fwnC2IHPL09qimUrn-GHiNSGyCeIJT7-MC-68CTDnY-AGXMw6sgl8JzRrBdwdfeeWeL26xGxYls8fF1NiMHl3fj5REeDGFe__3mhtVe0C63h7Fxo3AtxIBVwXeV82mm2akg7HwTdagocanR3v4Ffnvqz15BS8rwuxezLPNmwxVWNL0ccGhFbDTZaPDLHR--IhT3gDizTaIIC6Iw5dr-wu4Cc9dWjdZvplOXlFXvisu9mC3xYoXUxM3K',
+                }}
+                style={[
+                  styles.s8HeroImage,
+                  compactHeight && styles.s8HeroImageCompact,
+                  {
+                    width: layout.s8HeroSize,
+                    height: layout.s8HeroSize,
+                    borderRadius: layout.s8HeroRadius,
+                  },
+                ]}
+                resizeMode="contain"
+              />
+              {/* Floating badge */}
               <View
                 style={[
-                  styles.s8RadioCircle,
-                  {
-                    borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
-                  },
+                  styles.s8FloatingBadge,
+                  compactHeight && styles.s8FloatingBadgeCompact,
+                  { backgroundColor: theme.cardBg, borderColor: theme.border },
                 ]}>
-                {selectedPlan === 'annual' && (
-                  <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
-                )}
-              </View>
-              <View>
-                <Text
-                  style={[
-                    styles.s8PlanTitle,
-                    narrowWidth && styles.s8PlanTitleCompact,
-                    { color: theme.textPrimary },
-                  ]}>
-                  Annual
-                </Text>
-                <View style={[styles.s8PlanPriceRow, narrowWidth && styles.s8PlanPriceRowCompact]}>
-                  <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                    {annualPrice}
+                <View style={[styles.s8BadgeIcon, { backgroundColor: theme.success }]}>
+                  <Ionicons name="checkmark" size={12} color="#fff" />
+                </View>
+                <View>
+                  <Text style={[styles.s8BadgeLabel, { color: theme.textSecondary }]}>
+                    {t('onboarding.s8.badgeLabel')}
                   </Text>
-                  <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
-                    <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>
-                      Save {annualSavingsPercent}%
-                    </Text>
-                  </View>
+                  <Text style={[styles.s8BadgeValue, { color: theme.textPrimary }]}>
+                    {t('onboarding.s8.badgeValue')}
+                  </Text>
                 </View>
               </View>
             </View>
-            <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
-              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
-              <Text
-                style={[
-                  styles.s8PlanHighlight,
-                  narrowWidth && styles.s8PlanHighlightCompact,
-                  { color: theme.purple },
-                ]}>
-                {annualMonthlyEquivalent}/mo
+          </View>
+
+          {/* Text content */}
+          <View style={styles.s8TextBlock}>
+            <View style={styles.s8TagRow}>
+              <View style={[styles.s8TagDot, { backgroundColor: theme.success }]} />
+              <Text style={[styles.s8TagText, { color: theme.success }]}>
+                {t('onboarding.s8.tag')}
               </Text>
             </View>
-          </Pressable>
+            <Text
+              style={[
+                styles.headline,
+                {
+                  color: theme.textPrimary,
+                  textAlign: 'center',
+                  fontSize: layout.titleSize,
+                  lineHeight: layout.titleLineHeight,
+                },
+              ]}>
+              {t('onboarding.s8.title')}
+            </Text>
+            <Text
+              style={[
+                styles.bodyText,
+                {
+                  color: theme.textSecondary,
+                  textAlign: 'center',
+                  marginTop: 12,
+                  fontSize: layout.bodySize,
+                  lineHeight: layout.bodyLineHeight,
+                },
+              ]}>
+              {t('onboarding.s8.subtitle')}
+            </Text>
+            <Text
+              style={[
+                styles.bodyText,
+                {
+                  color: theme.purple,
+                  textAlign: 'center',
+                  marginTop: 10,
+                  fontWeight: '700',
+                  fontSize: layout.bodySize,
+                  lineHeight: layout.bodyLineHeight,
+                },
+              ]}>
+              {t('onboarding.s8.trialBanner')}
+            </Text>
+          </View>
 
-          {/* Monthly Plan */}
-          <Pressable
-            onPress={() => setSelectedPlan('monthly')}
-            style={[
-              styles.s8PlanCard,
-              narrowWidth && styles.s8PlanCardCompact,
-              {
-                backgroundColor: selectedPlan === 'monthly' ? theme.cardBg : theme.iconBg,
-                borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
-                borderWidth: selectedPlan === 'monthly' ? 2 : 1,
-              },
-            ]}>
-            <View style={styles.s8PlanLeft}>
-              <View
-                style={[
-                  styles.s8RadioCircle,
-                  {
-                    borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
-                  },
-                ]}>
-                {selectedPlan === 'monthly' && (
-                  <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
-                )}
+          {/* Subscription options */}
+          <View style={styles.s8PlansContainer}>
+            {/* Annual Plan */}
+            <Pressable
+              onPress={() => setSelectedPlan('annual')}
+              style={[
+                styles.s8PlanCard,
+                narrowWidth && styles.s8PlanCardCompact,
+                {
+                  backgroundColor: selectedPlan === 'annual' ? theme.cardBg : theme.iconBg,
+                  borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
+                  borderWidth: selectedPlan === 'annual' ? 2 : 1,
+                  padding: layout.s8PlanPadding,
+                  borderRadius: layout.cardRadius,
+                },
+              ]}>
+              <View style={styles.s8PlanLeft}>
+                <View
+                  style={[
+                    styles.s8RadioCircle,
+                    {
+                      borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
+                    },
+                  ]}>
+                  {selectedPlan === 'annual' && (
+                    <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
+                  )}
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      styles.s8PlanTitle,
+                      narrowWidth && styles.s8PlanTitleCompact,
+                      { color: theme.textPrimary },
+                    ]}>
+                    Annual
+                  </Text>
+                  <View
+                    style={[styles.s8PlanPriceRow, narrowWidth && styles.s8PlanPriceRowCompact]}>
+                    <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
+                      {annualPrice}
+                    </Text>
+                    <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
+                      <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>
+                        Save {annualSavingsPercent}%
+                      </Text>
+                    </View>
+                  </View>
+                </View>
               </View>
-              <View>
+              <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
+                <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
                 <Text
                   style={[
-                    styles.s8PlanTitle,
-                    narrowWidth && styles.s8PlanTitleCompact,
+                    styles.s8PlanHighlight,
+                    narrowWidth && styles.s8PlanHighlightCompact,
+                    { color: theme.purple },
+                  ]}>
+                  {annualMonthlyEquivalent}/mo
+                </Text>
+              </View>
+            </Pressable>
+
+            {/* Monthly Plan */}
+            <Pressable
+              onPress={() => setSelectedPlan('monthly')}
+              style={[
+                styles.s8PlanCard,
+                narrowWidth && styles.s8PlanCardCompact,
+                {
+                  backgroundColor: selectedPlan === 'monthly' ? theme.cardBg : theme.iconBg,
+                  borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
+                  borderWidth: selectedPlan === 'monthly' ? 2 : 1,
+                  padding: layout.s8PlanPadding,
+                  borderRadius: layout.cardRadius,
+                },
+              ]}>
+              <View style={styles.s8PlanLeft}>
+                <View
+                  style={[
+                    styles.s8RadioCircle,
+                    {
+                      borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
+                    },
+                  ]}>
+                  {selectedPlan === 'monthly' && (
+                    <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
+                  )}
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      styles.s8PlanTitle,
+                      narrowWidth && styles.s8PlanTitleCompact,
+                      { color: theme.textPrimary },
+                    ]}>
+                    Monthly
+                  </Text>
+                  <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
+                    {monthlyPrice}
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
+                <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
+                <Text
+                  style={[
+                    styles.s8PlanMonth,
+                    narrowWidth && styles.s8PlanMonthCompact,
                     { color: theme.textPrimary },
                   ]}>
                   Monthly
                 </Text>
-                <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                  {monthlyPrice}
-                </Text>
               </View>
-            </View>
-            <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
-              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
-              <Text
-                style={[
-                  styles.s8PlanMonth,
-                  narrowWidth && styles.s8PlanMonthCompact,
-                  { color: theme.textPrimary },
-                ]}>
-                Monthly
-              </Text>
-            </View>
-          </Pressable>
-        </View>
-
-        <View style={[styles.footerStatic, compactHeight && styles.footerStaticCompact]}>
-        {error && (
-          <View style={[styles.s8ErrorContainer, { backgroundColor: theme.error + '15' }]}>
-            <Ionicons name="alert-circle" size={16} color={theme.error} />
-            <Text style={[styles.s8ErrorText, { color: theme.error }]}>{error}</Text>
+            </Pressable>
           </View>
-        )}
-        <CTAButton
-          label={
-            loading
-              ? t('onboarding.s8.processing')
-              : canContinueWithoutPurchase
-                ? t('onboarding.s8.continue')
-                : t('onboarding.s8.cta')
-          }
-          onPress={handleGetStarted}
-          theme={theme}
-          icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
-          loading={loading}
-        />
-        <Text style={[styles.s8TermsText, { color: theme.textTertiary }]}>
-          {t('onboarding.s8.terms')}
-        </Text>
-        </View>
-        </View>
+
+          <View
+            style={[
+              styles.footerStatic,
+              compactHeight && styles.footerStaticCompact,
+              {
+                paddingHorizontal: layout.horizontalPadding,
+                paddingTop: layout.footerTop,
+                paddingBottom: layout.footerBottom,
+              },
+            ]}>
+            {error && (
+              <View style={[styles.s8ErrorContainer, { backgroundColor: theme.error + '15' }]}>
+                <Ionicons name="alert-circle" size={16} color={theme.error} />
+                <Text style={[styles.s8ErrorText, { color: theme.error }]}>{error}</Text>
+              </View>
+            )}
+            <CTAButton
+              label={
+                loading
+                  ? t('onboarding.s8.processing')
+                  : canContinueWithoutPurchase
+                    ? t('onboarding.s8.continue')
+                    : t('onboarding.s8.cta')
+              }
+              onPress={handleGetStarted}
+              theme={theme}
+              icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
+              loading={loading}
+            />
+            <Text
+              style={[
+                styles.s8TermsText,
+                {
+                  color: theme.textTertiary,
+                  fontSize: layout.eyebrowSize,
+                  lineHeight: clampNumber(layout.bodyLineHeight - 8, 14, 18),
+                },
+              ]}>
+              {t('onboarding.s8.terms')}
+            </Text>
+          </View>
+        </AdaptiveStepContent>
       </View>
     </View>
   );
@@ -1670,8 +2538,9 @@ function Screen9({
 }: Pick<SharedProps, 'theme' | 't' | 'step'> & {
   onFinish: () => void;
 }) {
-  const { height } = useWindowDimensions();
-  const compactHeight = height < 760;
+  const layout = useAdaptiveOnboardingLayout();
+  const compactHeight = layout.isShort;
+
   const highlights = [
     {
       title: t('onboarding.s9.step1Title'),
@@ -1706,96 +2575,157 @@ function Screen9({
 
       <Header theme={theme} onBack={() => {}} step={step} />
 
-      <ScrollView
+      <AdaptiveStepContent
         contentContainerStyle={[
           styles.s9ScrollContent,
           compactHeight && styles.s9ScrollContentCompact,
-        ]}
-        showsVerticalScrollIndicator={false}>
-        <View style={[styles.s9Content, compactHeight && styles.s9ContentCompact]}>
+          {
+            paddingBottom: layout.contentBottom,
+          },
+        ]}>
         <View
           style={[
-            styles.s9Hero,
-            compactHeight && styles.s9HeroCompact,
-            { backgroundColor: theme.cardBg, borderColor: theme.border },
+            styles.s9Content,
+            compactHeight && styles.s9ContentCompact,
+            {
+              paddingHorizontal: layout.horizontalPadding,
+              paddingTop: layout.contentTop,
+              paddingBottom: clampNumber(layout.contentBottom - 4, 10, 20),
+            },
           ]}>
-          <LinearGradient
-            colors={[theme.success, theme.purple]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.s9HeroGlow}
-          />
-          <View style={styles.s9HeroIconWrap}>
-            <View style={[styles.s9HeroIcon, { backgroundColor: '#fff' }]}>
-              <Ionicons name="checkmark" size={34} color={theme.success} />
+          <View
+            style={[
+              styles.s9Hero,
+              compactHeight && styles.s9HeroCompact,
+              { backgroundColor: theme.cardBg, borderColor: theme.border },
+            ]}>
+            <LinearGradient
+              colors={[theme.success, theme.purple]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.s9HeroGlow}
+            />
+            <View style={styles.s9HeroIconWrap}>
+              <View
+                style={[
+                  styles.s9HeroIcon,
+                  {
+                    backgroundColor: '#fff',
+                    width: layout.s9HeroIconSize,
+                    height: layout.s9HeroIconSize,
+                    borderRadius: layout.s9HeroIconSize / 2,
+                  },
+                ]}>
+                <Ionicons name="checkmark" size={34} color={theme.success} />
+              </View>
             </View>
-          </View>
-          <Text style={[styles.s9Eyebrow, { color: theme.success }]}>
-            {t('onboarding.s9.eyebrow')}
-          </Text>
-          <Text style={[styles.headline, styles.s9Title, { color: theme.textPrimary }]}>
-            {t('onboarding.s9.title')}
-          </Text>
-          <Text style={[styles.bodyText, styles.s9Subtitle, { color: theme.textSecondary }]}>
-            {t('onboarding.s9.subtitle')}
-          </Text>
-        </View>
-
-        <View style={styles.s9Highlights}>
-          {highlights.map((item) => (
-            <View
-              key={item.title}
+            <Text style={[styles.s9Eyebrow, { color: theme.success }]}>
+              {t('onboarding.s9.eyebrow')}
+            </Text>
+            <Text
               style={[
-                styles.s9HighlightCard,
-                compactHeight && styles.s9HighlightCardCompact,
-                { backgroundColor: theme.cardBg, borderColor: theme.border },
+                styles.headline,
+                styles.s9Title,
+                {
+                  color: theme.textPrimary,
+                  fontSize: clampNumber(layout.titleSize - 2, 24, 32),
+                  lineHeight: clampNumber(layout.titleLineHeight - 6, 30, 36),
+                },
               ]}>
-              <View style={styles.s9StepRail}>
-                <View style={[styles.s9StepNumber, { backgroundColor: item.color }]}>
-                  <Text style={styles.s9StepNumberText}>{item.number}</Text>
+              {t('onboarding.s9.title')}
+            </Text>
+            <Text
+              style={[
+                styles.bodyText,
+                styles.s9Subtitle,
+                {
+                  color: theme.textSecondary,
+                  fontSize: clampNumber(layout.bodySize - 1, 13, 15),
+                  lineHeight: clampNumber(layout.bodyLineHeight - 4, 19, 22),
+                },
+              ]}>
+              {t('onboarding.s9.subtitle')}
+            </Text>
+          </View>
+
+          <View style={styles.s9Highlights}>
+            {highlights.map((item) => (
+              <View
+                key={item.title}
+                style={[
+                  styles.s9HighlightCard,
+                  compactHeight && styles.s9HighlightCardCompact,
+                  {
+                    backgroundColor: theme.cardBg,
+                    borderColor: theme.border,
+                    minHeight: layout.s9HighlightMinHeight,
+                    paddingVertical: layout.s9CardPaddingY,
+                    borderRadius: layout.cardRadius,
+                  },
+                ]}>
+                <View style={styles.s9StepRail}>
+                  <View style={[styles.s9StepNumber, { backgroundColor: item.color }]}>
+                    <Text style={styles.s9StepNumberText}>{item.number}</Text>
+                  </View>
+                </View>
+                <View style={styles.s9HighlightText}>
+                  <Text style={[styles.s9HighlightTitle, { color: theme.textPrimary }]}>
+                    {item.title}
+                  </Text>
+                  <View style={styles.s9HighlightBodyRow}>
+                    {item.number === '1' ? (
+                      <>
+                        <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                          {t('onboarding.s9.step1BodyPrefix')}
+                        </Text>
+                        <View style={styles.s9InlineMicBadge}>
+                          <Ionicons name="mic" size={12} color="#fff" />
+                        </View>
+                        <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                          {t('onboarding.s9.step1BodySuffix')}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                        {item.body}
+                      </Text>
+                    )}
+                  </View>
                 </View>
               </View>
-              <View style={styles.s9HighlightText}>
-                <Text style={[styles.s9HighlightTitle, { color: theme.textPrimary }]}>
-                  {item.title}
-                </Text>
-                <View style={styles.s9HighlightBodyRow}>
-                  {item.number === '1' ? (
-                    <>
-                      <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
-                        {t('onboarding.s9.step1BodyPrefix')}
-                      </Text>
-                      <View style={styles.s9InlineMicBadge}>
-                        <Ionicons name="mic" size={12} color="#fff" />
-                      </View>
-                      <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
-                        {t('onboarding.s9.step1BodySuffix')}
-                      </Text>
-                    </>
-                  ) : (
-                    <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
-                      {item.body}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
         </View>
 
-      <View style={[styles.footerStatic, compactHeight && styles.footerStaticCompact]}>
-        <CTAButton
-          label={t('onboarding.s9.cta')}
-          onPress={onFinish}
-          theme={theme}
-          icon="arrow-forward"
-        />
-        <Text style={[styles.footerHint, { color: theme.textTertiary }]}>
-          {t('onboarding.s9.hint')}
-        </Text>
-      </View>
-      </ScrollView>
+        <View
+          style={[
+            styles.footerStatic,
+            compactHeight && styles.footerStaticCompact,
+            {
+              paddingHorizontal: layout.horizontalPadding,
+              paddingTop: layout.footerTop,
+              paddingBottom: layout.footerBottom,
+            },
+          ]}>
+          <CTAButton
+            label={t('onboarding.s9.cta')}
+            onPress={onFinish}
+            theme={theme}
+            icon="arrow-forward"
+          />
+          <Text
+            style={[
+              styles.footerHint,
+              {
+                color: theme.textTertiary,
+                fontSize: layout.footerHintSize,
+                marginTop: layout.footerHintMargin,
+              },
+            ]}>
+            {t('onboarding.s9.hint')}
+          </Text>
+        </View>
+      </AdaptiveStepContent>
     </View>
   );
 }
@@ -1944,13 +2874,12 @@ export default function OnboardingScreen() {
   );
 }
 
-
 // ─────────────────────────────────────────────
 // Styles
 // ─────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  screenContainer: { flex: 1 },
+  screenContainer: { flex: 1, overflow: 'hidden' },
 
   // Header
   header: {
@@ -1992,28 +2921,25 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   ctaButtonText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  scrollContentGrow: { flex: 1 },
 
   // Footer
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
-    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 16 : 12,
+    paddingTop: 8,
     alignItems: 'center',
   },
-  footerHint: { marginTop: 12, fontSize: 12, textAlign: 'center' },
+  footerHint: { marginTop: 8, fontSize: 12, textAlign: 'center', width: '100%' },
   footerStatic: {
     paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 16 : 12,
     alignItems: 'center',
   },
   footerStaticCompact: {
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 20,
+    paddingTop: 6,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 8,
   },
 
   // Skip
@@ -2038,16 +2964,16 @@ const styles = StyleSheet.create({
     borderRadius: 160,
   },
   s9ScrollContent: {
-    paddingBottom: Platform.OS === 'ios' ? 12 : 8,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 4,
   },
   s9ScrollContentCompact: {
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   s9Content: {
     paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 16,
-    gap: 14,
+    paddingTop: 8,
+    paddingBottom: 8,
+    gap: 10,
   },
   s9ContentCompact: {
     paddingTop: 10,
@@ -2056,24 +2982,24 @@ const styles = StyleSheet.create({
   s9Hero: {
     borderWidth: 1,
     borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     alignItems: 'center',
     overflow: 'hidden',
-    marginTop: 10,
+    marginTop: 6,
   },
   s9HeroCompact: {
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 2,
   },
   s9HeroGlow: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.08,
   },
   s9HeroIconWrap: {
-    marginBottom: 12,
-    padding: 6,
+    marginBottom: 8,
+    padding: 4,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
@@ -2103,23 +3029,23 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   s9Highlights: {
-    gap: 12,
+    gap: 8,
   },
   s9HighlightCard: {
     borderWidth: 1,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    minHeight: 92,
+    gap: 10,
+    minHeight: 60,
   },
   s9HighlightCardCompact: {
-    minHeight: 78,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    gap: 12,
+    minHeight: 50,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 8,
   },
   s9StepRail: {
     width: 34,
@@ -2169,7 +3095,7 @@ const styles = StyleSheet.create({
   },
 
   // ── Screen 1 ──
-  screen1Content: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140 },
+  screen1Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 0 },
   blobTopRight: {
     position: 'absolute',
     top: -60,
@@ -2188,7 +3114,7 @@ const styles = StyleSheet.create({
     borderRadius: 130,
     zIndex: -1,
   },
-  decorativeCluster: { width: '100%', height: 270, position: 'relative', marginBottom: 32 },
+  decorativeCluster: { width: '100%', height: 270, position: 'relative', marginBottom: 20 },
   decorCard: {
     position: 'absolute',
     top: 16,
@@ -2257,14 +3183,14 @@ const styles = StyleSheet.create({
   floatingBadgeLabel: { fontSize: 11, fontWeight: '500' },
   floatingBadgeValue: { fontSize: 15, fontWeight: '700' },
   screen1Text: { gap: 12 },
-  headline: { fontSize: 30, fontWeight: '800', lineHeight: 38, letterSpacing: -0.5 },
-  bodyText: { fontSize: 16, lineHeight: 24 },
+  headline: { fontSize: 30, fontWeight: '800', lineHeight: 38, letterSpacing: -0.5, flexShrink: 1 },
+  bodyText: { fontSize: 16, lineHeight: 24, flexShrink: 1 },
   taglineRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
   taglineLine: { width: 40, height: 3, borderRadius: 4 },
   taglineText: { fontSize: 12, fontWeight: '600', letterSpacing: 1.5 },
 
   // ── Screen 2 ──
-  screen2Content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 140 },
+  screen2Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 0 },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2287,7 +3213,7 @@ const styles = StyleSheet.create({
   optionText: { fontSize: 16, fontWeight: '600', lineHeight: 22 },
 
   // ── Screen 3 ──
-  screen3Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 140 },
+  screen3Content: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 0 },
   screen3Illustration: {
     width: '100%',
     height: 240,
@@ -2338,7 +3264,7 @@ const styles = StyleSheet.create({
   },
   resolvedCardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   resolvedLine: { height: 8, borderRadius: 8 },
-  screen3TextBlock: { alignItems: 'center', marginBottom: 24, paddingHorizontal: 8 },
+  screen3TextBlock: { alignItems: 'center', marginBottom: 16, paddingHorizontal: 8 },
   insightCard: {
     flexDirection: 'row',
     gap: 14,
@@ -2361,8 +3287,8 @@ const styles = StyleSheet.create({
   screen4Layout: { flex: 1, justifyContent: 'space-between' },
   screen4Content: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 8 },
   screen4ContentCompact: { paddingTop: 6, paddingBottom: 4 },
-  s4LogoWrapper: { alignItems: 'center', marginBottom: 20, position: 'relative' },
-  s4LogoWrapperCompact: { marginBottom: 8 },
+  s4LogoWrapper: { alignItems: 'center', marginBottom: 10, position: 'relative' },
+  s4LogoWrapperCompact: { marginBottom: 6 },
   s4LogoBox: {
     width: 72,
     height: 72,
@@ -2385,8 +3311,8 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     alignItems: 'center',
   },
-  s4Spreadsheet: { borderWidth: 1, borderRadius: 14, padding: 12, width: '90%' },
-  s4SpreadsheetCompact: { width: '100%', padding: 8 },
+  s4Spreadsheet: { borderWidth: 1, borderRadius: 14, padding: 8, width: '90%' },
+  s4SpreadsheetCompact: { width: '100%', padding: 6 },
   s4SheetHeader: {
     flexDirection: 'row',
     borderBottomWidth: 1,
@@ -2427,8 +3353,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  s4Arrow: { alignItems: 'center', marginVertical: 12 },
-  s4ArrowCompact: { marginVertical: 6 },
+  s4Arrow: { alignItems: 'center', marginVertical: 8 },
+  s4ArrowCompact: { marginVertical: 4 },
   s4ArrowLine: { width: 1, height: 24 },
   s4ArrowCircle: {
     width: 36,
@@ -2441,7 +3367,7 @@ const styles = StyleSheet.create({
   s4CatCard: {
     borderWidth: 2,
     borderRadius: 20,
-    padding: 20,
+    padding: 14,
     shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
@@ -2449,7 +3375,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   s4CatCardCompact: {
-    padding: 14,
+    padding: 10,
   },
   s4CatRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   s4CatLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -2464,9 +3390,9 @@ const styles = StyleSheet.create({
   s4CatLeft_left: { fontSize: 13, fontWeight: '700' },
 
   // ── Screen 5 ──
-  screen5StaticContent: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 140 },
-  screen5Content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 160 },
-  s5Grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
+  screen5StaticContent: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 0 },
+  screen5Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 0 },
+  s5Grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
   s5GridItem: {
     width: '47%',
     borderRadius: 16,
@@ -2518,7 +3444,7 @@ const styles = StyleSheet.create({
 
   // ── Screen 7 ──
   s7ScreenContainer: { overflow: 'hidden' },
-  screen7Content: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 188 },
+  screen7Content: { paddingHorizontal: 24, paddingTop: 4, paddingBottom: 0 },
   s7Header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2543,7 +3469,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   s7Dot: { height: 4, borderRadius: 999 },
-  s7Hero: { alignItems: 'center', marginBottom: 30, gap: 12, paddingHorizontal: 12 },
+  s7Hero: { alignItems: 'center', marginBottom: 16, gap: 10, paddingHorizontal: 12 },
   s7HeroIcon: {
     width: 64,
     height: 64,
@@ -2559,7 +3485,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.6,
   },
   s7Subtitle: { fontSize: 15, fontWeight: '500', lineHeight: 22, textAlign: 'center' },
-  s7Section: { gap: 12, marginBottom: 24 },
+  s7Section: { gap: 10, marginBottom: 16 },
   s7SectionTitle: {
     fontSize: 11,
     fontWeight: '700',
@@ -2568,7 +3494,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   s7Card: {
-    minHeight: 82,
+    minHeight: 60,
     borderRadius: 24,
     borderWidth: 2,
     paddingHorizontal: 16,
@@ -2674,7 +3600,7 @@ const styles = StyleSheet.create({
   },
 
   // ── Screen 6 ──
-  screen6Content: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 140 },
+  screen6Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 0 },
   s6InputWrapper: {
     borderWidth: 1.5,
     borderRadius: 16,
@@ -2790,7 +3716,7 @@ const styles = StyleSheet.create({
   },
   s8BadgeLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
   s8BadgeValue: { fontSize: 12, fontWeight: '800' },
-  s8TextBlock: { alignItems: 'center', marginBottom: 16 },
+  s8TextBlock: { alignItems: 'center', marginBottom: 10 },
   s8TagRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2799,7 +3725,7 @@ const styles = StyleSheet.create({
   },
   s8TagDot: { width: 6, height: 6, borderRadius: 3 },
   s8TagText: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
-  s8PlansContainer: { gap: 10, marginBottom: 12 },
+  s8PlansContainer: { gap: 8, marginBottom: 10 },
   s8PlanCard: {
     flexDirection: 'row',
     alignItems: 'center',
