@@ -28,9 +28,11 @@ export default function ProfileScreen() {
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
   const { logout, deleteAccount, user } = useAuth();
   const { currency, currencies, loading: currencyLoading, setCurrency } = useCurrency();
-  const { tier, customerInfo, voiceRecordingsLeft, trialDaysLeft, presentCustomerCenter } = useSubscription();
-  const entitlementInfo = customerInfo?.entitlements.active['SaySpend Premium']
-    ?? customerInfo?.entitlements.active['SaySpend Pro'];
+  const { tier, customerInfo, voiceRecordingsLeft, trialDaysLeft, presentCustomerCenter } =
+    useSubscription();
+  const entitlementInfo =
+    customerInfo?.entitlements.active['SaySpend Premium'] ??
+    customerInfo?.entitlements.active['SaySpend Pro'];
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = React.useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = React.useState(false);
@@ -127,7 +129,7 @@ export default function ProfileScreen() {
       const message =
         errorCode === 'auth/requires-recent-login'
           ? t('profile.deleteAccountReauthRequired')
-          : error?.message ?? t('common.tryAgain');
+          : (error?.message ?? t('common.tryAgain'));
       Alert.alert(t('common.error'), message);
     } finally {
       setDeleteAccountLoading(false);
@@ -201,22 +203,35 @@ export default function ProfileScreen() {
               <View
                 className="h-12 w-12 items-center justify-center rounded-xl"
                 style={{
-                  backgroundColor: (tier === 'premium' || tier === 'trial')
-                    ? isDarkMode
-                      ? 'rgba(139,92,246,0.15)'
-                      : '#EDE9FE'
-                    : tier === 'basic'
+                  backgroundColor:
+                    tier === 'premium' || tier === 'trial'
                       ? isDarkMode
-                        ? 'rgba(16,185,129,0.15)'
-                        : '#D1FAE5'
-                      : isDarkMode
-                        ? 'rgba(107,114,128,0.15)'
-                        : '#F3F4F6',
+                        ? 'rgba(139,92,246,0.15)'
+                        : '#EDE9FE'
+                      : tier === 'basic'
+                        ? isDarkMode
+                          ? 'rgba(16,185,129,0.15)'
+                          : '#D1FAE5'
+                        : isDarkMode
+                          ? 'rgba(107,114,128,0.15)'
+                          : '#F3F4F6',
                 }}>
                 <Ionicons
-                  name={tier === 'premium' || tier === 'trial' ? 'diamond' : tier === 'basic' ? 'star-outline' : 'person-outline'}
+                  name={
+                    tier === 'premium' || tier === 'trial'
+                      ? 'diamond'
+                      : tier === 'basic'
+                        ? 'star-outline'
+                        : 'person-outline'
+                  }
                   size={24}
-                  color={tier === 'premium' || tier === 'trial' ? '#8B5CF6' : tier === 'basic' ? '#10B981' : '#6B7280'}
+                  color={
+                    tier === 'premium' || tier === 'trial'
+                      ? '#8B5CF6'
+                      : tier === 'basic'
+                        ? '#10B981'
+                        : '#6B7280'
+                  }
                 />
               </View>
               <View className="ml-3 flex-1">
@@ -287,7 +302,9 @@ export default function ProfileScreen() {
                 onPress={() => setIsPaywallOpen(true)}
                 className="w-full items-center justify-center rounded-xl py-3"
                 style={{ backgroundColor: theme.purple }}>
-                <Text className="text-sm font-bold text-white">{t('profile.upgradeToPremium')}</Text>
+                <Text className="text-sm font-bold text-white">
+                  {t('profile.upgradeToPremium')}
+                </Text>
               </TouchableOpacity>
             ) : tier === 'trial' ? (
               <TouchableOpacity
@@ -439,10 +456,10 @@ export default function ProfileScreen() {
                   <Ionicons name="trash-outline" size={20} color="#DC2626" />
                 </View>
                 <View className="ml-4">
-                  <Text className="text-base font-medium" style={{ color: '#DC2626' }}>
+                  <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>
                     {t('profile.deleteAccount')}
                   </Text>
-                  <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                  <Text className="mt-0.5 text-xs" style={{ color: theme.textPrimary }}>
                     {t('profile.deleteAccountHint')}
                   </Text>
                 </View>
@@ -458,9 +475,9 @@ export default function ProfileScreen() {
                 <View
                   className="h-10 w-10 items-center justify-center rounded-xl"
                   style={{ backgroundColor: isDarkMode ? 'rgba(239,68,68,0.15)' : '#FEF2F2' }}>
-                  <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+                  <Ionicons name="log-out-outline" size={20} color={theme.textPrimary} />
                 </View>
-                <Text className="ml-4 text-base font-medium" style={{ color: '#EF4444' }}>
+                <Text className="ml-4 text-base font-medium" style={{ color: theme.textPrimary }}>
                   {t('profile.logout')}
                 </Text>
               </View>
@@ -643,7 +660,9 @@ export default function ProfileScreen() {
             <Text className="mt-2 text-sm" style={{ color: theme.textSecondary }}>
               {t('profile.deleteAccountDescription')}
             </Text>
-            <Text className="mt-4 text-xs font-semibold uppercase tracking-widest" style={{ color: theme.textSecondary }}>
+            <Text
+              className="mt-4 text-xs font-semibold uppercase tracking-widest"
+              style={{ color: theme.textSecondary }}>
               {t('profile.deleteAccountTypeLabel')}
             </Text>
 
@@ -686,7 +705,8 @@ export default function ProfileScreen() {
                 disabled={!isDeletePhraseValid || deleteAccountLoading}
                 className="rounded-full px-4 py-2"
                 style={{
-                  backgroundColor: !isDeletePhraseValid || deleteAccountLoading ? '#FCA5A5' : '#DC2626',
+                  backgroundColor:
+                    !isDeletePhraseValid || deleteAccountLoading ? '#FCA5A5' : '#DC2626',
                 }}>
                 {deleteAccountLoading ? (
                   <ActivityIndicator color="#FFFFFF" />

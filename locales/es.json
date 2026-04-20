@@ -398,6 +398,7 @@
     "sendInstructions": "Enviar instrucciones",
     "backToLogin": "Volver al inicio de sesión",
     "checkEmail": "Revisa tu correo",
-    "resetEmailSent": "Se ha enviado un enlace de restablecimiento a tu correo."
+    "resetEmailSent": "Si existe una cuenta con ese correo, se ha enviado un enlace para restablecer la contraseña.",
+    "resetEmailHelp": "Revisa spam o promociones. Si normalmente inicias sesión con Google, usa el acceso con Google en lugar de restablecer la contraseña."
   }
 }
