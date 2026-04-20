@@ -942,29 +942,29 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
   const compactHeight = layout.isShort;
 
   const DEMO_ROWS = [
-    { date: '10/24', desc: t('onboarding.s4.sheetRow1'), amount: '-$84.20' },
-    { date: '10/25', desc: t('onboarding.s4.sheetRow2'), amount: '-$1,200' },
-    { date: '10/25', desc: t('onboarding.s4.sheetRow3'), amount: '-$4.50' },
-    { date: '10/26', desc: t('onboarding.s4.sheetRow4'), amount: '-$15.99' },
+    { date: '10/24', desc: t('onboarding.s4.sheetRow1'), amount: '-₴3,420' },
+    { date: '10/25', desc: t('onboarding.s4.sheetRow2'), amount: '-₴18,000' },
+    { date: '10/25', desc: t('onboarding.s4.sheetRow3'), amount: '-₴180' },
+    { date: '10/26', desc: t('onboarding.s4.sheetRow4'), amount: '-₴319' },
   ];
   const DEMO_CATS = [
     {
       icon: 'restaurant' as const,
       label: t('onboarding.s4.cat1'),
       color: '#FB923C',
-      left: '$50',
+      left: '₴2,000',
     },
     {
       icon: 'airplane' as const,
       label: t('onboarding.s4.cat2'),
       color: '#38BDF8',
-      left: '$800',
+      left: '₴32,000',
     },
     {
       icon: 'film' as const,
       label: t('onboarding.s4.cat3'),
       color: theme.purple,
-      left: '$200',
+      left: '₴8,000',
     },
   ];
   const compressedHeight = layout.height < 780;
@@ -1159,7 +1159,7 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
                   styles.s4SheetFooterValue,
                   { color: theme.error, fontSize: sheetFontSize },
                 ]}>
-                -$1,304.69
+                -₴21,919
               </Text>
             </View>
           </View>
