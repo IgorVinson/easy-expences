@@ -942,15 +942,30 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
   const compactHeight = layout.isShort;
 
   const DEMO_ROWS = [
-    { date: '10/24', desc: 'Whole Foods', amount: '-$84.20' },
-    { date: '10/25', desc: 'Rent Payment', amount: '-$1,200' },
-    { date: '10/25', desc: 'Starbucks', amount: '-$4.50' },
-    { date: '10/26', desc: 'Netflix Sub', amount: '-$15.99' },
+    { date: '10/24', desc: t('onboarding.s4.sheetRow1'), amount: '-$84.20' },
+    { date: '10/25', desc: t('onboarding.s4.sheetRow2'), amount: '-$1,200' },
+    { date: '10/25', desc: t('onboarding.s4.sheetRow3'), amount: '-$4.50' },
+    { date: '10/26', desc: t('onboarding.s4.sheetRow4'), amount: '-$15.99' },
   ];
   const DEMO_CATS = [
-    { icon: 'restaurant' as const, label: 'Food out', color: '#FB923C', left: '$50' },
-    { icon: 'airplane' as const, label: 'Weekend trip', color: '#38BDF8', left: '$800' },
-    { icon: 'film' as const, label: 'Entertainment', color: theme.purple, left: '$200' },
+    {
+      icon: 'restaurant' as const,
+      label: t('onboarding.s4.cat1'),
+      color: '#FB923C',
+      left: '$50',
+    },
+    {
+      icon: 'airplane' as const,
+      label: t('onboarding.s4.cat2'),
+      color: '#38BDF8',
+      left: '$800',
+    },
+    {
+      icon: 'film' as const,
+      label: t('onboarding.s4.cat3'),
+      color: theme.purple,
+      left: '$200',
+    },
   ];
   const compressedHeight = layout.height < 780;
   const logoBoxSize = clampNumber(layout.shortEdge * (compressedHeight ? 0.16 : 0.19), 56, 72);
@@ -1077,14 +1092,19 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
                   marginBottom: sheetHeaderMargin,
                 },
               ]}>
-              {['Date', 'Description', 'Amount', 'Bal'].map((h) => (
+              {[
+                t('onboarding.s4.sheetHeaderDate'),
+                t('onboarding.s4.sheetHeaderDescription'),
+                t('onboarding.s4.sheetHeaderAmount'),
+                t('onboarding.s4.sheetHeaderBalance'),
+              ].map((h) => (
                 <Text
                   key={h}
                   style={[
                     styles.s4SheetHeaderCell,
                     {
                       color: theme.textTertiary,
-                      flex: h === 'Description' ? 2 : 1,
+                      flex: h === t('onboarding.s4.sheetHeaderDescription') ? 2 : 1,
                       fontSize: sheetHeaderFontSize,
                     },
                   ]}>
@@ -1132,7 +1152,7 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
                   styles.s4SheetFooterLabel,
                   { color: theme.textPrimary, fontSize: sheetHeaderFontSize },
                 ]}>
-                TOTAL
+                {t('onboarding.s4.sheetTotal')}
               </Text>
               <Text
                 style={[
@@ -1217,7 +1237,7 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
                   styles.s4CatLeft_left,
                   { color: theme.textPrimary, fontSize: catLeftSize },
                 ]}>
-                {cat.left} left
+                {t('onboarding.s4.leftAmount', { amount: cat.left })}
               </Text>
             </View>
           ))}
