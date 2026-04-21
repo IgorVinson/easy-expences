@@ -937,34 +937,53 @@ function Screen3({ theme, t, onNext, onBack, step }: SharedProps) {
 // ─────────────────────────────────────────────
 // Screen 4 — Anti-Budgeting Value Prop
 // ─────────────────────────────────────────────
-function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
+function Screen4({ theme, t, language, onNext, onBack, step }: SharedProps) {
   const layout = useAdaptiveOnboardingLayout();
   const compactHeight = layout.isShort;
+  const usesHryvnia = language === 'ua';
+  const demoCurrency = usesHryvnia ? 'UAH' : 'USD';
+  const formatDemoMoney = (amount: number, maximumFractionDigits = 0) =>
+    formatCurrencyAmount(amount, demoCurrency, language, {
+      minimumFractionDigits: maximumFractionDigits === 0 ? 0 : 2,
+      maximumFractionDigits,
+    });
 
-  const DEMO_ROWS = [
-    { date: '10/24', desc: t('onboarding.s4.sheetRow1'), amount: '-₴3,420' },
-    { date: '10/25', desc: t('onboarding.s4.sheetRow2'), amount: '-₴18,000' },
-    { date: '10/25', desc: t('onboarding.s4.sheetRow3'), amount: '-₴180' },
-    { date: '10/26', desc: t('onboarding.s4.sheetRow4'), amount: '-₴319' },
-  ];
+  const demoRowData = usesHryvnia
+    ? [
+        { date: '10/24', desc: t('onboarding.s4.sheetRow1'), amount: -1240 },
+        { date: '10/25', desc: t('onboarding.s4.sheetRow2'), amount: -18000 },
+        { date: '10/25', desc: t('onboarding.s4.sheetRow3'), amount: -180 },
+        { date: '10/26', desc: t('onboarding.s4.sheetRow4'), amount: -319 },
+      ]
+    : [
+        { date: '10/24', desc: t('onboarding.s4.sheetRow1'), amount: -84.35 },
+        { date: '10/25', desc: t('onboarding.s4.sheetRow2'), amount: -1450 },
+        { date: '10/25', desc: t('onboarding.s4.sheetRow3'), amount: -6.75 },
+        { date: '10/26', desc: t('onboarding.s4.sheetRow4'), amount: -15.99 },
+      ];
+  const DEMO_ROWS = demoRowData.map((row) => ({
+    ...row,
+    amount: formatDemoMoney(row.amount, usesHryvnia ? 0 : 2),
+  }));
+  const demoTotal = demoRowData.reduce((sum, row) => sum + row.amount, 0);
   const DEMO_CATS = [
     {
       icon: 'restaurant' as const,
       label: t('onboarding.s4.cat1'),
       color: '#FB923C',
-      left: '₴2,000',
+      left: usesHryvnia ? formatDemoMoney(2000) : formatDemoMoney(200),
     },
     {
       icon: 'airplane' as const,
       label: t('onboarding.s4.cat2'),
       color: '#38BDF8',
-      left: '₴32,000',
+      left: usesHryvnia ? formatDemoMoney(32000) : formatDemoMoney(1600),
     },
     {
       icon: 'film' as const,
       label: t('onboarding.s4.cat3'),
       color: theme.purple,
-      left: '₴8,000',
+      left: usesHryvnia ? formatDemoMoney(8000) : formatDemoMoney(120),
     },
   ];
   const compressedHeight = layout.height < 780;
@@ -1159,7 +1178,7 @@ function Screen4({ theme, t, onNext, onBack, step }: SharedProps) {
                   styles.s4SheetFooterValue,
                   { color: theme.error, fontSize: sheetFontSize },
                 ]}>
-                -₴21,919
+                {formatDemoMoney(demoTotal, usesHryvnia ? 0 : 2)}
               </Text>
             </View>
           </View>
