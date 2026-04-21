@@ -5,18 +5,19 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StatusBar,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ACCOUNT_DELETION_FAREWELL_KEY } from '../../utils/accountDeletion';
@@ -31,6 +32,17 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showFarewellModal, setShowFarewellModal] = useState(false);
+  const { height, width } = useWindowDimensions();
+  const isCompact = height < 780 || width < 380;
+  const heroSize = isCompact ? 60 : 80;
+  const heroIconSize = isCompact ? 30 : 40;
+  const titleSize = isCompact ? 32 : 36;
+  const subtitleSize = isCompact ? 15 : 16;
+  const sectionGap = isCompact ? 12 : 16;
+  const footerGap = isCompact ? 18 : 24;
+  const inputVerticalPadding = isCompact ? 10 : 14;
+  const actionVerticalPadding = isCompact ? 14 : 16;
+  const gradientHeight = isCompact ? 180 : 250;
 
   useEffect(() => {
     if (typeof params.email === 'string' && params.email.length > 0) {
@@ -93,32 +105,51 @@ export default function LoginScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1">
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
-          
+        <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
           <LinearGradient
-             colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
-             style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 250 }}
+            colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: gradientHeight }}
           />
 
-          <View className="flex-1 justify-center px-6 pt-20">
-            <View className="mb-6 items-center">
-              <View className="items-center justify-center rounded-3xl h-20 w-20" style={{ backgroundColor: theme.purple, shadowColor: theme.purple, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 }}>
-                 <Ionicons name="wallet" size={40} color="white" />
+          <View
+            className="flex-1 justify-center px-6"
+            style={{
+              paddingTop: isCompact ? 12 : 24,
+              paddingBottom: isCompact ? 10 : 18,
+            }}>
+            <View className="items-center" style={{ marginBottom: isCompact ? 16 : 24 }}>
+              <View
+                className="items-center justify-center rounded-3xl"
+                style={{
+                  height: heroSize,
+                  width: heroSize,
+                  backgroundColor: theme.purple,
+                  shadowColor: theme.purple,
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 12,
+                }}>
+                <Ionicons name="wallet" size={heroIconSize} color="white" />
               </View>
             </View>
 
-            <Text className="text-center text-4xl font-bold" style={{ color: theme.textPrimary }}>
+            <Text
+              className="text-center font-bold"
+              style={{ color: theme.textPrimary, fontSize: titleSize, lineHeight: titleSize + 4 }}>
               {t('auth.welcome')}
             </Text>
-            <Text className="mb-10 mt-2 text-center text-base" style={{ color: theme.textSecondary }}>
+            <Text
+              className="mt-2 text-center"
+              style={{
+                color: theme.textSecondary,
+                fontSize: subtitleSize,
+                lineHeight: subtitleSize + 6,
+                marginBottom: isCompact ? 18 : 28,
+              }}>
               {t('auth.signToManage')}
             </Text>
 
-            <View className="mb-4">
+            <View style={{ marginBottom: sectionGap }}>
               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
@@ -130,7 +161,7 @@ export default function LoginScreen() {
                 <Ionicons name="mail-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 text-base"
-                  style={{ color: theme.textPrimary, paddingVertical: 14, paddingLeft: 12 }}
+                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding, paddingLeft: 12 }}
                   placeholder="name@example.com"
                   placeholderTextColor={theme.textTertiary}
                   value={email}
@@ -142,7 +173,7 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            <View className="mb-2">
+            <View style={{ marginBottom: isCompact ? 4 : 8 }}>
               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.password')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
@@ -154,7 +185,7 @@ export default function LoginScreen() {
                 <Ionicons name="lock-closed-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 text-base"
-                  style={{ color: theme.textPrimary, paddingVertical: 14, paddingLeft: 12 }}
+                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding, paddingLeft: 12 }}
                   placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={password}
@@ -173,7 +204,7 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            <View className="mb-8 items-end">
+            <View className="items-end" style={{ marginBottom: isCompact ? 16 : 24 }}>
               <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} className="p-2">
                 <Text className="text-sm font-medium" style={{ color: theme.purple }}>
                   {t('auth.forgotPassword')}
@@ -184,22 +215,22 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={handleLogin}
               disabled={loading}
-              className="mb-6 overflow-hidden rounded-2xl">
+              className="overflow-hidden rounded-2xl"
+              style={{ marginBottom: isCompact ? 16 : 24 }}>
               <LinearGradient
                 colors={loading ? ['#9CA3AF', '#6B7280'] : ['#8B5CF6', '#6D28D9']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{ width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 16 }}
-              >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
+                style={{ width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: actionVerticalPadding }}>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
                 <Text className="text-lg font-bold text-white">{t('auth.signIn')}</Text>
               )}
               </LinearGradient>
             </TouchableOpacity>
 
-            <View className="mb-6 flex-row items-center">
+            <View className="flex-row items-center" style={{ marginBottom: isCompact ? 16 : 24 }}>
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
               <Text className="px-4 text-sm font-medium" style={{ color: theme.textSecondary }}>
                 {t('auth.or')}
@@ -209,11 +240,13 @@ export default function LoginScreen() {
 
             <TouchableOpacity
               onPress={handleGoogleLogin}
-              className="mb-8 flex-row items-center justify-center rounded-2xl py-4"
+              className="flex-row items-center justify-center rounded-2xl"
               style={{
+                marginBottom: footerGap,
                 backgroundColor: theme.cardBg,
                 borderWidth: 1,
                 borderColor: theme.border,
+                paddingVertical: actionVerticalPadding,
               }}>
               <Ionicons name="logo-google" size={20} color={theme.textPrimary} style={{ marginRight: 10 }} />
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
@@ -221,7 +254,7 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
-            <View className="mb-8 flex-row items-center justify-center">
+            <View className="flex-row items-center justify-center">
               <Text className="text-base" style={{ color: theme.textSecondary }}>
                 {t('auth.noAccount')}
               </Text>
@@ -232,7 +265,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
+        </SafeAreaView>
       </KeyboardAvoidingView>
 
       <Modal

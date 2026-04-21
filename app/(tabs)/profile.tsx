@@ -23,6 +23,122 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../../utils/onboarding';
 
+type PolicyItem = {
+  title: string;
+  body?: string[];
+  bullets?: string[];
+  links?: Array<{ label: string; url: string }>;
+};
+
+const POLICY_EFFECTIVE_DATE = 'March 21, 2026';
+
+const PRIVACY_POLICY_SECTIONS: PolicyItem[] = [
+  {
+    title: '1. Who we are',
+    body: [
+      'Keelio ("we", "us", "our") is a personal expense tracking app available on Android and iOS. This policy explains what data we collect, how we use it, and your rights over that data.',
+    ],
+    links: [{ label: 'igorvinson@gmail.com', url: 'mailto:igorvinson@gmail.com' }],
+  },
+  {
+    title: '2. Data we collect',
+    body: [
+      'Account data: when you sign in, we receive your email address, display name, profile photo URL if available, and a unique user ID from Google Sign-In and Firebase Authentication.',
+      'Expense data: the information you enter or record, including expense title, amount, category, date, and any budget limits you set per category.',
+      "Voice recordings: when you use the voice feature, your audio is recorded on-device and sent to Google's Gemini API for transcription and parsing. We do not store the raw audio after processing. The parsed result may be stored as your expense data.",
+      'Usage data: Firebase Analytics may collect anonymous app usage events, such as which screens you visit and whether a purchase was completed. This data is used in aggregated form and not for advertising.',
+      'We do not sell your data, serve ads, or share your data with data brokers.',
+    ],
+  },
+  {
+    title: '3. How we use your data',
+    bullets: [
+      'To create and manage your account',
+      'To store and display your expense history and budgets',
+      'To process voice recordings into structured expense entries',
+      'To enforce free tier limits and subscription status',
+      'To detect abuse and protect service integrity',
+      'To improve the app through aggregated analytics',
+    ],
+  },
+  {
+    title: '4. Third-party services',
+    body: ['Keelio uses the following third-party services, each with their own privacy terms:'],
+    links: [
+      {
+        label: 'Google Firebase (Auth, Firestore, Analytics, Cloud Functions)',
+        url: 'https://firebase.google.com/support/privacy',
+      },
+      {
+        label: 'Google Gemini API',
+        url: 'https://ai.google.dev/gemini-api/terms',
+      },
+      {
+        label: 'RevenueCat',
+        url: 'https://www.revenuecat.com/privacy',
+      },
+    ],
+  },
+  {
+    title: '5. Data storage and security',
+    body: [
+      'Your account and expense data is stored in Google Firestore in the United States. Firebase applies encryption in transit and at rest.',
+      'We restrict database access with authentication and security rules so only your account can access your data.',
+      'Voice audio is transmitted over HTTPS and is not retained by us after processing.',
+    ],
+  },
+  {
+    title: '6. Data retention',
+    body: [
+      'We retain your account and expense data for as long as your account is active.',
+      'If you delete your account, your data is deleted from Firestore within 30 days, except where a shorter or longer retention period is required by law.',
+      'Aggregated and anonymized analytics data may be retained longer.',
+    ],
+  },
+  {
+    title: '7. Your rights',
+    bullets: [
+      'Access: request a copy of your data',
+      'Correction: update or correct inaccurate data',
+      'Deletion: request deletion of your account and associated data',
+      'Portability: request your expense data in a structured format',
+      'Objection: opt out of analytics data collection where available',
+    ],
+    body: ['To exercise these rights, contact us at:'],
+    links: [{ label: 'igorvinson@gmail.com', url: 'mailto:igorvinson@gmail.com' }],
+  },
+  {
+    title: '8. Children',
+    body: [
+      'Keelio is not directed to children under 13, or under 16 where local law requires a higher age threshold. We do not knowingly collect personal information from children.',
+      'If you believe a child has provided personal data, contact us and we will review and delete it where appropriate.',
+    ],
+  },
+  {
+    title: '9. International users',
+    body: [
+      'If you are located in the European Economic Area, the United Kingdom, or Switzerland, you may have rights under GDPR or similar laws.',
+    ],
+    bullets: [
+      'Contract: to provide the service you signed up for',
+      'Legitimate interests: to maintain security and improve the app',
+      'Consent: for optional analytics where applicable',
+    ],
+  },
+  {
+    title: '10. Changes to this policy',
+    body: [
+      'We may update this policy as the app evolves. For material changes, we may notify you by in-app notice or email.',
+      'Continued use of the app after an updated policy takes effect means you accept the revised policy to the extent permitted by law.',
+    ],
+  },
+  {
+    title: '11. Contact',
+    body: ['Questions or concerns about privacy or terms can be sent to:'],
+    links: [{ label: 'igorvinson@gmail.com', url: 'mailto:igorvinson@gmail.com' }],
+  },
+];
+
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
@@ -36,6 +152,7 @@ export default function ProfileScreen() {
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = React.useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = React.useState(false);
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = React.useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = React.useState(false);
   const [isPaywallOpen, setIsPaywallOpen] = React.useState(false);
   const [supportMessage, setSupportMessage] = React.useState('');
   const [deleteConfirmationText, setDeleteConfirmationText] = React.useState('');
@@ -134,6 +251,16 @@ export default function ProfileScreen() {
     } finally {
       setDeleteAccountLoading(false);
     }
+  };
+
+  const handleOpenExternalLink = async (url: string) => {
+    const canOpen = await Linking.canOpenURL(url);
+    if (!canOpen) {
+      Alert.alert(t('common.error'), t('common.tryAgain'));
+      return;
+    }
+
+    await Linking.openURL(url);
   };
 
   return (
@@ -483,6 +610,17 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
 
+            <TouchableOpacity
+              onPress={() => setIsPrivacyModalOpen(true)}
+              className="items-center border-t pt-4"
+              style={{ borderTopColor: theme.border }}
+              accessibilityRole="button"
+              accessibilityLabel="Terms and Privacy Policy">
+              <Text className="text-xs" style={{ color: theme.textSecondary }}>
+                Terms & Privacy Policy
+              </Text>
+            </TouchableOpacity>
+
             {/* Reset Onboarding (dev only) */}
             {__DEV__ && (
               <TouchableOpacity
@@ -509,9 +647,77 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Bottom padding for tab bar */}
         <View className="h-24" />
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isPrivacyModalOpen}
+        onRequestClose={() => setIsPrivacyModalOpen(false)}>
+        <View className="flex-1" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+          <View
+            className="mt-16 flex-1 rounded-t-3xl px-6 pb-8 pt-6"
+            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+            <View className="flex-row items-start justify-between">
+              <View className="mr-4 flex-1">
+                <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>
+                  Terms & Privacy Policy
+                </Text>
+                <Text className="mt-1 text-xs" style={{ color: theme.textSecondary }}>
+                  Keelio · Effective date: {POLICY_EFFECTIVE_DATE} · Last updated:{' '}
+                  {POLICY_EFFECTIVE_DATE}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsPrivacyModalOpen(false)}
+                className="h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#E2E8F0' }}>
+                <Ionicons name="close" size={20} color={theme.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView className="mt-5 flex-1" showsVerticalScrollIndicator={false}>
+              {PRIVACY_POLICY_SECTIONS.map((section) => (
+                <View key={section.title} className="mb-5">
+                  <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>
+                    {section.title}
+                  </Text>
+
+                  {section.body?.map((paragraph) => (
+                    <Text
+                      key={paragraph}
+                      className="mt-2 text-sm leading-6"
+                      style={{ color: theme.textSecondary }}>
+                      {paragraph}
+                    </Text>
+                  ))}
+
+                  {section.bullets?.map((bullet) => (
+                    <Text
+                      key={bullet}
+                      className="mt-2 text-sm leading-6"
+                      style={{ color: theme.textSecondary }}>
+                      • {bullet}
+                    </Text>
+                  ))}
+
+                  {section.links?.map((link) => (
+                    <TouchableOpacity
+                      key={link.url}
+                      onPress={() => handleOpenExternalLink(link.url)}
+                      className="mt-2">
+                      <Text className="text-sm leading-6" style={{ color: theme.purple }}>
+                        {link.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         animationType="slide"

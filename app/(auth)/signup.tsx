@@ -4,17 +4,18 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -28,6 +29,15 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { height, width } = useWindowDimensions();
+  const isCompact = height < 780 || width < 380;
+  const titleSize = isCompact ? 30 : 36;
+  const subtitleSize = isCompact ? 15 : 16;
+  const sectionGap = isCompact ? 10 : 16;
+  const inputVerticalPadding = isCompact ? 10 : 14;
+  const actionVerticalPadding = isCompact ? 14 : 16;
+  const gradientHeight = isCompact ? 180 : 250;
+  const backButtonSize = isCompact ? 20 : 24;
 
   const handleSignUp = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -85,42 +95,51 @@ export default function SignUpScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1">
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled">
-          
-           <LinearGradient
-             colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
-             style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 250 }}
+        <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
+          <LinearGradient
+            colors={isDarkMode ? ['#4C1D95', theme.bg] : ['#EDE9FE', theme.bg]}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: gradientHeight }}
           />
 
-          <View className="flex-row items-center px-6 pb-2 pt-16">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)' }}>
-              <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
+          <View
+            className="flex-row items-center px-6"
+            style={{ paddingTop: isCompact ? 8 : 16, paddingBottom: isCompact ? 4 : 8 }}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="-ml-2 rounded-full p-2"
+              style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)' }}>
+              <Ionicons name="arrow-back" size={backButtonSize} color={theme.textPrimary} />
             </TouchableOpacity>
           </View>
 
-          <View className="flex-1 px-6 pt-4">
+          <View
+            className="flex-1 px-6"
+            style={{ paddingTop: isCompact ? 4 : 12, paddingBottom: isCompact ? 8 : 16 }}>
             <Text
-              className="text-4xl font-bold"
-              style={{ color: theme.textPrimary }}>
+              className="font-bold"
+              style={{ color: theme.textPrimary, fontSize: titleSize, lineHeight: titleSize + 4 }}>
               {t('auth.createAccount')}
             </Text>
-            <Text className="mb-8 mt-2 text-base" style={{ color: theme.textSecondary }}>
+            <Text
+              className="mt-2"
+              style={{
+                color: theme.textSecondary,
+                fontSize: subtitleSize,
+                lineHeight: subtitleSize + 6,
+                marginBottom: isCompact ? 16 : 28,
+              }}>
               {t('auth.startJourney')}
             </Text>
 
-            <View className="mb-4">
+            <View style={{ marginBottom: sectionGap }}>
               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.fullName')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
                 <Ionicons name="person-outline" size={20} color={theme.textTertiary} />
                 <TextInput
-                  className="flex-1 py-4 pl-3 text-base"
-                  style={{ color: theme.textPrimary }}
+                  className="flex-1 pl-3 text-base"
+                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding }}
                   placeholder="John Doe"
                   placeholderTextColor={theme.textTertiary}
                   value={name}
@@ -130,15 +149,15 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            <View className="mb-4">
+            <View style={{ marginBottom: sectionGap }}>
                <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
                 <Ionicons name="mail-outline" size={20} color={theme.textTertiary} />
                 <TextInput
-                  className="flex-1 py-4 pl-3 text-base"
-                  style={{ color: theme.textPrimary }}
+                  className="flex-1 pl-3 text-base"
+                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding }}
                   placeholder="name@example.com"
                   placeholderTextColor={theme.textTertiary}
                   value={email}
@@ -150,15 +169,15 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            <View className="mb-4">
+            <View style={{ marginBottom: sectionGap }}>
                <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.password')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
                 <Ionicons name="lock-closed-outline" size={20} color={theme.textTertiary} />
                 <TextInput
-                  className="flex-1 py-4 pl-3 text-base"
-                  style={{ color: theme.textPrimary }}
+                  className="flex-1 pl-3 text-base"
+                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding }}
                   placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={password}
@@ -177,15 +196,15 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-             <View className="mb-8">
+             <View style={{ marginBottom: isCompact ? 16 : 24 }}>
                <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.confirmPassword')}</Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
                 <Ionicons name="shield-checkmark-outline" size={20} color={theme.textTertiary} />
                 <TextInput
-                  className="flex-1 py-4 pl-3 text-base"
-                  style={{ color: theme.textPrimary }}
+                  className="flex-1 pl-3 text-base"
+                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding }}
                   placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={confirmPassword}
@@ -200,22 +219,22 @@ export default function SignUpScreen() {
             <TouchableOpacity
               onPress={handleSignUp}
               disabled={loading}
-              className="mb-6 overflow-hidden rounded-2xl">
+              className="overflow-hidden rounded-2xl"
+              style={{ marginBottom: isCompact ? 16 : 24 }}>
                <LinearGradient
                 colors={loading ? ['#9CA3AF', '#6B7280'] : ['#8B5CF6', '#6D28D9']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="items-center justify-center py-4"
-              >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
+                style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: actionVerticalPadding }}>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
                 <Text className="text-lg font-bold text-white">{t('auth.signUp')}</Text>
               )}
               </LinearGradient>
             </TouchableOpacity>
 
-            <View className="mb-6 flex-row items-center">
+            <View className="flex-row items-center" style={{ marginBottom: isCompact ? 16 : 24 }}>
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
               <Text className="px-4 text-sm font-medium" style={{ color: theme.textSecondary }}>
                 {t('auth.or')}
@@ -225,11 +244,13 @@ export default function SignUpScreen() {
 
             <TouchableOpacity
               onPress={handleGoogleSignUp}
-              className="mb-6 flex-row items-center justify-center rounded-2xl py-4"
+              className="flex-row items-center justify-center rounded-2xl"
               style={{
+                marginBottom: isCompact ? 20 : 28,
                 backgroundColor: theme.cardBg,
                 borderWidth: 1,
                 borderColor: theme.border,
+                paddingVertical: actionVerticalPadding,
               }}>
               <Ionicons name="logo-google" size={20} color={theme.textPrimary} style={{ marginRight: 10 }} />
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
@@ -237,7 +258,7 @@ export default function SignUpScreen() {
               </Text>
             </TouchableOpacity>
 
-            <View className="mb-8 mt-2 flex-row items-center justify-center">
+            <View className="flex-row items-center justify-center">
               <Text className="text-base" style={{ color: theme.textSecondary }}>
                 {t('auth.alreadyHaveAccount')}
               </Text>
@@ -248,7 +269,7 @@ export default function SignUpScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </View>
   );
