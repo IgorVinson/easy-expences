@@ -2198,7 +2198,8 @@ function Screen8({
   onFinish: () => void;
 }) {
   const layout = useAdaptiveOnboardingLayout();
-  const compactHeight = layout.isShort;
+  const compactHeight = layout.height < 860;
+  const ultraCompact = layout.height < 780;
   const narrowWidth = layout.isNarrow;
 
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
@@ -2593,7 +2594,8 @@ function Screen9({
   onFinish: () => void;
 }) {
   const layout = useAdaptiveOnboardingLayout();
-  const compactHeight = layout.isShort;
+  const compactHeight = layout.height < 860;
+  const ultraCompact = layout.height < 780;
 
   const highlights = [
     {
@@ -2631,6 +2633,8 @@ function Screen9({
 
       <AdaptiveStepContent
         contentContainerStyle={[
+          styles.scrollContentGrow,
+          styles.s9Screen,
           styles.s9ScrollContent,
           compactHeight && styles.s9ScrollContentCompact,
           {
@@ -2643,8 +2647,8 @@ function Screen9({
             compactHeight && styles.s9ContentCompact,
             {
               paddingHorizontal: layout.horizontalPadding,
-              paddingTop: layout.contentTop,
-              paddingBottom: clampNumber(layout.contentBottom - 4, 10, 20),
+              paddingTop: clampNumber(layout.contentTop - (compactHeight ? 4 : 0), 2, 16),
+              paddingBottom: clampNumber(layout.contentBottom - (compactHeight ? 6 : 4), 6, 18),
             },
           ]}>
           <View
@@ -2665,12 +2669,22 @@ function Screen9({
                   styles.s9HeroIcon,
                   {
                     backgroundColor: '#fff',
-                    width: layout.s9HeroIconSize,
-                    height: layout.s9HeroIconSize,
-                    borderRadius: layout.s9HeroIconSize / 2,
+                    width: compactHeight
+                      ? clampNumber(layout.s9HeroIconSize - 8, 22, 40)
+                      : layout.s9HeroIconSize,
+                    height: compactHeight
+                      ? clampNumber(layout.s9HeroIconSize - 8, 22, 40)
+                      : layout.s9HeroIconSize,
+                    borderRadius: compactHeight
+                      ? clampNumber((layout.s9HeroIconSize - 8) / 2, 11, 20)
+                      : layout.s9HeroIconSize / 2,
                   },
                 ]}>
-                <Ionicons name="checkmark" size={34} color={theme.success} />
+                <Ionicons
+                  name="checkmark"
+                  size={compactHeight ? (ultraCompact ? 24 : 28) : 34}
+                  color={theme.success}
+                />
               </View>
             </View>
             <Text style={[styles.s9Eyebrow, { color: theme.success }]}>
@@ -2682,8 +2696,12 @@ function Screen9({
                 styles.s9Title,
                 {
                   color: theme.textPrimary,
-                  fontSize: clampNumber(layout.titleSize - 2, 24, 32),
-                  lineHeight: clampNumber(layout.titleLineHeight - 6, 30, 36),
+                  fontSize: compactHeight
+                    ? clampNumber(layout.titleSize - (ultraCompact ? 10 : 8), 20, 28)
+                    : clampNumber(layout.titleSize - 2, 24, 32),
+                  lineHeight: compactHeight
+                    ? clampNumber(layout.titleLineHeight - (ultraCompact ? 14 : 12), 24, 32)
+                    : clampNumber(layout.titleLineHeight - 6, 30, 36),
                 },
               ]}>
               {t('onboarding.s9.title')}
@@ -2694,8 +2712,12 @@ function Screen9({
                 styles.s9Subtitle,
                 {
                   color: theme.textSecondary,
-                  fontSize: clampNumber(layout.bodySize - 1, 13, 15),
-                  lineHeight: clampNumber(layout.bodyLineHeight - 4, 19, 22),
+                  fontSize: compactHeight
+                    ? clampNumber(layout.bodySize - 2, 12, 14)
+                    : clampNumber(layout.bodySize - 1, 13, 15),
+                  lineHeight: compactHeight
+                    ? clampNumber(layout.bodyLineHeight - 7, 16, 20)
+                    : clampNumber(layout.bodyLineHeight - 4, 19, 22),
                 },
               ]}>
               {t('onboarding.s9.subtitle')}
@@ -2712,35 +2734,70 @@ function Screen9({
                   {
                     backgroundColor: theme.cardBg,
                     borderColor: theme.border,
-                    minHeight: layout.s9HighlightMinHeight,
-                    paddingVertical: layout.s9CardPaddingY,
+                    minHeight: compactHeight
+                      ? clampNumber(layout.s9HighlightMinHeight - (ultraCompact ? 12 : 8), 42, 64)
+                      : layout.s9HighlightMinHeight,
+                    paddingVertical: compactHeight
+                      ? clampNumber(layout.s9CardPaddingY - 2, 4, 10)
+                      : layout.s9CardPaddingY,
                     borderRadius: layout.cardRadius,
                   },
                 ]}>
                 <View style={styles.s9StepRail}>
-                  <View style={[styles.s9StepNumber, { backgroundColor: item.color }]}>
-                    <Text style={styles.s9StepNumberText}>{item.number}</Text>
+                  <View
+                    style={[
+                      styles.s9StepNumber,
+                      compactHeight && styles.s9StepNumberCompact,
+                      { backgroundColor: item.color },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.s9StepNumberText,
+                        compactHeight && styles.s9StepNumberTextCompact,
+                      ]}>
+                      {item.number}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.s9HighlightText}>
-                  <Text style={[styles.s9HighlightTitle, { color: theme.textPrimary }]}>
+                  <Text
+                    style={[
+                      styles.s9HighlightTitle,
+                      compactHeight && styles.s9HighlightTitleCompact,
+                      { color: theme.textPrimary },
+                    ]}>
                     {item.title}
                   </Text>
                   <View style={styles.s9HighlightBodyRow}>
                     {item.number === '1' ? (
                       <>
-                        <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                        <Text
+                          style={[
+                            styles.s9HighlightBody,
+                            compactHeight && styles.s9HighlightBodyCompact,
+                            { color: theme.textSecondary },
+                          ]}>
                           {t('onboarding.s9.step1BodyPrefix')}
                         </Text>
                         <View style={styles.s9InlineMicBadge}>
                           <Ionicons name="mic" size={12} color="#fff" />
                         </View>
-                        <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                        <Text
+                          style={[
+                            styles.s9HighlightBody,
+                            compactHeight && styles.s9HighlightBodyCompact,
+                            { color: theme.textSecondary },
+                          ]}>
                           {t('onboarding.s9.step1BodySuffix')}
                         </Text>
                       </>
                     ) : (
-                      <Text style={[styles.s9HighlightBody, { color: theme.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.s9HighlightBody,
+                          compactHeight && styles.s9HighlightBodyCompact,
+                          { color: theme.textSecondary },
+                        ]}>
                         {item.body}
                       </Text>
                     )}
@@ -3020,6 +3077,9 @@ const styles = StyleSheet.create({
   s9ScrollContent: {
     paddingBottom: Platform.OS === 'ios' ? 8 : 4,
   },
+  s9Screen: {
+    justifyContent: 'space-between',
+  },
   s9ScrollContentCompact: {
     paddingBottom: 2,
   },
@@ -3030,8 +3090,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   s9ContentCompact: {
-    paddingTop: 10,
-    gap: 10,
+    paddingTop: 4,
+    gap: 6,
   },
   s9Hero: {
     borderWidth: 1,
@@ -3044,16 +3104,16 @@ const styles = StyleSheet.create({
   },
   s9HeroCompact: {
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginTop: 2,
+    paddingVertical: 6,
+    marginTop: 0,
   },
   s9HeroGlow: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.08,
   },
   s9HeroIconWrap: {
-    marginBottom: 8,
-    padding: 4,
+    marginBottom: 6,
+    padding: 3,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
@@ -3069,7 +3129,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   s9Title: {
     textAlign: 'center',
@@ -3078,12 +3138,12 @@ const styles = StyleSheet.create({
   },
   s9Subtitle: {
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 4,
     fontSize: 14,
     lineHeight: 20,
   },
   s9Highlights: {
-    gap: 8,
+    gap: 4,
   },
   s9HighlightCard: {
     borderWidth: 1,
@@ -3096,10 +3156,10 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   s9HighlightCardCompact: {
-    minHeight: 50,
+    minHeight: 42,
     paddingHorizontal: 10,
-    paddingVertical: 8,
-    gap: 8,
+    paddingVertical: 5,
+    gap: 6,
   },
   s9StepRail: {
     width: 34,
@@ -3119,13 +3179,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
   },
+  s9StepNumberCompact: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+  },
+  s9StepNumberTextCompact: {
+    fontSize: 13,
+  },
   s9HighlightText: {
     flex: 1,
-    gap: 5,
+    gap: 3,
   },
   s9HighlightTitle: {
     fontSize: 16,
     fontWeight: '800',
+  },
+  s9HighlightTitleCompact: {
+    fontSize: 13,
+    lineHeight: 17,
   },
   s9InlineMicBadge: {
     width: 18,
@@ -3146,6 +3218,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     flexShrink: 1,
+  },
+  s9HighlightBodyCompact: {
+    fontSize: 11,
+    lineHeight: 16,
   },
 
   // ── Screen 1 ──
