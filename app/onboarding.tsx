@@ -21,7 +21,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { PurchasesPackage } from 'react-native-purchases';
-import { formatCurrencyAmount } from '../config/currencies';
+import { formatCurrencyAmount, normalizeCurrencyCode } from '../config/currencies';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -1715,18 +1715,36 @@ type BudgetItem = {
   initial: number;
 };
 
-function getGoalPreset(goalKey: string | null) {
+function getGoalPreset(goalKey: string | null, language: string) {
+  const usesHryvnia = language === 'ua';
+
   if (!goalKey) {
     return {
       key: 'custom',
       icon: 'flag' as const,
       color: '#10B981',
       bgLight: '#D1FAE5',
-      budget: 1500,
+      budget: usesHryvnia ? 50000 : 1500,
     };
   }
 
-  return GOAL_OPTIONS.find((goal) => goal.key === goalKey) ?? GOAL_OPTIONS[0];
+  const goal = GOAL_OPTIONS.find((item) => item.key === goalKey) ?? GOAL_OPTIONS[0];
+
+  if (!usesHryvnia) {
+    return goal;
+  }
+
+  const localizedBudgetByGoalKey: Record<string, number> = {
+    chip1: 60000,
+    chip2: 70000,
+    chip3: 25000,
+    chip4: 150000,
+  };
+
+  return {
+    ...goal,
+    budget: localizedBudgetByGoalKey[goal.key] ?? 50000,
+  };
 }
 
 function BudgetSlider({
@@ -1835,7 +1853,13 @@ function Screen7({
   const [saving, setSaving] = useState(false);
   const [budgetMap, setBudgetMap] = useState<Record<string, number>>({});
   const [goalAmount, setGoalAmount] = useState<number | null>(null);
-  const goalPreset = getGoalPreset(goalKey);
+  const usesHryvnia = language === 'ua';
+  const expenseBudgetMax = usesHryvnia ? 20000 : 2000;
+  const expenseBudgetStep = usesHryvnia ? 500 : 50;
+  const customExpenseInitial = usesHryvnia ? 5000 : 200;
+  const goalBudgetMax = usesHryvnia ? 200000 : 10000;
+  const goalBudgetStep = usesHryvnia ? 5000 : 100;
+  const goalPreset = getGoalPreset(goalKey, language);
   const screenBackground = theme.isDark ? theme.bg : '#FDFCFE';
 
   useEffect(() => {
@@ -1849,12 +1873,12 @@ function Screen7({
     });
 
     if (customCategory.trim()) {
-      nextBudgets.customCategory = 200;
+      nextBudgets.customCategory = customExpenseInitial;
     }
 
     setBudgetMap(nextBudgets);
     setGoalAmount(goalName.trim() ? goalPreset.budget : null);
-  }, [customCategory, goalName, goalPreset.budget, selectedCategoryKeys]);
+  }, [customCategory, customExpenseInitial, goalName, goalPreset.budget, selectedCategoryKeys]);
 
   const selectedExpenseItems: BudgetItem[] = selectedCategoryKeys
     .map((key) => {
@@ -1870,9 +1894,9 @@ function Screen7({
         color: category.color,
         bgLight: category.bgLight,
         min: 0,
-        max: 2000,
-        step: 50,
-        initial: category.budget,
+        max: expenseBudgetMax,
+        step: expenseBudgetStep,
+        initial: usesHryvnia ? category.budget * 25 : category.budget,
       } satisfies BudgetItem;
     })
     .filter(Boolean) as BudgetItem[];
@@ -1885,9 +1909,9 @@ function Screen7({
       color: '#64748B',
       bgLight: '#E2E8F0',
       min: 0,
-      max: 2000,
-      step: 50,
-      initial: 200,
+      max: expenseBudgetMax,
+      step: expenseBudgetStep,
+      initial: customExpenseInitial,
     });
   }
 
@@ -1900,8 +1924,8 @@ function Screen7({
           color: goalPreset.color,
           bgLight: goalPreset.bgLight,
           min: 0,
-          max: 10000,
-          step: 100,
+          max: goalBudgetMax,
+          step: goalBudgetStep,
           initial: goalPreset.budget,
         },
       ]
@@ -1916,7 +1940,7 @@ function Screen7({
     try {
       await onFinish({
         expenseBudgets: budgetMap,
-        customExpenseBudget: budgetMap.customCategory ?? 200,
+        customExpenseBudget: budgetMap.customCategory ?? customExpenseInitial,
         goalTargetAmount: goalAmount ?? goalPreset.budget,
       });
     } finally {
@@ -1924,11 +1948,23 @@ function Screen7({
     }
   };
 
-  const formatAmount = (amount: number) =>
-    formatCurrencyAmount(amount, currency, language, {
+  const formatAmount = (amount: number) => {
+    const normalizedCurrency =
+      language === 'ua' ? 'UAH' : normalizeCurrencyCode(currency);
+
+    if (language === 'ua' && normalizedCurrency === 'UAH') {
+      const formattedNumber = new Intl.NumberFormat('uk-UA', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+      return `${formattedNumber} грн`;
+    }
+
+    return formatCurrencyAmount(amount, normalizedCurrency, language, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     });
+  };
   const title = `${t('onboarding.s7.titlePart1')}${t('onboarding.s7.titleAccent')}${t(
     'onboarding.s7.titlePart2'
   )}`;
