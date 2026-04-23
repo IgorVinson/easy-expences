@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { Platform } from 'react-native';
 import Purchases, {
   LOG_LEVEL,
@@ -71,8 +78,9 @@ function determineTier(info: CustomerInfo): SubscriptionTier {
 }
 
 function getTrialDaysLeft(info: CustomerInfo): number {
-  const premiumEnt = info.entitlements.active[ENTITLEMENT_PREMIUM]
-    ?? info.entitlements.active[ENTITLEMENT_LEGACY_PRO];
+  const premiumEnt =
+    info.entitlements.active[ENTITLEMENT_PREMIUM] ??
+    info.entitlements.active[ENTITLEMENT_LEGACY_PRO];
   if (!premiumEnt || premiumEnt.periodType !== 'TRIAL') return 0;
   if (!premiumEnt.expirationDate) return 0;
   const expDate = new Date(premiumEnt.expirationDate);
@@ -82,10 +90,14 @@ function getTrialDaysLeft(info: CustomerInfo): number {
 
 async function syncTierToFirestore(userId: string, tier: SubscriptionTier): Promise<void> {
   const ref = doc(db, 'subscriptions', userId);
-  await setDoc(ref, {
-    tier,
-    isPro: tier === 'premium' || tier === 'trial',
-  }, { merge: true });
+  await setDoc(
+    ref,
+    {
+      tier,
+      isPro: tier === 'premium' || tier === 'trial',
+    },
+    { merge: true }
+  );
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -111,9 +123,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     try {
       if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-      const apiKey = Platform.OS === 'ios'
-        ? process.env.EXPO_PUBLIC_RC_API_KEY_IOS!
-        : process.env.EXPO_PUBLIC_RC_API_KEY_ANDROID!;
+      const apiKey =
+        Platform.OS === 'ios'
+          ? process.env.EXPO_PUBLIC_RC_API_KEY_IOS!
+          : process.env.EXPO_PUBLIC_RC_API_KEY_ANDROID!;
       Purchases.configure({ apiKey });
     } catch (err) {
       console.warn('RevenueCat configure failed (not supported in Expo Go):', err);
@@ -123,7 +136,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   // Login/logout with Firebase UID, load customer info + voice usage, attach real-time listener
   useEffect(() => {
     if (!user) {
-      Purchases.isAnonymous().then((anon) => { if (!anon) Purchases.logOut().catch(() => {}); }).catch(() => {});
+      Purchases.isAnonymous()
+        .then((anon) => {
+          if (!anon) Purchases.logOut().catch(() => {});
+        })
+        .catch(() => {});
       setTier('none');
       setCustomerInfo(null);
       setLoading(false);
@@ -210,13 +227,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user]);
 
-  const voiceRecordingsLeft = (tier === 'premium' || tier === 'trial')
-    ? Infinity
-    : tier === 'basic'
-      ? Math.max(0, BASIC_VOICE_LIMIT - voiceUsage.voiceRecordingsThisMonth)
-      : 0;
+  const voiceRecordingsLeft =
+    tier === 'premium' || tier === 'trial'
+      ? Infinity
+      : tier === 'basic'
+        ? Math.max(0, BASIC_VOICE_LIMIT - voiceUsage.voiceRecordingsThisMonth)
+        : 0;
 
-  const canUseVoice = tier === 'premium' || tier === 'trial' || (tier === 'basic' && voiceRecordingsLeft > 0);
+  const canUseVoice =
+    tier === 'premium' || tier === 'trial' || (tier === 'basic' && voiceRecordingsLeft > 0);
 
   const incrementVoiceUsage = useCallback(async () => {
     if (!user) return;
@@ -240,32 +259,44 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }));
   }, [user, voiceUsage]);
 
-  const subscribe = useCallback(async (pkg: PurchasesPackage) => {
-    try {
-      const { customerInfo: updatedInfo } = await Purchases.purchasePackage(pkg);
-      const newTier = determineTier(updatedInfo);
-      setTier(newTier);
-      setCustomerInfo(updatedInfo);
-      setTrialDaysLeft(getTrialDaysLeft(updatedInfo));
-      if (user) {
-        syncTierToFirestore(user.uid, newTier).catch(console.error);
-      }
-    } catch (err: any) {
-      // Product already owned — user has an active subscription; sync state instead of throwing
-      if (err?.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
-        const info = await Purchases.getCustomerInfo();
-        const newTier = determineTier(info);
+  const subscribe = useCallback(
+    async (pkg: PurchasesPackage) => {
+      try {
+        const { customerInfo: updatedInfo } = await Purchases.purchasePackage(pkg);
+        const newTier = determineTier(updatedInfo);
         setTier(newTier);
-        setCustomerInfo(info);
-        setTrialDaysLeft(getTrialDaysLeft(info));
+        setCustomerInfo(updatedInfo);
+        setTrialDaysLeft(getTrialDaysLeft(updatedInfo));
         if (user) {
           syncTierToFirestore(user.uid, newTier).catch(console.error);
         }
-        return;
+      } catch (err: any) {
+        // Product already owned — user has an active subscription; sync state instead of throwing
+        if (err?.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
+          const info = await Purchases.getCustomerInfo();
+          const newTier = determineTier(info);
+          setTier(newTier);
+          setCustomerInfo(info);
+          setTrialDaysLeft(getTrialDaysLeft(info));
+          if (user) {
+            syncTierToFirestore(user.uid, newTier).catch(console.error);
+          }
+          return;
+        }
+        console.error('RevenueCat purchase failed', {
+          code: err?.code,
+          message: err?.message,
+          userCancelled: err?.userCancelled,
+          packageIdentifier: pkg.identifier,
+          packageType: pkg.packageType,
+          productIdentifier: pkg.product.identifier,
+          store: pkg.product.store,
+        });
+        throw err;
       }
-      throw err;
-    }
-  }, [user]);
+    },
+    [user]
+  );
 
   const restorePurchases = useCallback(async () => {
     const updatedInfo = await Purchases.restorePurchases();
@@ -282,23 +313,26 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     await RevenueCatUI.presentCustomerCenter();
   }, []);
 
-  const redeemPromoCode = useCallback(async (_code: string) => {
-    if (Platform.OS === 'android') {
-      // @ts-expect-error — redeemCode is available on Android
-      await Purchases.redeemCode(_code);
-    } else {
-      // iOS: Open system redemption sheet (iOS 14+)
-      await Purchases.presentCodeRedemptionSheet();
-    }
-    const info = await Purchases.getCustomerInfo();
-    const newTier = determineTier(info);
-    setTier(newTier);
-    setCustomerInfo(info);
-    setTrialDaysLeft(getTrialDaysLeft(info));
-    if (user) {
-      syncTierToFirestore(user.uid, newTier).catch(console.error);
-    }
-  }, [user]);
+  const redeemPromoCode = useCallback(
+    async (_code: string) => {
+      if (Platform.OS === 'android') {
+        // @ts-expect-error — redeemCode is available on Android
+        await Purchases.redeemCode(_code);
+      } else {
+        // iOS: Open system redemption sheet (iOS 14+)
+        await Purchases.presentCodeRedemptionSheet();
+      }
+      const info = await Purchases.getCustomerInfo();
+      const newTier = determineTier(info);
+      setTier(newTier);
+      setCustomerInfo(info);
+      setTrialDaysLeft(getTrialDaysLeft(info));
+      if (user) {
+        syncTierToFirestore(user.uid, newTier).catch(console.error);
+      }
+    },
+    [user]
+  );
 
   return (
     <SubscriptionContext.Provider

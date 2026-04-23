@@ -33,9 +33,9 @@ export default function SignUpScreen() {
   const isCompact = height < 780 || width < 380;
   const titleSize = isCompact ? 30 : 36;
   const subtitleSize = isCompact ? 15 : 16;
-  const sectionGap = isCompact ? 10 : 16;
+  const sectionGap = isCompact ? 8 : 16;
   const inputVerticalPadding = isCompact ? 10 : 14;
-  const actionVerticalPadding = isCompact ? 14 : 16;
+  const actionVerticalPadding = isCompact ? 12 : 16;
   const gradientHeight = isCompact ? 180 : 250;
   const backButtonSize = isCompact ? 20 : 24;
 
@@ -44,10 +44,10 @@ export default function SignUpScreen() {
       Alert.alert(t('common.error'), t('auth.fillFields'));
       return;
     }
-    
+
     if (password !== confirmPassword) {
-       Alert.alert(t('common.error'), t('auth.passwordsNoMatch'));
-       return;
+      Alert.alert(t('common.error'), t('auth.passwordsNoMatch'));
+      return;
     }
 
     setLoading(true);
@@ -114,7 +114,7 @@ export default function SignUpScreen() {
 
           <View
             className="flex-1 px-6"
-            style={{ paddingTop: isCompact ? 4 : 12, paddingBottom: isCompact ? 8 : 16 }}>
+            style={{ paddingTop: isCompact ? 4 : 12, paddingBottom: isCompact ? 20 : 28 }}>
             <Text
               className="font-bold"
               style={{ color: theme.textPrimary, fontSize: titleSize, lineHeight: titleSize + 4 }}>
@@ -126,16 +126,24 @@ export default function SignUpScreen() {
                 color: theme.textSecondary,
                 fontSize: subtitleSize,
                 lineHeight: subtitleSize + 6,
-                marginBottom: isCompact ? 16 : 28,
+                marginBottom: isCompact ? 12 : 28,
               }}>
               {t('auth.startJourney')}
             </Text>
 
             <View style={{ marginBottom: sectionGap }}>
-              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.fullName')}</Text>
+              <Text
+                className="mb-2 ml-1 text-sm font-medium"
+                style={{ color: theme.textSecondary }}>
+                {t('auth.fullName')}
+              </Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
-                style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}>
                 <Ionicons name="person-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 pl-3 text-base"
@@ -150,10 +158,18 @@ export default function SignUpScreen() {
             </View>
 
             <View style={{ marginBottom: sectionGap }}>
-               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
+              <Text
+                className="mb-2 ml-1 text-sm font-medium"
+                style={{ color: theme.textSecondary }}>
+                {t('auth.email')}
+              </Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
-                style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}>
                 <Ionicons name="mail-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 pl-3 text-base"
@@ -170,10 +186,18 @@ export default function SignUpScreen() {
             </View>
 
             <View style={{ marginBottom: sectionGap }}>
-               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.password')}</Text>
+              <Text
+                className="mb-2 ml-1 text-sm font-medium"
+                style={{ color: theme.textSecondary }}>
+                {t('auth.password')}
+              </Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
-                style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}>
                 <Ionicons name="lock-closed-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 pl-3 text-base"
@@ -196,11 +220,19 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-             <View style={{ marginBottom: isCompact ? 16 : 24 }}>
-               <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.confirmPassword')}</Text>
+            <View style={{ marginBottom: isCompact ? 12 : 24 }}>
+              <Text
+                className="mb-2 ml-1 text-sm font-medium"
+                style={{ color: theme.textSecondary }}>
+                {t('auth.confirmPassword')}
+              </Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
-                style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}>
                 <Ionicons name="shield-checkmark-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 pl-3 text-base"
@@ -213,6 +245,13 @@ export default function SignUpScreen() {
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
+                  <Ionicons
+                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={20}
+                    color={theme.textTertiary}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -220,21 +259,25 @@ export default function SignUpScreen() {
               onPress={handleSignUp}
               disabled={loading}
               className="overflow-hidden rounded-2xl"
-              style={{ marginBottom: isCompact ? 16 : 24 }}>
-               <LinearGradient
+              style={{ marginBottom: isCompact ? 12 : 24 }}>
+              <LinearGradient
                 colors={loading ? ['#9CA3AF', '#6B7280'] : ['#8B5CF6', '#6D28D9']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: actionVerticalPadding }}>
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: actionVerticalPadding,
+                }}>
                 {loading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                <Text className="text-lg font-bold text-white">{t('auth.signUp')}</Text>
-              )}
+                  <Text className="text-lg font-bold text-white">{t('auth.signUp')}</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
 
-            <View className="flex-row items-center" style={{ marginBottom: isCompact ? 16 : 24 }}>
+            <View className="flex-row items-center" style={{ marginBottom: isCompact ? 12 : 24 }}>
               <View className="h-px flex-1" style={{ backgroundColor: theme.border }} />
               <Text className="px-4 text-sm font-medium" style={{ color: theme.textSecondary }}>
                 {t('auth.or')}
@@ -246,13 +289,18 @@ export default function SignUpScreen() {
               onPress={handleGoogleSignUp}
               className="flex-row items-center justify-center rounded-2xl"
               style={{
-                marginBottom: isCompact ? 20 : 28,
+                marginBottom: isCompact ? 14 : 28,
                 backgroundColor: theme.cardBg,
                 borderWidth: 1,
                 borderColor: theme.border,
                 paddingVertical: actionVerticalPadding,
               }}>
-              <Ionicons name="logo-google" size={20} color={theme.textPrimary} style={{ marginRight: 10 }} />
+              <Ionicons
+                name="logo-google"
+                size={20}
+                color={theme.textPrimary}
+                style={{ marginRight: 10 }}
+              />
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
                 {t('auth.google')}
               </Text>

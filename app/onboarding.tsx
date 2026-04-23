@@ -1513,7 +1513,7 @@ const GOAL_OPTIONS = [
     icon: 'home-outline' as const,
     color: '#FB923C',
     bgLight: '#FED7AA',
-    budget: 10000,
+    budget: 100000,
   },
 ];
 
@@ -1857,7 +1857,7 @@ function Screen7({
   const expenseBudgetMax = usesHryvnia ? 20000 : 2000;
   const expenseBudgetStep = usesHryvnia ? 500 : 50;
   const customExpenseInitial = usesHryvnia ? 5000 : 200;
-  const goalBudgetMax = usesHryvnia ? 200000 : 10000;
+  const goalBudgetMax = usesHryvnia ? 200000 : 100000;
   const goalBudgetStep = usesHryvnia ? 5000 : 100;
   const goalPreset = getGoalPreset(goalKey, language);
   const screenBackground = theme.isDark ? theme.bg : '#FDFCFE';
@@ -2293,7 +2293,7 @@ function Screen8({
 
   useEffect(() => {
     if (subscriptionLoading || hadActiveTierOnOpen.current !== null) return;
-    hadActiveTierOnOpen.current = tier === 'premium' || tier === 'trial';
+    hadActiveTierOnOpen.current = tier === 'premium';
   }, [subscriptionLoading, tier]);
 
   const canContinueWithoutPurchase = hadActiveTierOnOpen.current === true;
@@ -2306,27 +2306,19 @@ function Screen8({
       return;
     }
 
-    // Get the appropriate package based on selection
     if (!currentOffering) {
       setError('Subscription options not available. Please try again.');
       return;
     }
 
-    let pkg: PurchasesPackage | null = null;
-    if (selectedPlan === 'annual') {
-      pkg =
-        currentOffering.annual ||
-        currentOffering.availablePackages.find((p) => p.packageType === 'ANNUAL') ||
-        currentOffering.availablePackages[0];
-    } else {
-      pkg =
-        currentOffering.monthly ||
-        currentOffering.availablePackages.find((p) => p.packageType === 'MONTHLY') ||
-        currentOffering.availablePackages[0];
-    }
+    const pkg = selectedPlan === 'annual' ? annualPackage : monthlyPackage;
 
     if (!pkg) {
-      setError('Selected plan not available. Please try again.');
+      setError(
+        selectedPlan === 'monthly'
+          ? 'Monthly plan is not available in RevenueCat for the current offering.'
+          : 'Annual plan is not available in RevenueCat for the current offering.'
+      );
       return;
     }
 

@@ -126,7 +126,7 @@
     "supportHelpText": "Tell us what you need and we will send it to support.",
     "send": "Send",
     "deleteAccount": "Delete Account",
-    "deleteAccountHint": "Permanently remove your account and data",
+    "deleteAccountHint": "Remove your account and data",
     "deleteAccountTitle": "Delete account?",
     "deleteAccountDescription": "This permanently deletes your account, budgets, goals, transactions, and saved settings.",
     "deleteAccountTypeLabel": "Type DELETE to confirm",

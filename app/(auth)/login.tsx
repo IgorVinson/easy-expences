@@ -81,7 +81,10 @@ export default function LoginScreen() {
     try {
       await login(email, password);
     } catch (error: any) {
-      Alert.alert(t('auth.loginFailed'), error.message);
+      Alert.alert(
+        t('auth.loginFailed'),
+        'Auth invalid credentials. Please check your email and password and try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -150,7 +153,11 @@ export default function LoginScreen() {
             </Text>
 
             <View style={{ marginBottom: sectionGap }}>
-              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.email')}</Text>
+              <Text
+                className="mb-2 ml-1 text-sm font-medium"
+                style={{ color: theme.textSecondary }}>
+                {t('auth.email')}
+              </Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{
@@ -161,7 +168,11 @@ export default function LoginScreen() {
                 <Ionicons name="mail-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 text-base"
-                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding, paddingLeft: 12 }}
+                  style={{
+                    color: theme.textPrimary,
+                    paddingVertical: inputVerticalPadding,
+                    paddingLeft: 12,
+                  }}
                   placeholder="name@example.com"
                   placeholderTextColor={theme.textTertiary}
                   value={email}
@@ -174,7 +185,11 @@ export default function LoginScreen() {
             </View>
 
             <View style={{ marginBottom: isCompact ? 4 : 8 }}>
-              <Text className="mb-2 ml-1 text-sm font-medium" style={{ color: theme.textSecondary }}>{t('auth.password')}</Text>
+              <Text
+                className="mb-2 ml-1 text-sm font-medium"
+                style={{ color: theme.textSecondary }}>
+                {t('auth.password')}
+              </Text>
               <View
                 className="flex-row items-center rounded-2xl px-4 py-1"
                 style={{
@@ -185,7 +200,11 @@ export default function LoginScreen() {
                 <Ionicons name="lock-closed-outline" size={20} color={theme.textTertiary} />
                 <TextInput
                   className="flex-1 text-base"
-                  style={{ color: theme.textPrimary, paddingVertical: inputVerticalPadding, paddingLeft: 12 }}
+                  style={{
+                    color: theme.textPrimary,
+                    paddingVertical: inputVerticalPadding,
+                    paddingLeft: 12,
+                  }}
                   placeholder="********"
                   placeholderTextColor={theme.textTertiary}
                   value={password}
@@ -205,7 +224,9 @@ export default function LoginScreen() {
             </View>
 
             <View className="items-end" style={{ marginBottom: isCompact ? 16 : 24 }}>
-              <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} className="p-2">
+              <TouchableOpacity
+                onPress={() => router.push('/(auth)/forgot-password')}
+                className="p-2">
                 <Text className="text-sm font-medium" style={{ color: theme.purple }}>
                   {t('auth.forgotPassword')}
                 </Text>
@@ -221,12 +242,17 @@ export default function LoginScreen() {
                 colors={loading ? ['#9CA3AF', '#6B7280'] : ['#8B5CF6', '#6D28D9']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{ width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: actionVerticalPadding }}>
+                style={{
+                  width: '100%',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: actionVerticalPadding,
+                }}>
                 {loading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                <Text className="text-lg font-bold text-white">{t('auth.signIn')}</Text>
-              )}
+                  <Text className="text-lg font-bold text-white">{t('auth.signIn')}</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
 
@@ -248,7 +274,12 @@ export default function LoginScreen() {
                 borderColor: theme.border,
                 paddingVertical: actionVerticalPadding,
               }}>
-              <Ionicons name="logo-google" size={20} color={theme.textPrimary} style={{ marginRight: 10 }} />
+              <Ionicons
+                name="logo-google"
+                size={20}
+                color={theme.textPrimary}
+                style={{ marginRight: 10 }}
+              />
               <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
                 {t('auth.google')}
               </Text>
