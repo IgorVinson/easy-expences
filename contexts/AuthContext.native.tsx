@@ -1,17 +1,21 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-    GoogleAuthProvider,
-    User,
-    createUserWithEmailAndPassword,
-    onAuthStateChanged,
-    signInWithCredential,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
+  GoogleAuthProvider,
+  User,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
 } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../firebaseConfig';
 import { deleteCurrentUserAccount } from '../utils/accountDeletion';
+
+const SESSION_STARTED_AT_KEY = 'auth_session_started_at';
+const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -31,21 +35,68 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function persistSessionStart(): Promise<void> {
+  await AsyncStorage.setItem(SESSION_STARTED_AT_KEY, String(Date.now()));
+}
+
+async function clearSessionStart(): Promise<void> {
+  await AsyncStorage.removeItem(SESSION_STARTED_AT_KEY);
+}
+
+async function isSessionExpired(): Promise<boolean> {
+  const stored = await AsyncStorage.getItem(SESSION_STARTED_AT_KEY);
+
+  if (!stored) {
+    await persistSessionStart();
+    return false;
+  }
+
+  const startedAt = Number(stored);
+  if (!Number.isFinite(startedAt)) {
+    await persistSessionStart();
+    return false;
+  }
+
+  return Date.now() - startedAt > SESSION_MAX_AGE_MS;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [postSignupRedirectPending, setPostSignupRedirectPending] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const expired = await isSessionExpired();
+        if (expired) {
+          await clearSessionStart();
+          await signOut(auth);
+          await GoogleSignin.signOut().catch(() => {});
+          setUser(null);
+          return;
+        }
+
+        setUser(user);
+      } catch (error) {
+        console.error('Auth session check failed:', error);
+        setUser(user);
+      } finally {
+        setLoading(false);
+      }
     });
     return unsubscribe;
   }, []);
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
+    await persistSessionStart();
   };
 
   const signup = async (email: string, password: string, name: string) => {
@@ -65,7 +116,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    await clearSessionStart();
     await signOut(auth);
+    await GoogleSignin.signOut().catch(() => {});
   };
 
   const deleteAccount = async () => {
@@ -74,11 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     await deleteCurrentUserAccount(auth.currentUser);
+    await clearSessionStart();
+    await GoogleSignin.signOut().catch(() => {});
   };
 
   const googleSignIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
+      await GoogleSignin.signOut().catch(() => {});
       const response = await GoogleSignin.signIn();
       const idToken = response.data?.idToken || (response as any).idToken;
       if (!idToken) {
@@ -86,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       const credential = GoogleAuthProvider.credential(idToken);
       await signInWithCredential(auth, credential);
+      await persistSessionStart();
     } catch (error) {
       console.error('Google Sign-In Error:', error);
       throw error;

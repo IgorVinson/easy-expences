@@ -394,7 +394,7 @@
   },
   "auth": {
     "welcome": "Welcome Back",
-    "signToManage": "Sign in to manage your budget",
+    "signToManage": "Sign in to manage your money and reach your goals.",
     "email": "Email Address",
     "password": "Password",
     "forgotPassword": "Forgot Password?",
