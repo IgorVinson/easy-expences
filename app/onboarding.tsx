@@ -11,6 +11,7 @@ import {
   Platform,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleProp,
   StyleSheet,
@@ -156,7 +157,7 @@ const CATEGORY_OPTIONS = [
 // ─────────────────────────────────────────────
 type SharedProps = {
   theme: ReturnType<typeof useTheme>['theme'];
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   language: string;
   onNext: () => void;
   onBack: () => void;
@@ -1948,8 +1949,7 @@ function Screen7({
   };
 
   const formatAmount = (amount: number) => {
-    const normalizedCurrency =
-      language === 'ua' ? 'UAH' : normalizeCurrencyCode(currency);
+    const normalizedCurrency = language === 'ua' ? 'UAH' : normalizeCurrencyCode(currency);
 
     if (language === 'ua' && normalizedCurrency === 'UAH') {
       const formattedNumber = new Intl.NumberFormat('uk-UA', {
@@ -2255,6 +2255,7 @@ function Screen8({
 }) {
   const layout = useAdaptiveOnboardingLayout();
   const compactHeight = layout.height < 860;
+  const ultraCompactHeight = layout.height < 720;
   const narrowWidth = layout.isNarrow;
 
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
@@ -2362,311 +2363,343 @@ function Screen8({
 
       <Header theme={theme} onBack={onBack} step={step} showBack />
 
-      <View style={styles.s8Layout}>
-        <AdaptiveStepContent
-          contentContainerStyle={[
-            styles.scrollContentGrow,
-            styles.s8Content,
-            compactHeight && styles.s8ContentCompact,
+      <ScrollView
+        style={styles.s8Layout}
+        contentContainerStyle={[
+          styles.s8ScrollContent,
+          styles.s8Content,
+          compactHeight && styles.s8ContentCompact,
+          ultraCompactHeight && styles.s8ContentUltraCompact,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: ultraCompactHeight ? 0 : clampNumber(layout.contentTop - 6, 2, 10),
+            paddingBottom: Math.max(layout.contentBottom, layout.footerBottom),
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}>
+        {/* Hero image with floating badge */}
+        <View
+          style={[
+            styles.s8ImageWrapper,
+            compactHeight && styles.s8ImageWrapperCompact,
+            ultraCompactHeight && styles.s8ImageWrapperUltraCompact,
             {
-              paddingHorizontal: layout.horizontalPadding,
-              paddingTop: clampNumber(layout.contentTop - 6, 2, 10),
-              paddingBottom: layout.contentBottom,
+              height: ultraCompactHeight
+                ? clampNumber(layout.height * 0.16, 88, 112)
+                : layout.s8ImageWrapperHeight,
+              marginBottom: ultraCompactHeight ? 6 : clampNumber(layout.height * 0.02, 12, 20),
             },
           ]}>
-          {/* Hero image with floating badge */}
+          <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
           <View
             style={[
-              styles.s8ImageWrapper,
-              compactHeight && styles.s8ImageWrapperCompact,
+              styles.s8ImageCard,
+              compactHeight && styles.s8ImageCardCompact,
               {
-                height: layout.s8ImageWrapperHeight,
-                marginBottom: clampNumber(layout.height * 0.02, 12, 20),
+                backgroundColor: theme.cardBg,
+                borderColor: theme.border,
+                width: ultraCompactHeight ? 104 : layout.s8HeroSize,
+                height: ultraCompactHeight ? 104 : layout.s8HeroSize,
+                borderRadius: ultraCompactHeight ? 24 : layout.s8HeroRadius,
               },
             ]}>
-            <View style={[styles.s8ImageGlow, { backgroundColor: theme.purple + '20' }]} />
+            <Image
+              source={{
+                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSfoqHxeAi6k1VosFbuxNW4fwnC2IHPL09qimUrn-GHiNSGyCeIJT7-MC-68CTDnY-AGXMw6sgl8JzRrBdwdfeeWeL26xGxYls8fF1NiMHl3fj5REeDGFe__3mhtVe0C63h7Fxo3AtxIBVwXeV82mm2akg7HwTdagocanR3v4Ffnvqz15BS8rwuxezLPNmwxVWNL0ccGhFbDTZaPDLHR--IhT3gDizTaIIC6Iw5dr-wu4Cc9dWjdZvplOXlFXvisu9mC3xYoXUxM3K',
+              }}
+              style={[
+                styles.s8HeroImage,
+                compactHeight && styles.s8HeroImageCompact,
+                {
+                  width: ultraCompactHeight ? 104 : layout.s8HeroSize,
+                  height: ultraCompactHeight ? 104 : layout.s8HeroSize,
+                  borderRadius: ultraCompactHeight ? 24 : layout.s8HeroRadius,
+                },
+              ]}
+              resizeMode="contain"
+            />
+            {/* Floating badge */}
             <View
               style={[
-                styles.s8ImageCard,
-                compactHeight && styles.s8ImageCardCompact,
-                {
-                  backgroundColor: theme.cardBg,
-                  borderColor: theme.border,
-                  width: layout.s8HeroSize,
-                  height: layout.s8HeroSize,
-                  borderRadius: layout.s8HeroRadius,
-                },
+                styles.s8FloatingBadge,
+                compactHeight && styles.s8FloatingBadgeCompact,
+                ultraCompactHeight && styles.s8FloatingBadgeUltraCompact,
+                { backgroundColor: theme.cardBg, borderColor: theme.border },
               ]}>
-              <Image
-                source={{
-                  uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBSfoqHxeAi6k1VosFbuxNW4fwnC2IHPL09qimUrn-GHiNSGyCeIJT7-MC-68CTDnY-AGXMw6sgl8JzRrBdwdfeeWeL26xGxYls8fF1NiMHl3fj5REeDGFe__3mhtVe0C63h7Fxo3AtxIBVwXeV82mm2akg7HwTdagocanR3v4Ffnvqz15BS8rwuxezLPNmwxVWNL0ccGhFbDTZaPDLHR--IhT3gDizTaIIC6Iw5dr-wu4Cc9dWjdZvplOXlFXvisu9mC3xYoXUxM3K',
-                }}
-                style={[
-                  styles.s8HeroImage,
-                  compactHeight && styles.s8HeroImageCompact,
-                  {
-                    width: layout.s8HeroSize,
-                    height: layout.s8HeroSize,
-                    borderRadius: layout.s8HeroRadius,
-                  },
-                ]}
-                resizeMode="contain"
-              />
-              {/* Floating badge */}
-              <View
-                style={[
-                  styles.s8FloatingBadge,
-                  compactHeight && styles.s8FloatingBadgeCompact,
-                  { backgroundColor: theme.cardBg, borderColor: theme.border },
-                ]}>
-                <View style={[styles.s8BadgeIcon, { backgroundColor: theme.success }]}>
-                  <Ionicons name="checkmark" size={12} color="#fff" />
-                </View>
-                <View>
-                  <Text style={[styles.s8BadgeLabel, { color: theme.textSecondary }]}>
-                    {t('onboarding.s8.badgeLabel')}
-                  </Text>
-                  <Text style={[styles.s8BadgeValue, { color: theme.textPrimary }]}>
-                    {t('onboarding.s8.badgeValue')}
-                  </Text>
-                </View>
+              <View style={[styles.s8BadgeIcon, { backgroundColor: theme.success }]}>
+                <Ionicons name="checkmark" size={12} color="#fff" />
+              </View>
+              <View>
+                <Text style={[styles.s8BadgeLabel, { color: theme.textSecondary }]}>
+                  {t('onboarding.s8.badgeLabel')}
+                </Text>
+                <Text style={[styles.s8BadgeValue, { color: theme.textPrimary }]}>
+                  {t('onboarding.s8.badgeValue')}
+                </Text>
               </View>
             </View>
           </View>
+        </View>
 
-          {/* Text content */}
-          <View style={styles.s8TextBlock}>
-            <View style={styles.s8TagRow}>
-              <View style={[styles.s8TagDot, { backgroundColor: theme.success }]} />
-              <Text style={[styles.s8TagText, { color: theme.success }]}>
-                {t('onboarding.s8.tag')}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.headline,
-                {
-                  color: theme.textPrimary,
-                  textAlign: 'center',
-                  fontSize: layout.titleSize,
-                  lineHeight: layout.titleLineHeight,
-                },
-              ]}>
-              {t('onboarding.s8.title')}
-            </Text>
-            <Text
-              style={[
-                styles.bodyText,
-                {
-                  color: theme.textSecondary,
-                  textAlign: 'center',
-                  marginTop: 12,
-                  fontSize: layout.bodySize,
-                  lineHeight: layout.bodyLineHeight,
-                },
-              ]}>
-              {t('onboarding.s8.subtitle')}
-            </Text>
-            <Text
-              style={[
-                styles.bodyText,
-                {
-                  color: theme.purple,
-                  textAlign: 'center',
-                  marginTop: 10,
-                  fontWeight: '700',
-                  fontSize: layout.bodySize,
-                  lineHeight: layout.bodyLineHeight,
-                },
-              ]}>
-              {t('onboarding.s8.trialBanner')}
+        {/* Text content */}
+        <View style={[styles.s8TextBlock, ultraCompactHeight && styles.s8TextBlockUltraCompact]}>
+          <View style={[styles.s8TagRow, ultraCompactHeight && styles.s8TagRowUltraCompact]}>
+            <View style={[styles.s8TagDot, { backgroundColor: theme.success }]} />
+            <Text style={[styles.s8TagText, { color: theme.success }]}>
+              {t('onboarding.s8.tag')}
             </Text>
           </View>
+          <Text
+            style={[
+              styles.headline,
+              {
+                color: theme.textPrimary,
+                textAlign: 'center',
+                fontSize: ultraCompactHeight
+                  ? clampNumber(layout.titleSize - 3, 20, 24)
+                  : layout.titleSize,
+                lineHeight: ultraCompactHeight
+                  ? clampNumber(layout.titleLineHeight - 6, 25, 31)
+                  : layout.titleLineHeight,
+              },
+            ]}>
+            {t('onboarding.s8.title')}
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              {
+                color: theme.textSecondary,
+                textAlign: 'center',
+                marginTop: ultraCompactHeight ? 6 : 12,
+                fontSize: ultraCompactHeight
+                  ? clampNumber(layout.bodySize - 1.5, 12, 14)
+                  : layout.bodySize,
+                lineHeight: ultraCompactHeight
+                  ? clampNumber(layout.bodyLineHeight - 4, 16, 20)
+                  : layout.bodyLineHeight,
+              },
+            ]}>
+            {t('onboarding.s8.subtitle')}
+          </Text>
+          <Text
+            style={[
+              styles.bodyText,
+              {
+                color: theme.purple,
+                textAlign: 'center',
+                marginTop: ultraCompactHeight ? 6 : 10,
+                fontWeight: '700',
+                fontSize: ultraCompactHeight
+                  ? clampNumber(layout.bodySize - 1, 12, 14)
+                  : layout.bodySize,
+                lineHeight: ultraCompactHeight
+                  ? clampNumber(layout.bodyLineHeight - 4, 16, 20)
+                  : layout.bodyLineHeight,
+              },
+            ]}>
+            {t('onboarding.s8.trialBanner')}
+          </Text>
+        </View>
 
-          {/* Subscription options */}
-          <View style={styles.s8PlansContainer}>
-            {/* Annual Plan */}
-            <Pressable
-              onPress={() => setSelectedPlan('annual')}
-              style={[
-                styles.s8PlanCard,
-                narrowWidth && styles.s8PlanCardCompact,
-                {
-                  backgroundColor: selectedPlan === 'annual' ? theme.cardBg : theme.iconBg,
-                  borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
-                  borderWidth: selectedPlan === 'annual' ? 2 : 1,
-                  padding: layout.s8PlanPadding,
-                  borderRadius: layout.cardRadius,
-                },
-              ]}>
-              <View style={styles.s8PlanLeft}>
-                <View
+        {/* Subscription options */}
+        <View
+          style={[
+            styles.s8PlansContainer,
+            ultraCompactHeight && styles.s8PlansContainerUltraCompact,
+          ]}>
+          {/* Annual Plan */}
+          <Pressable
+            onPress={() => setSelectedPlan('annual')}
+            style={[
+              styles.s8PlanCard,
+              narrowWidth && styles.s8PlanCardCompact,
+              ultraCompactHeight && styles.s8PlanCardUltraCompact,
+              {
+                backgroundColor: selectedPlan === 'annual' ? theme.cardBg : theme.iconBg,
+                borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
+                borderWidth: selectedPlan === 'annual' ? 2 : 1,
+                padding: ultraCompactHeight
+                  ? clampNumber(layout.s8PlanPadding - 3, 7, 10)
+                  : layout.s8PlanPadding,
+                borderRadius: layout.cardRadius,
+              },
+            ]}>
+            <View style={styles.s8PlanLeft}>
+              <View
+                style={[
+                  styles.s8RadioCircle,
+                  {
+                    borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
+                  },
+                ]}>
+                {selectedPlan === 'annual' && (
+                  <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
+                )}
+              </View>
+              <View>
+                <Text
                   style={[
-                    styles.s8RadioCircle,
-                    {
-                      borderColor: selectedPlan === 'annual' ? theme.purple : theme.border,
-                    },
+                    styles.s8PlanTitle,
+                    narrowWidth && styles.s8PlanTitleCompact,
+                    ultraCompactHeight && styles.s8PlanTitleUltraCompact,
+                    { color: theme.textPrimary },
                   ]}>
-                  {selectedPlan === 'annual' && (
-                    <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
-                  )}
-                </View>
-                <View>
-                  <Text
-                    style={[
-                      styles.s8PlanTitle,
-                      narrowWidth && styles.s8PlanTitleCompact,
-                      { color: theme.textPrimary },
-                    ]}>
-                    Annual
+                  Annual
+                </Text>
+                <View style={[styles.s8PlanPriceRow, narrowWidth && styles.s8PlanPriceRowCompact]}>
+                  <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
+                    {annualPrice}
                   </Text>
-                  <View
-                    style={[styles.s8PlanPriceRow, narrowWidth && styles.s8PlanPriceRowCompact]}>
-                    <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                      {annualPrice}
+                  <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
+                    <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>
+                      Save {annualSavingsPercent}%
                     </Text>
-                    <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
-                      <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>
-                        Save {annualSavingsPercent}%
-                      </Text>
-                    </View>
                   </View>
                 </View>
               </View>
-              <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
-                <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
-                <Text
-                  style={[
-                    styles.s8PlanHighlight,
-                    narrowWidth && styles.s8PlanHighlightCompact,
-                    { color: theme.purple },
-                  ]}>
-                  {annualMonthlyEquivalent}/mo
-                </Text>
-              </View>
-            </Pressable>
+            </View>
+            <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
+              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
+              <Text
+                style={[
+                  styles.s8PlanHighlight,
+                  narrowWidth && styles.s8PlanHighlightCompact,
+                  ultraCompactHeight && styles.s8PlanHighlightUltraCompact,
+                  { color: theme.purple },
+                ]}>
+                {annualMonthlyEquivalent}/mo
+              </Text>
+            </View>
+          </Pressable>
 
-            {/* Monthly Plan */}
-            <Pressable
-              onPress={() => setSelectedPlan('monthly')}
-              style={[
-                styles.s8PlanCard,
-                narrowWidth && styles.s8PlanCardCompact,
-                {
-                  backgroundColor: selectedPlan === 'monthly' ? theme.cardBg : theme.iconBg,
-                  borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
-                  borderWidth: selectedPlan === 'monthly' ? 2 : 1,
-                  padding: layout.s8PlanPadding,
-                  borderRadius: layout.cardRadius,
-                },
-              ]}>
-              <View style={styles.s8PlanLeft}>
-                <View
-                  style={[
-                    styles.s8RadioCircle,
-                    {
-                      borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
-                    },
-                  ]}>
-                  {selectedPlan === 'monthly' && (
-                    <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
-                  )}
-                </View>
-                <View>
-                  <Text
-                    style={[
-                      styles.s8PlanTitle,
-                      narrowWidth && styles.s8PlanTitleCompact,
-                      { color: theme.textPrimary },
-                    ]}>
-                    Monthly
-                  </Text>
-                  <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                    {monthlyPrice}
-                  </Text>
-                </View>
+          {/* Monthly Plan */}
+          <Pressable
+            onPress={() => setSelectedPlan('monthly')}
+            style={[
+              styles.s8PlanCard,
+              narrowWidth && styles.s8PlanCardCompact,
+              ultraCompactHeight && styles.s8PlanCardUltraCompact,
+              {
+                backgroundColor: selectedPlan === 'monthly' ? theme.cardBg : theme.iconBg,
+                borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
+                borderWidth: selectedPlan === 'monthly' ? 2 : 1,
+                padding: ultraCompactHeight
+                  ? clampNumber(layout.s8PlanPadding - 3, 7, 10)
+                  : layout.s8PlanPadding,
+                borderRadius: layout.cardRadius,
+              },
+            ]}>
+            <View style={styles.s8PlanLeft}>
+              <View
+                style={[
+                  styles.s8RadioCircle,
+                  {
+                    borderColor: selectedPlan === 'monthly' ? theme.purple : theme.border,
+                  },
+                ]}>
+                {selectedPlan === 'monthly' && (
+                  <View style={[styles.s8RadioDot, { backgroundColor: theme.purple }]} />
+                )}
               </View>
-              <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
-                <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
+              <View>
                 <Text
                   style={[
-                    styles.s8PlanMonth,
-                    narrowWidth && styles.s8PlanMonthCompact,
+                    styles.s8PlanTitle,
+                    narrowWidth && styles.s8PlanTitleCompact,
+                    ultraCompactHeight && styles.s8PlanTitleUltraCompact,
                     { color: theme.textPrimary },
                   ]}>
                   Monthly
                 </Text>
+                <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
+                  {monthlyPrice}
+                </Text>
               </View>
-            </Pressable>
-          </View>
-
-          <View
-            style={[
-              styles.footerStatic,
-              compactHeight && styles.footerStaticCompact,
-              {
-                paddingHorizontal: layout.horizontalPadding,
-                paddingTop: layout.footerTop,
-                paddingBottom: layout.footerBottom,
-              },
-            ]}>
-            {error && (
-              <View style={[styles.s8ErrorContainer, { backgroundColor: theme.error + '15' }]}>
-                <Ionicons name="alert-circle" size={16} color={theme.error} />
-                <Text style={[styles.s8ErrorText, { color: theme.error }]}>{error}</Text>
-              </View>
-            )}
-            <CTAButton
-              label={
-                loading
-                  ? t('onboarding.s8.processing')
-                  : canContinueWithoutPurchase
-                    ? t('onboarding.s8.continue')
-                    : t('onboarding.s8.cta')
-              }
-              onPress={handleGetStarted}
-              theme={theme}
-              icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
-              loading={loading}
-            />
-            {__DEV__ && onDevBypass ? (
-              <Pressable
-                onPress={handleDevBypass}
-                disabled={devBypassLoading}
+            </View>
+            <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
+              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
+              <Text
                 style={[
-                  styles.s8DevBypassButton,
-                  {
-                    borderColor: theme.purple + '66',
-                    backgroundColor: theme.purple + '10',
-                    opacity: devBypassLoading ? 0.7 : 1,
-                  },
+                  styles.s8PlanMonth,
+                  narrowWidth && styles.s8PlanMonthCompact,
+                  ultraCompactHeight && styles.s8PlanMonthUltraCompact,
+                  { color: theme.textPrimary },
                 ]}>
-                {devBypassLoading ? (
-                  <ActivityIndicator color={theme.purple} />
-                ) : (
-                  <>
-                    <Ionicons name="construct" size={16} color={theme.purple} />
-                    <Text style={[styles.s8DevBypassText, { color: theme.purple }]}>
-                      Dev: enter app without purchase
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-            ) : null}
-            <Text
+                Monthly
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+
+        <View
+          style={[
+            styles.footerStatic,
+            compactHeight && styles.footerStaticCompact,
+            ultraCompactHeight && styles.footerStaticUltraCompact,
+            {
+              paddingHorizontal: layout.horizontalPadding,
+              paddingTop: ultraCompactHeight ? 0 : layout.footerTop,
+              paddingBottom: 0,
+            },
+          ]}>
+          {error && (
+            <View style={[styles.s8ErrorContainer, { backgroundColor: theme.error + '15' }]}>
+              <Ionicons name="alert-circle" size={16} color={theme.error} />
+              <Text style={[styles.s8ErrorText, { color: theme.error }]}>{error}</Text>
+            </View>
+          )}
+          <CTAButton
+            label={
+              loading
+                ? t('onboarding.s8.processing')
+                : canContinueWithoutPurchase
+                  ? t('onboarding.s8.continue')
+                  : t('onboarding.s8.cta')
+            }
+            onPress={handleGetStarted}
+            theme={theme}
+            icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
+            loading={loading}
+          />
+          {__DEV__ && onDevBypass ? (
+            <Pressable
+              onPress={handleDevBypass}
+              disabled={devBypassLoading}
               style={[
-                styles.s8TermsText,
+                styles.s8DevBypassButton,
                 {
-                  color: theme.textTertiary,
-                  fontSize: layout.eyebrowSize,
-                  lineHeight: clampNumber(layout.bodyLineHeight - 8, 14, 18),
+                  borderColor: theme.purple + '66',
+                  backgroundColor: theme.purple + '10',
+                  opacity: devBypassLoading ? 0.7 : 1,
                 },
               ]}>
-              {t('onboarding.s8.terms')}
-            </Text>
-          </View>
-        </AdaptiveStepContent>
-      </View>
+              {devBypassLoading ? (
+                <ActivityIndicator color={theme.purple} />
+              ) : (
+                <>
+                  <Ionicons name="construct" size={16} color={theme.purple} />
+                  <Text style={[styles.s8DevBypassText, { color: theme.purple }]}>
+                    Dev: enter app without purchase
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          ) : null}
+          <Text
+            style={[
+              styles.s8TermsText,
+              {
+                color: theme.textTertiary,
+                fontSize: layout.eyebrowSize,
+                lineHeight: clampNumber(layout.bodyLineHeight - 8, 14, 18),
+              },
+            ]}>
+            {t('onboarding.s8.terms')}
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -2953,7 +2986,7 @@ export default function OnboardingScreen() {
     if (user) {
       const uid = user.uid;
       const periodStart = getCurrentMonthStartIso();
-      const goalPreset = getGoalPreset(selectedGoal);
+      const goalPreset = getGoalPreset(selectedGoal, i18n.language);
       const expenseBudgets = budgetPlan?.expenseBudgets ?? {};
       const customBudget = budgetPlan?.customExpenseBudget ?? 200;
       const goalTargetAmount = budgetPlan?.goalTargetAmount ?? 0;
@@ -3145,6 +3178,9 @@ const styles = StyleSheet.create({
   footerStaticCompact: {
     paddingTop: 6,
     paddingBottom: Platform.OS === 'ios' ? 12 : 8,
+  },
+  footerStaticUltraCompact: {
+    paddingTop: 0,
   },
 
   // Skip
@@ -3860,9 +3896,11 @@ const styles = StyleSheet.create({
     borderRadius: 128,
     zIndex: -1,
   },
-  s8Layout: { flex: 1, justifyContent: 'space-between' },
+  s8Layout: { flex: 1 },
+  s8ScrollContent: { flexGrow: 1, justifyContent: 'space-between' },
   s8Content: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
   s8ContentCompact: { paddingTop: 2, paddingBottom: 4 },
+  s8ContentUltraCompact: { paddingTop: 0, paddingBottom: 4 },
   s8ImageWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -3873,6 +3911,9 @@ const styles = StyleSheet.create({
   s8ImageWrapperCompact: {
     marginBottom: 12,
     height: 144,
+  },
+  s8ImageWrapperUltraCompact: {
+    marginBottom: 6,
   },
   s8ImageGlow: {
     position: 'absolute',
@@ -3931,6 +3972,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
+  s8FloatingBadgeUltraCompact: {
+    bottom: -4,
+    right: -6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
   s8BadgeIcon: {
     width: 24,
     height: 24,
@@ -3941,15 +3988,18 @@ const styles = StyleSheet.create({
   s8BadgeLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
   s8BadgeValue: { fontSize: 12, fontWeight: '800' },
   s8TextBlock: { alignItems: 'center', marginBottom: 10 },
+  s8TextBlockUltraCompact: { marginBottom: 6 },
   s8TagRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: 12,
   },
+  s8TagRowUltraCompact: { marginBottom: 6 },
   s8TagDot: { width: 6, height: 6, borderRadius: 3 },
   s8TagText: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
   s8PlansContainer: { gap: 8, marginBottom: 10 },
+  s8PlansContainerUltraCompact: { gap: 6, marginBottom: 6 },
   s8PlanCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -3961,6 +4011,9 @@ const styles = StyleSheet.create({
   s8PlanCardCompact: {
     paddingHorizontal: 12,
     paddingVertical: 12,
+  },
+  s8PlanCardUltraCompact: {
+    minHeight: 64,
   },
   s8PlanLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 },
   s8RadioCircle: {
@@ -3974,6 +4027,7 @@ const styles = StyleSheet.create({
   s8RadioDot: { width: 12, height: 12, borderRadius: 6 },
   s8PlanTitle: { fontSize: 16, fontWeight: '700', marginBottom: 2 },
   s8PlanTitleCompact: { fontSize: 14 },
+  s8PlanTitleUltraCompact: { fontSize: 14, marginBottom: 0 },
   s8PlanPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   s8PlanPriceRowCompact: { gap: 6 },
   s8PlanPrice: { fontSize: 13, fontWeight: '500' },
@@ -3988,8 +4042,10 @@ const styles = StyleSheet.create({
   s8PlanSmall: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
   s8PlanHighlight: { fontSize: 18, fontWeight: '800' },
   s8PlanHighlightCompact: { fontSize: 15 },
+  s8PlanHighlightUltraCompact: { fontSize: 15 },
   s8PlanMonth: { fontSize: 16, fontWeight: '700' },
   s8PlanMonthCompact: { fontSize: 14 },
+  s8PlanMonthUltraCompact: { fontSize: 14 },
   s8TermsText: {
     marginTop: 12,
     fontSize: 10,
