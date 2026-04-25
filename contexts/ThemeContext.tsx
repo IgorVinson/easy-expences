@@ -37,7 +37,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemScheme = useColorScheme();
-  const [themePreference, setThemePreference] = useState<'auto' | 'dark' | 'light'>('auto');
+  const [themePreference, setThemePreference] = useState<'auto' | 'dark' | 'light'>('dark');
   const isDarkMode = useMemo(() => {
     if (themePreference === 'auto') {
       return systemScheme === 'dark';
@@ -73,7 +73,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const toggleTheme = () => setThemePreference(isDarkMode ? 'light' : 'dark');
 
   return (
-    <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme, themePreference, setThemePreference }}>
+    <ThemeContext.Provider
+      value={{ theme, isDarkMode, toggleTheme, themePreference, setThemePreference }}>
       {children}
     </ThemeContext.Provider>
   );
