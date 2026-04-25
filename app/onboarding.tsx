@@ -20,7 +20,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { PurchasesPackage } from 'react-native-purchases';
 import { formatCurrencyAmount, normalizeCurrencyCode } from '../config/currencies';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
@@ -2247,18 +2246,20 @@ function Screen8({
   theme,
   t,
   onFinish,
+  onDevBypass,
   onBack,
   step,
 }: SharedProps & {
   onFinish: () => void;
+  onDevBypass?: () => Promise<void> | void;
 }) {
   const layout = useAdaptiveOnboardingLayout();
   const compactHeight = layout.height < 860;
-  const ultraCompact = layout.height < 780;
   const narrowWidth = layout.isNarrow;
 
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('annual');
   const [loading, setLoading] = useState(false);
+  const [devBypassLoading, setDevBypassLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { offerings, subscribe, tier, loading: subscriptionLoading } = useSubscription();
   const hadActiveTierOnOpen = useRef<boolean | null>(null);
@@ -2297,6 +2298,20 @@ function Screen8({
   }, [subscriptionLoading, tier]);
 
   const canContinueWithoutPurchase = hadActiveTierOnOpen.current === true;
+
+  const handleDevBypass = async () => {
+    if (!onDevBypass || devBypassLoading) {
+      return;
+    }
+
+    setError(null);
+    setDevBypassLoading(true);
+    try {
+      await onDevBypass();
+    } finally {
+      setDevBypassLoading(false);
+    }
+  };
 
   const handleGetStarted = async () => {
     setError(null);
@@ -2614,6 +2629,30 @@ function Screen8({
               icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
               loading={loading}
             />
+            {__DEV__ && onDevBypass ? (
+              <Pressable
+                onPress={handleDevBypass}
+                disabled={devBypassLoading}
+                style={[
+                  styles.s8DevBypassButton,
+                  {
+                    borderColor: theme.purple + '66',
+                    backgroundColor: theme.purple + '10',
+                    opacity: devBypassLoading ? 0.7 : 1,
+                  },
+                ]}>
+                {devBypassLoading ? (
+                  <ActivityIndicator color={theme.purple} />
+                ) : (
+                  <>
+                    <Ionicons name="construct" size={16} color={theme.purple} />
+                    <Text style={[styles.s8DevBypassText, { color: theme.purple }]}>
+                      Dev: enter app without purchase
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            ) : null}
             <Text
               style={[
                 styles.s8TermsText,
@@ -3019,7 +3058,15 @@ export default function OnboardingScreen() {
           onFinish={() => setStep(7)}
         />
       )}
-      {step === 7 && <Screen8 {...shared} onFinish={() => setStep(8)} />}
+      {step === 7 && (
+        <Screen8
+          {...shared}
+          onFinish={() => setStep(8)}
+          onDevBypass={() =>
+            completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
+          }
+        />
+      )}
       {step === 8 && (
         <Screen9
           {...shared}
@@ -3949,6 +3996,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 14,
     paddingHorizontal: 20,
+  },
+  s8DevBypassButton: {
+    width: '100%',
+    maxWidth: 440,
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  s8DevBypassText: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   s8ErrorContainer: {
     flexDirection: 'row',

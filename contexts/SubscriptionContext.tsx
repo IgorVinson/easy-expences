@@ -116,8 +116,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     voiceRecordingsResetMonth: getCurrentMonth(),
   });
 
-  const isPro = tier === 'premium' || tier === 'trial';
-  const isTrialExpired = tier === 'none';
+  const effectiveTier: SubscriptionTier = __DEV__ ? 'premium' : tier;
+  const isPro = effectiveTier === 'premium' || effectiveTier === 'trial';
+  const isTrialExpired = effectiveTier === 'none';
 
   // Configure RevenueCat once on mount
   useEffect(() => {
@@ -228,16 +229,19 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const voiceRecordingsLeft =
-    tier === 'premium' || tier === 'trial'
+    effectiveTier === 'premium' || effectiveTier === 'trial'
       ? Infinity
-      : tier === 'basic'
+      : effectiveTier === 'basic'
         ? Math.max(0, BASIC_VOICE_LIMIT - voiceUsage.voiceRecordingsThisMonth)
         : 0;
 
   const canUseVoice =
-    tier === 'premium' || tier === 'trial' || (tier === 'basic' && voiceRecordingsLeft > 0);
+    effectiveTier === 'premium' ||
+    effectiveTier === 'trial' ||
+    (effectiveTier === 'basic' && voiceRecordingsLeft > 0);
 
   const incrementVoiceUsage = useCallback(async () => {
+    if (__DEV__) return;
     if (!user) return;
     const currentMonth = getCurrentMonth();
     const ref = doc(db, 'subscriptions', user.uid);
@@ -337,7 +341,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   return (
     <SubscriptionContext.Provider
       value={{
-        tier,
+        tier: effectiveTier,
         isPro,
         loading,
         customerInfo,

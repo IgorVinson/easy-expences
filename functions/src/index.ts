@@ -45,7 +45,13 @@ async function checkDailyLimit(userId: string): Promise<void> {
   });
 }
 
-async function checkVoiceLimit(userId: string): Promise<void> {
+function canBypassVoiceSubscriptionInDev(devMode: boolean): boolean {
+  return devMode && process.env.FUNCTIONS_EMULATOR === 'true';
+}
+
+async function checkVoiceLimit(userId: string, devMode: boolean): Promise<void> {
+  if (canBypassVoiceSubscriptionInDev(devMode)) return;
+
   const ref = db.collection('subscriptions').doc(userId);
   const snap = await ref.get();
 
@@ -126,6 +132,7 @@ interface ProcessVoiceExpenseRequest {
   audioBase64: string;
   mimeType: string;
   categories: string[];
+  devMode?: boolean;
 }
 
 interface ProcessVoiceExpenseResponse {
@@ -160,13 +167,14 @@ export const processVoiceExpense = onCall(
       throw new HttpsError('unauthenticated', 'Must be signed in to use voice expenses.');
     }
 
+    const { audioBase64, mimeType, categories, devMode = false } =
+      request.data as ProcessVoiceExpenseRequest;
+
     await Promise.all([
       checkRateLimit(request.auth.uid),
       checkDailyLimit(request.auth.uid),
-      checkVoiceLimit(request.auth.uid),
+      checkVoiceLimit(request.auth.uid, devMode),
     ]);
-
-    const { audioBase64, mimeType, categories } = request.data as ProcessVoiceExpenseRequest;
 
     if (!audioBase64 || !mimeType) {
       throw new HttpsError('invalid-argument', 'audioBase64 and mimeType are required.');

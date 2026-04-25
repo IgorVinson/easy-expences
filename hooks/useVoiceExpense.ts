@@ -23,6 +23,7 @@ interface ProcessVoiceExpenseRequest {
   audioBase64: string;
   mimeType: string;
   categories: string[];
+  devMode?: boolean;
 }
 
 function getAudioMimeType(uri: string): string {
@@ -163,6 +164,7 @@ export function useVoiceExpense() {
           audioBase64: base64Audio,
           mimeType: getAudioMimeType(uri),
           categories,
+          devMode: __DEV__,
         });
 
         return result.data;
