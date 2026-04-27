@@ -120,6 +120,10 @@ export default function GoalsScreen() {
     ]);
   }
 
+  async function handleDeleteBudgetFromModal(id: string) {
+    await deleteCategory(id);
+  }
+
   function openAddGoal() {
     setEditingGoal(null);
     setGoalModalVisible(true);
@@ -435,7 +439,7 @@ export default function GoalsScreen() {
         category={editingCategory}
         categoryTransactions={categoryTransactions}
         onSave={handleSaveBudget}
-        onDelete={handleDeleteBudget}
+        onDelete={handleDeleteBudgetFromModal}
       />
 
       <AddEditGoalModal
