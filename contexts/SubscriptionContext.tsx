@@ -88,6 +88,27 @@ function getTrialDaysLeft(info: CustomerInfo): number {
   return Math.max(0, Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
+function logRevenueCatOfferings(offerings: PurchasesOfferings | null): void {
+  if (!__DEV__) return;
+
+  const current = offerings?.current;
+  console.log('[RevenueCat] offerings loaded', {
+    allOfferingIds: offerings ? Object.keys(offerings.all) : [],
+    currentOfferingId: current?.identifier ?? null,
+    currentPackageCount: current?.availablePackages.length ?? 0,
+    monthlyPackageId: current?.monthly?.identifier ?? null,
+    annualPackageId: current?.annual?.identifier ?? null,
+    packages: current?.availablePackages.map((pkg) => ({
+      packageIdentifier: pkg.identifier,
+      packageType: pkg.packageType,
+      productIdentifier: pkg.product.identifier,
+      price: pkg.product.price,
+      priceString: pkg.product.priceString,
+      currencyCode: pkg.product.currencyCode,
+    })) ?? [],
+  });
+}
+
 async function syncTierToFirestore(userId: string, tier: SubscriptionTier): Promise<void> {
   const ref = doc(db, 'subscriptions', userId);
   await setDoc(
@@ -128,6 +149,13 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         Platform.OS === 'ios'
           ? process.env.EXPO_PUBLIC_RC_API_KEY_IOS!
           : process.env.EXPO_PUBLIC_RC_API_KEY_ANDROID!;
+      if (__DEV__) {
+        console.log('[RevenueCat] configuring', {
+          platform: Platform.OS,
+          apiKeyPrefix: apiKey ? apiKey.slice(0, 5) : null,
+          hasApiKey: Boolean(apiKey),
+        });
+      }
       Purchases.configure({ apiKey });
     } catch (err) {
       console.warn('RevenueCat configure failed (not supported in Expo Go):', err);
@@ -167,6 +195,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         );
 
         const offs = await Purchases.getOfferings();
+        logRevenueCatOfferings(offs);
         setOfferings(offs);
       } catch (err) {
         console.error('RevenueCat init error:', err);
@@ -294,7 +323,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           packageIdentifier: pkg.identifier,
           packageType: pkg.packageType,
           productIdentifier: pkg.product.identifier,
-          store: pkg.product.store,
         });
         throw err;
       }

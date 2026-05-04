@@ -2276,15 +2276,16 @@ function Screen8({
     currentOffering?.availablePackages.find((p) => p.packageType === 'MONTHLY') ||
     null;
 
-  const annualPrice = annualPackage?.product.priceString ?? '$59.99/year';
-  const monthlyPrice = monthlyPackage?.product.priceString ?? '$9.99/mo';
+  const packagesLoaded = Boolean(annualPackage && monthlyPackage);
+  const annualPrice = annualPackage?.product.priceString ?? 'Loading...';
+  const monthlyPrice = monthlyPackage?.product.priceString ?? 'Loading...';
   const annualMonthlyEquivalent = annualPackage
     ? new Intl.NumberFormat(undefined, {
         style: 'currency',
         currency: annualPackage.product.currencyCode,
         maximumFractionDigits: 2,
       }).format(annualPackage.product.price / 12)
-    : '$4.99';
+    : 'Loading...';
   const annualSavingsPercent =
     annualPackage && monthlyPackage
       ? Math.max(
@@ -2656,12 +2657,15 @@ function Screen8({
                 ? t('onboarding.s8.processing')
                 : canContinueWithoutPurchase
                   ? t('onboarding.s8.continue')
+                  : !packagesLoaded
+                    ? 'Loading plans...'
                   : t('onboarding.s8.cta')
             }
             onPress={handleGetStarted}
             theme={theme}
             icon={canContinueWithoutPurchase ? 'arrow-forward' : 'card'}
             loading={loading}
+            disabled={!canContinueWithoutPurchase && !packagesLoaded}
           />
           {__DEV__ && onDevBypass ? (
             <Pressable
