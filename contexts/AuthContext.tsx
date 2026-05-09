@@ -1,5 +1,6 @@
 import {
     GoogleAuthProvider,
+    OAuthProvider,
     User,
     createUserWithEmailAndPassword,
     onAuthStateChanged,
@@ -22,6 +23,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   googleSignIn: () => Promise<void>;
+  appleSignIn: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,6 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signInWithPopup(auth, provider);
   };
 
+  const appleSignIn = async () => {
+    const provider = new OAuthProvider('apple.com');
+    await signInWithPopup(auth, provider);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -89,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         deleteAccount,
         googleSignIn,
+        appleSignIn,
       }}
     >
       {children}

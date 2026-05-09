@@ -1,0 +1,164 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "C8774B90",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6764172505",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "LZJZ82FNFQ",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 799734025.14268398,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22067594",
+      "localizations" : [
+
+      ],
+      "name" : "Keelio prem",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "6.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6766337628",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Unlimited expense tracking with voice logging",
+              "displayName" : "Keelio Premium",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "premium_month",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium month",
+          "subscriptionGroupID" : "22067594",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22062288",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "Keelio premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "6.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6765557832",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Контролюй витрати, керуй цілями",
+              "displayName" : "Кіліо Преміум",
+              "locale" : "uk"
+            },
+            {
+              "description" : "Track spending, manage goals and understand what left",
+              "displayName" : "Keelio Premium",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "keelio_premium_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium monthly",
+          "subscriptionGroupID" : "22062288",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6765762277",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Track spending, manage goals and understand what’s left",
+              "displayName" : "Keelio Premium",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "Контролюй витрати, керуй цілями",
+              "displayName" : "Keelio Преміум",
+              "locale" : "uk"
+            }
+          ],
+          "productID" : "keelio_premium_yerly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium yearly",
+          "subscriptionGroupID" : "22062288",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 5,
+    "minor" : 0
+  }
+}
