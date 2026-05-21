@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Platform,
   Pressable,
@@ -2262,7 +2263,11 @@ function Screen8({
   const [loading, setLoading] = useState(false);
   const [devBypassLoading, setDevBypassLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { offerings, subscribe, tier, loading: subscriptionLoading } = useSubscription();
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const { offerings, subscribe, redeemPromoCode, tier, loading: subscriptionLoading } = useSubscription();
   const hadActiveTierOnOpen = useRef<boolean | null>(null);
   const currentOffering = offerings?.current;
   const annualPackage =
@@ -2312,6 +2317,22 @@ function Screen8({
       await onDevBypass();
     } finally {
       setDevBypassLoading(false);
+    }
+  };
+
+  const handleRedeemPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    try {
+      await redeemPromoCode(promoCode.trim().toUpperCase());
+      Alert.alert(t('paywall.promo.success'), t('paywall.promo.successMessage'), [
+        { text: t('paywall.awesome'), onPress: onFinish },
+      ]);
+    } catch {
+      setPromoError(t('paywall.promo.invalid'));
+    } finally {
+      setPromoLoading(false);
     }
   };
 
@@ -2667,6 +2688,84 @@ function Screen8({
             loading={loading}
             disabled={!canContinueWithoutPurchase && !packagesLoaded}
           />
+          <Pressable
+            onPress={() => setShowPromo(!showPromo)}
+            style={{
+              marginTop: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+              {t('paywall.promo.haveCode')}
+            </Text>
+            <Ionicons
+              name={showPromo ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color={theme.textTertiary}
+              style={{ marginLeft: 4 }}
+            />
+          </Pressable>
+          {showPromo && (
+            <View
+              style={{
+                marginTop: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+              <TextInput
+                placeholder={t('paywall.promo.placeholder')}
+                placeholderTextColor={theme.textTertiary}
+                value={promoCode}
+                onChangeText={(text) => {
+                  setPromoCode(text);
+                  setPromoError('');
+                }}
+                autoCapitalize="characters"
+                style={{
+                  flex: 1,
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  fontSize: 14,
+                  backgroundColor: theme.cardBg,
+                  color: theme.textPrimary,
+                  borderWidth: promoError ? 1 : 0,
+                  borderColor: theme.error,
+                }}
+              />
+              <Pressable
+                onPress={handleRedeemPromo}
+                disabled={promoLoading}
+                style={{
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  backgroundColor: theme.purple,
+                  opacity: promoLoading ? 0.7 : 1,
+                }}>
+                {promoLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>
+                    {t('paywall.promo.redeem')}
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          )}
+          {promoError ? (
+            <Text
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                textAlign: 'center',
+                color: theme.error,
+              }}>
+              {promoError}
+            </Text>
+          ) : null}
           {__DEV__ && onDevBypass ? (
             <Pressable
               onPress={handleDevBypass}
