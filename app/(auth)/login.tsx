@@ -25,7 +25,7 @@ import { ACCOUNT_DELETION_FAREWELL_KEY } from '../../utils/accountDeletion';
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
-  const { login, googleSignIn } = useAuth();
+  const { login, googleSignIn, appleSignIn } = useAuth();
   const params = useLocalSearchParams<{ email?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,6 +43,7 @@ export default function LoginScreen() {
   const inputVerticalPadding = isCompact ? 10 : 14;
   const actionVerticalPadding = isCompact ? 14 : 16;
   const gradientHeight = isCompact ? 180 : 250;
+  const showAppleButton = Platform.OS !== 'android';
 
   useEffect(() => {
     if (typeof params.email === 'string' && params.email.length > 0) {
@@ -96,6 +97,17 @@ export default function LoginScreen() {
       await googleSignIn();
     } catch (error: any) {
       Alert.alert(t('auth.googleFailed'), error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    setLoading(true);
+    try {
+      await appleSignIn();
+    } catch (error: any) {
+      Alert.alert(t('auth.appleFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -266,9 +278,10 @@ export default function LoginScreen() {
 
             <TouchableOpacity
               onPress={handleGoogleLogin}
+              disabled={loading}
               className="flex-row items-center justify-center rounded-2xl"
               style={{
-                marginBottom: footerGap,
+                marginBottom: showAppleButton ? 12 : footerGap,
                 backgroundColor: theme.cardBg,
                 borderWidth: 1,
                 borderColor: theme.border,
@@ -284,6 +297,30 @@ export default function LoginScreen() {
                 {t('auth.google')}
               </Text>
             </TouchableOpacity>
+
+            {showAppleButton ? (
+              <TouchableOpacity
+                onPress={handleAppleLogin}
+                disabled={loading}
+                className="flex-row items-center justify-center rounded-2xl"
+                style={{
+                  marginBottom: footerGap,
+                  backgroundColor: theme.cardBg,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  paddingVertical: actionVerticalPadding,
+                }}>
+                <Ionicons
+                  name="logo-apple"
+                  size={20}
+                  color={theme.textPrimary}
+                  style={{ marginRight: 10 }}
+                />
+                <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
+                  {t('auth.apple')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
 
             <View className="flex-row items-center justify-center">
               <Text className="text-base" style={{ color: theme.textSecondary }}>

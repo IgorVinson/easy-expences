@@ -1,7 +1,10 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 import {
   GoogleAuthProvider,
+  OAuthProvider,
   User,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -21,6 +24,8 @@ GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
 });
 
+const NONCE_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -31,6 +36,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   googleSignIn: () => Promise<void>;
+  appleSignIn: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +64,21 @@ async function isSessionExpired(): Promise<boolean> {
   }
 
   return Date.now() - startedAt > SESSION_MAX_AGE_MS;
+}
+
+function generateNonce(length = 32): string {
+  const randomValues = Crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(randomValues, (value) => NONCE_CHARSET[value % NONCE_CHARSET.length]).join('');
+}
+
+function buildAppleDisplayName(
+  fullName?: AppleAuthentication.AppleAuthenticationFullName | null
+): string | null {
+  const parts = [fullName?.givenName, fullName?.familyName]
+    .map((part) => part?.trim())
+    .filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' ') : null;
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -149,6 +170,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const appleSignIn = async () => {
+    try {
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        throw new Error('Apple Sign-In is not available on this device.');
+      }
+
+      const rawNonce = generateNonce();
+      const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+
+      if (!credential.identityToken) {
+        throw new Error('Apple Sign-In failed to return an identity token.');
+      }
+
+      const provider = new OAuthProvider('apple.com');
+      const firebaseCredential = provider.credential({
+        idToken: credential.identityToken,
+        rawNonce,
+      });
+
+      const result = await signInWithCredential(auth, firebaseCredential);
+      const displayName = buildAppleDisplayName(credential.fullName);
+
+      if (displayName && !result.user.displayName) {
+        await updateProfile(result.user, { displayName });
+      }
+
+      await persistSessionStart();
+    } catch (error) {
+      console.error('Apple Sign-In Error:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -161,6 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         deleteAccount,
         googleSignIn,
+        appleSignIn,
       }}
     >
       {children}

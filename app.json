@@ -11,6 +11,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       "expo-web-browser",
       [
         "expo-audio",
@@ -31,10 +32,12 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "bundleIdentifier": "com.sayspend.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true,
         "LSApplicationQueriesSchemes": ["mailto"]
       }
     },

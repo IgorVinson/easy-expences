@@ -22,7 +22,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 export default function SignUpScreen() {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
-  const { signup, googleSignIn, finishPostSignupRedirect } = useAuth();
+  const { signup, googleSignIn, appleSignIn, finishPostSignupRedirect } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +38,7 @@ export default function SignUpScreen() {
   const actionVerticalPadding = isCompact ? 12 : 16;
   const gradientHeight = isCompact ? 180 : 250;
   const backButtonSize = isCompact ? 20 : 24;
+  const showAppleButton = Platform.OS !== 'android';
 
   const handleSignUp = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -83,6 +84,17 @@ export default function SignUpScreen() {
       await googleSignIn();
     } catch (error: any) {
       Alert.alert(t('auth.googleFailed'), error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleSignUp = async () => {
+    setLoading(true);
+    try {
+      await appleSignIn();
+    } catch (error: any) {
+      Alert.alert(t('auth.appleFailed'), error.message);
     } finally {
       setLoading(false);
     }
@@ -287,9 +299,10 @@ export default function SignUpScreen() {
 
             <TouchableOpacity
               onPress={handleGoogleSignUp}
+              disabled={loading}
               className="flex-row items-center justify-center rounded-2xl"
               style={{
-                marginBottom: isCompact ? 14 : 28,
+                marginBottom: showAppleButton ? 12 : isCompact ? 14 : 28,
                 backgroundColor: theme.cardBg,
                 borderWidth: 1,
                 borderColor: theme.border,
@@ -305,6 +318,30 @@ export default function SignUpScreen() {
                 {t('auth.google')}
               </Text>
             </TouchableOpacity>
+
+            {showAppleButton ? (
+              <TouchableOpacity
+                onPress={handleAppleSignUp}
+                disabled={loading}
+                className="flex-row items-center justify-center rounded-2xl"
+                style={{
+                  marginBottom: isCompact ? 14 : 28,
+                  backgroundColor: theme.cardBg,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  paddingVertical: actionVerticalPadding,
+                }}>
+                <Ionicons
+                  name="logo-apple"
+                  size={20}
+                  color={theme.textPrimary}
+                  style={{ marginRight: 10 }}
+                />
+                <Text className="text-base font-bold" style={{ color: theme.textPrimary }}>
+                  {t('auth.apple')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
 
             <View className="flex-row items-center justify-center">
               <Text className="text-base" style={{ color: theme.textSecondary }}>
