@@ -354,12 +354,14 @@
       "badgeLabel": "Plan listo",
       "badgeValue": "98% de precisión",
       "title": "¿Listo para sentir una paz financiera total?",
-      "subtitle": "Tu plan personalizado para claridad y crecimiento está listo. Únete a 1,000+ personas que ya recuperaron su libertad financiera.",
+      "subtitle": "Tu plan personalizado para claridad y crecimiento está listo.",
       "trialBanner": "Empieza con una prueba gratuita de 7 días y luego continúa con Premium mensual o anual.",
       "cta": "Iniciar prueba gratuita de 7 días",
       "continue": "Continuar",
       "processing": "Procesando...",
-      "terms": "Pago seguro. Cancela cuando quieras en la configuración de tu cuenta.\nSe aplican los Términos de Servicio y la Política de Privacidad."
+      "terms": "Pago seguro. Cancela cuando quieras en la configuración de tu cuenta.\nSe aplican los {{terms}} y la {{privacy}}.",
+      "termsOfService": "Términos de Servicio",
+      "privacyPolicy": "Política de Privacidad"
     },
     "s9": {
       "eyebrow": "Gran decisión",

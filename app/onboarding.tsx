@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Platform,
   Pressable,
   SafeAreaView,
@@ -31,6 +32,12 @@ import { db } from '../firebaseConfig';
 import { getOnboardingStorageKey } from '../utils/onboarding';
 
 const TOTAL_STEPS = 9;
+
+const PRIVACY_POLICY_URL =
+  'https://vinsonleads.notion.site/Privacy-policy-32ad26d1ebf08080b40df68b0f899fba';
+
+const TERMS_OF_USE_URL =
+  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -2799,7 +2806,37 @@ function Screen8({
                 lineHeight: clampNumber(layout.bodyLineHeight - 8, 14, 18),
               },
             ]}>
-            {t('onboarding.s8.terms')}
+            {t('onboarding.s8.terms')
+              .split(/(\{\{terms\}\}|\{\{privacy\}\})/)
+              .map((part, index) => {
+                if (part === '{{terms}}') {
+                  return (
+                    <Text
+                      key={index}
+                      onPress={() => Linking.openURL(TERMS_OF_USE_URL)}
+                      style={{
+                        color: theme.purple,
+                        textDecorationLine: 'underline',
+                      }}>
+                      {t('onboarding.s8.termsOfService')}
+                    </Text>
+                  );
+                }
+                if (part === '{{privacy}}') {
+                  return (
+                    <Text
+                      key={index}
+                      onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+                      style={{
+                        color: theme.purple,
+                        textDecorationLine: 'underline',
+                      }}>
+                      {t('onboarding.s8.privacyPolicy')}
+                    </Text>
+                  );
+                }
+                return part;
+              })}
           </Text>
         </View>
       </ScrollView>
