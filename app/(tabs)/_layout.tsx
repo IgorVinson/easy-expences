@@ -5,11 +5,19 @@ import { useTranslation } from 'react-i18next';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MonthlyReviewProvider } from '../../components/MonthlyReviewProvider';
 import { useTheme } from '../../contexts/ThemeContext';
 import { styles } from '../../styles';
 
 function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any) {
+  const insets = useSafeAreaInsets();
+  // iOS bases already include a manual home-indicator allowance; on Android
+  // (edge-to-edge by default in Expo 54) add the system nav bar inset so the
+  // tab bar isn't covered by the 3-button navigation.
+  const androidInset = Platform.OS === 'android' ? insets.bottom : 0;
+  const basePaddingBottom = Platform.OS === 'ios' ? 24 : 12 + androidInset;
+  const baseHeight = Platform.OS === 'ios' ? 88 : 68 + androidInset;
   return (
     <View
       style={[
@@ -18,10 +26,10 @@ function CustomTabBar({ state, descriptors, navigation, theme, isDarkMode }: any
           backgroundColor: theme.cardBg,
           borderTopWidth: 1,
           borderTopColor: theme.border,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+          paddingBottom: basePaddingBottom,
           paddingTop: 10,
           paddingHorizontal: 12,
-          height: Platform.OS === 'ios' ? 88 : 68,
+          height: baseHeight,
           alignItems: 'flex-start',
         },
         !isDarkMode && styles.navShadow,

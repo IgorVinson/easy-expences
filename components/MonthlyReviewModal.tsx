@@ -15,6 +15,7 @@ import {
   View,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { BudgetCategory } from '../types';
 
@@ -27,6 +28,7 @@ interface MonthlyReviewModalProps {
 export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyReviewModalProps) {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
   const [budgets, setBudgets] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -146,8 +148,9 @@ export function MonthlyReviewModal({ visible, categories, onSave }: MonthlyRevie
 
             {/* Save Button Overlay */}
             <View
-              className="absolute bottom-0 left-0 right-0 border-t px-6 pb-10 pt-4"
+              className="absolute bottom-0 left-0 right-0 border-t px-6 pt-4"
               style={{
+                paddingBottom: Platform.OS === 'ios' ? 40 : 40 + insets.bottom,
                 backgroundColor: theme.bg,
                 borderColor: theme.border,
                 shadowColor: '#000',

@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -22,6 +23,7 @@ interface PaywallModalProps {
 export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
   const { subscribe, restorePurchases, redeemPromoCode, offerings, trialDaysLeft, tier } =
     useSubscription();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
@@ -338,7 +340,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ visible, onClose }) 
           {/* Restore + Terms */}
           <View
             className="mt-3 items-center"
-            style={{ paddingBottom: Platform.OS === 'ios' ? 10 : 0 }}>
+            style={{ paddingBottom: Platform.OS === 'ios' ? 10 : insets.bottom }}>
             <TouchableOpacity onPress={handleRestore}>
               <Text className="text-xs" style={{ color: theme.textTertiary }}>
                 {t('paywall.restore')}

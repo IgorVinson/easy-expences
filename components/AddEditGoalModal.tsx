@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -63,6 +64,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
   const { currency } = useCurrency();
   const { canUseVoice, incrementVoiceUsage } = useSubscription();
   const {
@@ -371,7 +373,7 @@ export const AddEditGoalModal: React.FC<AddEditGoalModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, backgroundColor: theme.bg }}>
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 + insets.bottom, paddingTop: 16, backgroundColor: theme.bg }}>
                   {!goal && isRecording && (
                     <View style={{ alignItems: 'center', marginBottom: 12 }}>
                       <ListeningIndicator />

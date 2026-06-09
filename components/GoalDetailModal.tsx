@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -23,6 +24,7 @@ export const GoalDetailModal: React.FC<GoalDetailModalProps> = ({
   const { theme } = useTheme();
   const { currency } = useCurrency();
   const { i18n, t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   if (!goal) return null;
 
@@ -85,7 +87,7 @@ export const GoalDetailModal: React.FC<GoalDetailModalProps> = ({
           </View>
 
           {/* Contributions list */}
-          <ScrollView style={{ paddingHorizontal: 24 }} contentContainerStyle={{ paddingBottom: 40 }}>
+          <ScrollView style={{ paddingHorizontal: 24 }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
             {contributions.length === 0 ? (
               <View style={{ alignItems: 'center', paddingVertical: 32 }}>
                 <Ionicons name="cash-outline" size={40} color={theme.textTertiary} />

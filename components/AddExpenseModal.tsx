@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -49,6 +50,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
   const { currency } = useCurrency();
   const { canUseVoice, voiceRecordingsLeft, tier, incrementVoiceUsage } = useSubscription();
   const { addTransaction } = useTransactions(userId);
@@ -368,7 +370,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 </ScrollView>
 
                 {/* Footer */}
-                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, paddingTop: 16, backgroundColor: theme.bg }}>
+                <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 + insets.bottom, paddingTop: 16, backgroundColor: theme.bg }}>
                   {/* Listening indicator */}
                   {isRecording && (
                     <View style={{ alignItems: 'center', marginBottom: 12 }}>

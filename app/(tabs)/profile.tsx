@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PaywallModal } from '../../components/PaywallModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
@@ -142,6 +143,7 @@ const PRIVACY_POLICY_SECTIONS: PolicyItem[] = [
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode, toggleTheme, themePreference, setThemePreference } = useTheme();
+  const insets = useSafeAreaInsets();
   const { logout, deleteAccount, user } = useAuth();
   const { currency, currencies, loading: currencyLoading, setCurrency } = useCurrency();
   const { tier, customerInfo, voiceRecordingsLeft, trialDaysLeft, presentCustomerCenter } =
@@ -657,8 +659,8 @@ export default function ProfileScreen() {
         onRequestClose={() => setIsPrivacyModalOpen(false)}>
         <View className="flex-1" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
           <View
-            className="mt-16 flex-1 rounded-t-3xl px-6 pb-8 pt-6"
-            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border }}>
+            className="mt-16 flex-1 rounded-t-3xl px-6 pt-6"
+            style={{ backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border, paddingBottom: 32 + insets.bottom }}>
             <View className="flex-row items-start justify-between">
               <View className="mr-4 flex-1">
                 <Text className="text-2xl font-bold" style={{ color: theme.textPrimary }}>

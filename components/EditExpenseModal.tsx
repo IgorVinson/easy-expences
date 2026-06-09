@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useBudget } from '../hooks/useBudget';
@@ -42,6 +43,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
   const { currency } = useCurrency();
   const { categories } = useBudget(userId);
 
@@ -422,7 +424,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             <View
               className="px-6 pt-3"
               style={{
-                paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+                paddingBottom: Platform.OS === 'ios' ? 40 : 24 + insets.bottom,
                 borderTopWidth: 1,
                 borderTopColor: theme.border,
                 backgroundColor: theme.bg,

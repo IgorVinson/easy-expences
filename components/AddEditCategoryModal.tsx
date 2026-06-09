@@ -16,6 +16,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatCurrencyAmount } from '../config/currencies';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -90,6 +91,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
   const { currency } = useCurrency();
   const { canUseVoice, incrementVoiceUsage } = useSubscription();
   const isEdit = Boolean(category);
@@ -542,7 +544,7 @@ export const AddEditCategoryModal: React.FC<AddEditCategoryModalProps> = ({
               className="px-6"
               style={{
                 paddingTop: 16,
-                paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+                paddingBottom: Platform.OS === 'ios' ? 40 : 24 + insets.bottom,
                 backgroundColor: theme.bg,
               }}>
               {!isEdit && isRecording && (
