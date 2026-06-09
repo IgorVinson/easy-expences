@@ -6,6 +6,7 @@
   },
   "common": {
     "cancel": "Cancelar",
+    "done": "Listo",
     "delete": "Eliminar",
     "save": "Guardar",
     "error": "Error",

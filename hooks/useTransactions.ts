@@ -116,7 +116,9 @@ export function useTransactions(userId: string | null | undefined) {
     id: string,
     changes: Partial<Omit<NewTransaction, 'date'> & { date?: string }>
   ) {
-    const updateData: Record<string, any> = { ...changes };
+    const updateData: Record<string, any> = Object.fromEntries(
+      Object.entries(changes).filter(([, v]) => v !== undefined)
+    );
     if (changes.date) {
       updateData.date = Timestamp.fromDate(new Date(changes.date));
     }

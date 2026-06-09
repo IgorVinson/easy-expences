@@ -136,9 +136,6 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           title: title.trim(),
           amount: parsedAmount,
           goalId: selectedGoal.id,
-          category: undefined,
-          categoryId: undefined,
-          budgetLeft: undefined,
           icon: 'cash',
           colorLight: '#D1FAE5',
           colorDark: theme.success,
@@ -282,6 +279,7 @@ export const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 onValueChange={setAmount}
                 onExpressionChange={setCalculatorExpression}
                 onShowCalculator={() => setIsCalculatorVisible(true)}
+                onHideCalculator={() => setIsCalculatorVisible(false)}
                 label={t('addExpense.amountLabel', { currency })}
                 placeholder={t('addExpense.amountPlaceholder')}
                 isCalculatorVisible={isCalculatorVisible}

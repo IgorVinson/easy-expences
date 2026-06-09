@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Linking,
   Platform,
   Pressable,
@@ -36,8 +37,7 @@ const TOTAL_STEPS = 9;
 const PRIVACY_POLICY_URL =
   'https://vinsonleads.notion.site/Privacy-policy-32ad26d1ebf08080b40df68b0f899fba';
 
-const TERMS_OF_USE_URL =
-  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+const TERMS_OF_USE_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -2274,7 +2274,13 @@ function Screen8({
   const [promoCode, setPromoCode] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState('');
-  const { offerings, subscribe, redeemPromoCode, tier, loading: subscriptionLoading } = useSubscription();
+  const {
+    offerings,
+    subscribe,
+    redeemPromoCode,
+    tier,
+    loading: subscriptionLoading,
+  } = useSubscription();
   const hadActiveTierOnOpen = useRef<boolean | null>(null);
   const currentOffering = offerings?.current;
   const annualPackage =
@@ -2687,7 +2693,7 @@ function Screen8({
                   ? t('onboarding.s8.continue')
                   : !packagesLoaded
                     ? 'Loading plans...'
-                  : t('onboarding.s8.cta')
+                    : t('onboarding.s8.cta')
             }
             onPress={handleGetStarted}
             theme={theme}
@@ -3199,55 +3205,59 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg, paddingTop: topPadding }]}>
-      {step === 0 && <Screen1 theme={theme} t={t} onNext={next} />}
-      {step === 1 && <Screen2 {...shared} />}
-      {step === 2 && <Screen3 {...shared} />}
-      {step === 3 && <Screen4 {...shared} />}
-      {step === 4 && (
-        <Screen5
-          {...shared}
-          onSelectionsChange={(keys, custom) => {
-            setSelectedCategoryKeys(keys);
-            setCustomCategory(custom);
-          }}
-        />
-      )}
-      {step === 5 && (
-        <Screen6
-          {...shared}
-          onGoalChange={(goal, nextGoalKey) => {
-            setGoalName(goal);
-            setGoalKey(nextGoalKey);
-          }}
-        />
-      )}
-      {step === 6 && (
-        <Screen7
-          {...shared}
-          selectedCategoryKeys={selectedCategoryKeys}
-          customCategory={customCategory}
-          goalName={goalName}
-          goalKey={goalKey}
-          onFinish={() => setStep(7)}
-        />
-      )}
-      {step === 7 && (
-        <Screen8
-          {...shared}
-          onFinish={() => setStep(8)}
-          onDevBypass={() =>
-            completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
-          }
-        />
-      )}
-      {step === 8 && (
-        <Screen9
-          {...shared}
-          onFinish={() =>
-            completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
-          }
-        />
-      )}
+      <KeyboardAvoidingView
+        style={styles.safe}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        {step === 0 && <Screen1 theme={theme} t={t} onNext={next} />}
+        {step === 1 && <Screen2 {...shared} />}
+        {step === 2 && <Screen3 {...shared} />}
+        {step === 3 && <Screen4 {...shared} />}
+        {step === 4 && (
+          <Screen5
+            {...shared}
+            onSelectionsChange={(keys, custom) => {
+              setSelectedCategoryKeys(keys);
+              setCustomCategory(custom);
+            }}
+          />
+        )}
+        {step === 5 && (
+          <Screen6
+            {...shared}
+            onGoalChange={(goal, nextGoalKey) => {
+              setGoalName(goal);
+              setGoalKey(nextGoalKey);
+            }}
+          />
+        )}
+        {step === 6 && (
+          <Screen7
+            {...shared}
+            selectedCategoryKeys={selectedCategoryKeys}
+            customCategory={customCategory}
+            goalName={goalName}
+            goalKey={goalKey}
+            onFinish={() => setStep(7)}
+          />
+        )}
+        {step === 7 && (
+          <Screen8
+            {...shared}
+            onFinish={() => setStep(8)}
+            onDevBypass={() =>
+              completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
+            }
+          />
+        )}
+        {step === 8 && (
+          <Screen9
+            {...shared}
+            onFinish={() =>
+              completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
+            }
+          />
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

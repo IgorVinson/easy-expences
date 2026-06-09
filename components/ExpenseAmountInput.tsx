@@ -1,5 +1,18 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleProp, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import {
+  Keyboard,
+  Modal,
+  Platform,
+  StyleProp,
+  Text,
+  TextInput,
+  TextStyle,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 
 type CalculatorButton = {
@@ -7,6 +20,9 @@ type CalculatorButton = {
   flex?: number;
   variant?: 'number' | 'operator' | 'utility';
 };
+
+// The approve/OK key — evaluates the expression and closes the calculator.
+const APPROVE_LABEL = '✓';
 
 const CALCULATOR_ROWS: CalculatorButton[][] = [
   [
@@ -17,7 +33,7 @@ const CALCULATOR_ROWS: CalculatorButton[][] = [
   [{ label: '7' }, { label: '8' }, { label: '9' }, { label: '×', variant: 'operator' }],
   [{ label: '4' }, { label: '5' }, { label: '6' }, { label: '-', variant: 'operator' }],
   [{ label: '1' }, { label: '2' }, { label: '3' }, { label: '+', variant: 'operator' }],
-  [{ label: '0', flex: 2 }, { label: '.' }, { label: '=', variant: 'operator' }],
+  [{ label: '0' }, { label: '.' }, { label: APPROVE_LABEL, variant: 'operator', flex: 2 }],
 ];
 
 function isCalculatorOperator(value: string) {
@@ -138,6 +154,7 @@ type ExpenseAmountInputProps = {
   onValueChange: (value: string) => void;
   onExpressionChange: (expression: string) => void;
   onShowCalculator: () => void;
+  onHideCalculator: () => void;
   label: string;
   placeholder: string;
   isCalculatorVisible: boolean;
@@ -145,8 +162,6 @@ type ExpenseAmountInputProps = {
   labelStyle?: StyleProp<TextStyle>;
   inputClassName?: string;
   inputMarginBottomWhenHidden?: number;
-  inputMarginBottomWhenVisible?: number;
-  calculatorMarginBottom?: number;
   accentColor?: string;
 };
 
@@ -156,6 +171,7 @@ export const ExpenseAmountInput: React.FC<ExpenseAmountInputProps> = ({
   onValueChange,
   onExpressionChange,
   onShowCalculator,
+  onHideCalculator,
   label,
   placeholder,
   isCalculatorVisible,
@@ -163,11 +179,11 @@ export const ExpenseAmountInput: React.FC<ExpenseAmountInputProps> = ({
   labelStyle,
   inputClassName,
   inputMarginBottomWhenHidden = 24,
-  inputMarginBottomWhenVisible = 12,
-  calculatorMarginBottom = 24,
   accentColor,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const operatorColor = accentColor ?? theme.purple;
 
   const calculatorPreview = React.useMemo(() => {
@@ -273,103 +289,165 @@ export const ExpenseAmountInput: React.FC<ExpenseAmountInputProps> = ({
     );
   }
 
+  function handleOpenCalculator() {
+    Keyboard.dismiss();
+    onShowCalculator();
+  }
+
+  function handleDone() {
+    // Resolve any trailing partial expression (e.g. "12+3") into a final value.
+    handleCalculatorPress('=');
+    onHideCalculator();
+  }
+
   return (
     <>
       <Text style={labelStyle}>{label}</Text>
-      <TextInput
-        className={inputClassName}
-        value={value}
-        onChangeText={handleAmountChange}
-        onFocus={onShowCalculator}
-        onPressIn={onShowCalculator}
-        placeholder={placeholder}
-        placeholderTextColor={theme.textTertiary}
-        keyboardType="decimal-pad"
-        showSoftInputOnFocus={false}
-        caretHidden
-        style={[
-          inputStyle,
-          {
-            marginBottom: isCalculatorVisible
-              ? inputMarginBottomWhenVisible
-              : inputMarginBottomWhenHidden,
-          },
-        ]}
-      />
-      {isCalculatorVisible ? (
-        <View style={{ marginBottom: calculatorMarginBottom, gap: 8 }}>
+      <View style={{ position: 'relative', marginBottom: inputMarginBottomWhenHidden }}>
+        <TextInput
+          className={inputClassName}
+          value={value}
+          onChangeText={handleAmountChange}
+          placeholder={placeholder}
+          placeholderTextColor={theme.textTertiary}
+          keyboardType="decimal-pad"
+          style={[inputStyle, { paddingRight: 52 }]}
+        />
+        <TouchableOpacity
+          onPress={handleOpenCalculator}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={{
+            position: 'absolute',
+            right: 8,
+            top: 0,
+            bottom: 0,
+            width: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Ionicons name="calculator-outline" size={22} color={operatorColor} />
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        visible={isCalculatorVisible}
+        animationType="slide"
+        statusBarTranslucent={Platform.OS === 'android'}
+        onRequestClose={onHideCalculator}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: theme.bg,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom + 16,
+            paddingHorizontal: 20,
+          }}>
+          {/* Header */}
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingHorizontal: 4,
+              paddingVertical: 12,
             }}>
+            <TouchableOpacity
+              onPress={onHideCalculator}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={{ color: theme.textSecondary, fontSize: 16, fontWeight: '600' }}>
+                {t('common.cancel')}
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ color: theme.textPrimary, fontSize: 16, fontWeight: '700' }}>
+              {label}
+            </Text>
+            <TouchableOpacity
+              onPress={handleDone}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={{ color: operatorColor, fontSize: 16, fontWeight: '700' }}>
+                {t('common.done')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Display */}
+          <View style={{ flex: 1, justifyContent: 'flex-end', paddingVertical: 24 }}>
             <Text
               numberOfLines={1}
               adjustsFontSizeToFit
-              minimumFontScale={0.7}
+              minimumFontScale={0.4}
               style={{
-                flex: 1,
                 color: theme.textPrimary,
-                fontSize: 24,
+                fontSize: 48,
                 fontWeight: '700',
+                textAlign: 'right',
               }}>
               {expression || value || '0'}
             </Text>
             {calculatorPreview ? (
               <Text
                 style={{
-                  marginLeft: 12,
+                  marginTop: 8,
                   color: theme.textSecondary,
-                  fontSize: 14,
+                  fontSize: 22,
                   fontWeight: '600',
+                  textAlign: 'right',
                 }}>
                 = {calculatorPreview}
               </Text>
             ) : null}
           </View>
 
-          {CALCULATOR_ROWS.map((row, rowIndex) => (
-            <View key={`calculator-row-${rowIndex}`} style={{ flexDirection: 'row', gap: 8 }}>
-              {row.map((button) => {
-                const isOperatorButton = button.variant === 'operator';
-                const isUtilityButton = button.variant === 'utility';
+          {/* Keypad */}
+          <View style={{ gap: 10 }}>
+            {CALCULATOR_ROWS.map((row, rowIndex) => (
+              <View key={`calculator-row-${rowIndex}`} style={{ flexDirection: 'row', gap: 10 }}>
+                {row.map((button) => {
+                  const isApproveButton = button.label === APPROVE_LABEL;
+                  const isOperatorButton = button.variant === 'operator';
+                  const isUtilityButton = button.variant === 'utility';
 
-                return (
-                  <TouchableOpacity
-                    key={button.label}
-                    onPress={() => handleCalculatorPress(button.label)}
-                    activeOpacity={0.8}
-                    style={{
-                      flex: button.flex ?? 1,
-                      minHeight: 48,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 14,
-                      borderWidth: isOperatorButton ? 0 : 1,
-                      borderColor: theme.border,
-                      backgroundColor: isOperatorButton
-                        ? operatorColor
-                        : isUtilityButton
-                          ? theme.cardBg
-                          : theme.bg,
-                    }}>
-                    <Text
+                  return (
+                    <TouchableOpacity
+                      key={button.label}
+                      onPress={() =>
+                        button.label === APPROVE_LABEL
+                          ? handleDone()
+                          : handleCalculatorPress(button.label)
+                      }
+                      activeOpacity={0.8}
                       style={{
-                        color: isOperatorButton ? '#fff' : theme.textPrimary,
-                        fontSize: 18,
-                        fontWeight: button.label === 'AC' ? '700' : '600',
+                        flex: button.flex ?? 1,
+                        minHeight: 64,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 16,
+                        borderWidth: isOperatorButton ? 0 : 1,
+                        borderColor: theme.border,
+                        backgroundColor: isApproveButton
+                          ? theme.success
+                          : isOperatorButton
+                            ? operatorColor
+                            : isUtilityButton
+                              ? theme.cardBg
+                              : theme.bg,
                       }}>
-                      {button.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ))}
+                      <Text
+                        style={{
+                          color: isOperatorButton ? '#fff' : theme.textPrimary,
+                          fontSize: 24,
+                          fontWeight: button.label === 'AC' ? '700' : '600',
+                        }}>
+                        {button.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
         </View>
-      ) : null}
+      </Modal>
     </>
   );
 };

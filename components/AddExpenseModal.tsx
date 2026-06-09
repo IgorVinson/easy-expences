@@ -298,6 +298,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     onValueChange={setAmount}
                     onExpressionChange={setCalculatorExpression}
                     onShowCalculator={() => setIsCalculatorVisible(true)}
+        onHideCalculator={() => setIsCalculatorVisible(false)}
                     label={t('addExpense.amountLabel', { currency })}
                     placeholder={t('addExpense.amountPlaceholder')}
                     isCalculatorVisible={isCalculatorVisible}
