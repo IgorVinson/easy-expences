@@ -2855,8 +2855,10 @@ function Screen9({
   t,
   onFinish,
   step,
+  loading,
 }: Pick<SharedProps, 'theme' | 't' | 'step'> & {
   onFinish: () => void;
+  loading?: boolean;
 }) {
   const layout = useAdaptiveOnboardingLayout();
   const compactHeight = layout.height < 860;
@@ -3086,6 +3088,8 @@ function Screen9({
           <CTAButton
             label={t('onboarding.s9.cta')}
             onPress={onFinish}
+            loading={loading}
+            disabled={loading}
             theme={theme}
             icon="arrow-forward"
           />
@@ -3122,6 +3126,11 @@ export default function OnboardingScreen() {
   const [goalName, setGoalName] = useState('');
   const [goalKey, setGoalKey] = useState<string | null>(null);
 
+  // Guards against double-invocation of completeOnboarding (e.g. double-tapping the
+  // final CTA), which would otherwise duplicate every seeded category and goal.
+  const isCompletingRef = React.useRef(false);
+  const [completing, setCompleting] = useState(false);
+
   const completeOnboarding = async (
     catKeys: string[] = selectedCategoryKeys,
     custom: string = customCategory,
@@ -3129,64 +3138,76 @@ export default function OnboardingScreen() {
     selectedGoal: string | null = goalKey,
     budgetPlan?: BudgetPlan
   ) => {
-    if (user) {
-      const uid = user.uid;
-      const periodStart = getCurrentMonthStartIso();
-      const goalPreset = getGoalPreset(selectedGoal, i18n.language);
-      const expenseBudgets = budgetPlan?.expenseBudgets ?? {};
-      const customBudget = budgetPlan?.customExpenseBudget ?? 200;
-      const goalTargetAmount = budgetPlan?.goalTargetAmount ?? 0;
+    // Synchronous ref check closes the double-tap race window before any await.
+    if (isCompletingRef.current) return;
+    isCompletingRef.current = true;
+    setCompleting(true);
 
-      // Seed selected categories (skip default seeding in useBudget by pre-populating)
-      const categoriesToCreate = CATEGORY_OPTIONS.filter((c) => catKeys.includes(c.key));
-      if (categoriesToCreate.length > 0) {
-        await Promise.all(
-          categoriesToCreate.map((cat) =>
-            addDoc(collection(db, 'budgetCategories'), {
-              name: cat.firestoreName,
-              budget: expenseBudgets[cat.key] ?? cat.budget,
-              spent: 0,
-              periodStart,
-              icon: cat.icon,
-              colorLight: cat.bgLight,
-              colorDark: cat.bgDark,
-              userId: uid,
-            })
-          )
-        );
+    try {
+      if (user) {
+        const uid = user.uid;
+        const periodStart = getCurrentMonthStartIso();
+        const goalPreset = getGoalPreset(selectedGoal, i18n.language);
+        const expenseBudgets = budgetPlan?.expenseBudgets ?? {};
+        const customBudget = budgetPlan?.customExpenseBudget ?? 200;
+        const goalTargetAmount = budgetPlan?.goalTargetAmount ?? 0;
+
+        // Seed selected categories (skip default seeding in useBudget by pre-populating)
+        const categoriesToCreate = CATEGORY_OPTIONS.filter((c) => catKeys.includes(c.key));
+        if (categoriesToCreate.length > 0) {
+          await Promise.all(
+            categoriesToCreate.map((cat) =>
+              addDoc(collection(db, 'budgetCategories'), {
+                name: cat.firestoreName,
+                budget: expenseBudgets[cat.key] ?? cat.budget,
+                spent: 0,
+                periodStart,
+                icon: cat.icon,
+                colorLight: cat.bgLight,
+                colorDark: cat.bgDark,
+                userId: uid,
+              })
+            )
+          );
+        }
+
+        // Custom category
+        if (custom) {
+          await addDoc(collection(db, 'budgetCategories'), {
+            name: custom,
+            budget: customBudget,
+            spent: 0,
+            periodStart,
+            icon: 'cash',
+            colorLight: '#E2E8F0',
+            colorDark: '#94A3B8',
+            userId: uid,
+          });
+        }
+
+        // Goal
+        if (goal) {
+          await addDoc(collection(db, 'goals'), {
+            name: goal,
+            targetAmount: goalTargetAmount,
+            icon: goalPreset.icon,
+            colorLight: goalPreset.bgLight,
+            colorDark: goalPreset.color,
+            userId: uid,
+          });
+        }
       }
 
-      // Custom category
-      if (custom) {
-        await addDoc(collection(db, 'budgetCategories'), {
-          name: custom,
-          budget: customBudget,
-          spent: 0,
-          periodStart,
-          icon: 'cash',
-          colorLight: '#E2E8F0',
-          colorDark: '#94A3B8',
-          userId: uid,
-        });
+      if (user) {
+        await AsyncStorage.setItem(getOnboardingStorageKey(user.uid), 'true');
       }
-
-      // Goal
-      if (goal) {
-        await addDoc(collection(db, 'goals'), {
-          name: goal,
-          targetAmount: goalTargetAmount,
-          icon: goalPreset.icon,
-          colorLight: goalPreset.bgLight,
-          colorDark: goalPreset.color,
-          userId: uid,
-        });
-      }
+      router.replace('/(tabs)/overview');
+    } catch (e: any) {
+      // Reset the guard so the user can retry after a transient failure.
+      isCompletingRef.current = false;
+      setCompleting(false);
+      Alert.alert(t('common.error'), e?.message ?? t('addExpense.failedSave'));
     }
-
-    if (user) {
-      await AsyncStorage.setItem(getOnboardingStorageKey(user.uid), 'true');
-    }
-    router.replace('/(tabs)/overview');
   };
 
   const next = () => setStep((s) => s + 1);
@@ -3252,6 +3273,7 @@ export default function OnboardingScreen() {
         {step === 8 && (
           <Screen9
             {...shared}
+            loading={completing}
             onFinish={() =>
               completeOnboarding(selectedCategoryKeys, customCategory, goalName, goalKey)
             }
