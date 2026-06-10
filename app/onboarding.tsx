@@ -2584,9 +2584,6 @@ function Screen8({
                   Annual
                 </Text>
                 <View style={[styles.s8PlanPriceRow, narrowWidth && styles.s8PlanPriceRowCompact]}>
-                  <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                    {annualPrice}
-                  </Text>
                   <View style={[styles.s8SaveBadge, { backgroundColor: theme.successBg }]}>
                     <Text style={[styles.s8SaveBadgeText, { color: theme.success }]}>
                       Save {annualSavingsPercent}%
@@ -2596,7 +2593,6 @@ function Screen8({
               </View>
             </View>
             <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
-              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Only</Text>
               <Text
                 style={[
                   styles.s8PlanHighlight,
@@ -2604,6 +2600,9 @@ function Screen8({
                   ultraCompactHeight && styles.s8PlanHighlightUltraCompact,
                   { color: theme.purple },
                 ]}>
+                {annualPrice}/yr
+              </Text>
+              <Text style={[styles.s8PlanPerMonth, { color: theme.textSecondary }]}>
                 {annualMonthlyEquivalent}/mo
               </Text>
             </View>
@@ -2648,21 +2647,20 @@ function Screen8({
                   ]}>
                   Monthly
                 </Text>
-                <Text style={[styles.s8PlanPrice, { color: theme.textSecondary }]}>
-                  {monthlyPrice}
+                <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>
+                  Billed monthly
                 </Text>
               </View>
             </View>
             <View style={[styles.s8PlanRight, narrowWidth && styles.s8PlanRightCompact]}>
-              <Text style={[styles.s8PlanSmall, { color: theme.textSecondary }]}>Billed</Text>
               <Text
                 style={[
-                  styles.s8PlanMonth,
-                  narrowWidth && styles.s8PlanMonthCompact,
-                  ultraCompactHeight && styles.s8PlanMonthUltraCompact,
-                  { color: theme.textPrimary },
+                  styles.s8PlanHighlight,
+                  narrowWidth && styles.s8PlanHighlightCompact,
+                  ultraCompactHeight && styles.s8PlanHighlightUltraCompact,
+                  { color: theme.purple },
                 ]}>
-                Monthly
+                {monthlyPrice}/mo
               </Text>
             </View>
           </Pressable>
@@ -4212,6 +4210,7 @@ const styles = StyleSheet.create({
   s8PlanRight: { alignItems: 'flex-end', flexShrink: 0, marginLeft: 10, maxWidth: '42%' },
   s8PlanRightCompact: { maxWidth: '44%' },
   s8PlanSmall: { fontSize: 10, fontWeight: '500', marginBottom: 2 },
+  s8PlanPerMonth: { fontSize: 11, fontWeight: '500', marginTop: 1 },
   s8PlanHighlight: { fontSize: 18, fontWeight: '800' },
   s8PlanHighlightCompact: { fontSize: 15 },
   s8PlanHighlightUltraCompact: { fontSize: 15 },

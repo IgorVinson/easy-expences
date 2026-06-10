@@ -214,7 +214,7 @@
       "premium": "Premium",
       "recommended": "RECOMENDADO",
       "savePercent": "AHORRA {{percent}}%",
-      "annualDetail": "{{monthly}}/mes · Facturado {{annual}}/año",
+      "annualDetail": "Facturado {{annual}}/año · {{monthly}}/mes",
       "monthlyDetail": "{{price}}/mes"
     },
     "subscribe": "Empezar {{tier}} · {{price}}",

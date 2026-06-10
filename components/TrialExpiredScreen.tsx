@@ -35,6 +35,17 @@ export const TrialExpiredScreen: React.FC = () => {
 
   const premiumMonthlyPrice = premiumMonthlyPkg?.product.priceString ?? '$6.99';
   const premiumAnnualPrice = premiumAnnualPkg?.product.priceString ?? '$67.10';
+  // Real per-month equivalent of the annual plan (annual price ÷ 12), correctly
+  // currency-formatted by RevenueCat. Kept subordinate to the billed amount per Apple 3.1.2(c).
+  const premiumAnnualPerMonth =
+    premiumAnnualPkg?.product.pricePerMonthString ??
+    (premiumAnnualPkg
+      ? new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: premiumAnnualPkg.product.currencyCode,
+          maximumFractionDigits: 2,
+        }).format(premiumAnnualPkg.product.price / 12)
+      : '$5.59');
 
   const FEATURES = [
     {
@@ -197,7 +208,7 @@ export const TrialExpiredScreen: React.FC = () => {
               </View>
               <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
                 {billingCycle === 'annual'
-                  ? t('paywall.plans.annualDetail', { monthly: premiumAnnualPrice, annual: premiumAnnualPrice })
+                  ? t('paywall.plans.annualDetail', { monthly: premiumAnnualPerMonth, annual: premiumAnnualPrice })
                   : t('paywall.plans.monthlyDetail', { price: premiumMonthlyPrice })}
               </Text>
             </View>

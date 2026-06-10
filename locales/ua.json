@@ -214,7 +214,7 @@
       "premium": "Преміум",
       "recommended": "РЕКОМЕНДОВАНО",
       "savePercent": "ЕКОНОМІЯ {{percent}}%",
-      "annualDetail": "{{monthly}}/міс · {{annual}}/рік",
+      "annualDetail": "{{annual}}/рік · {{monthly}}/міс",
       "monthlyDetail": "{{price}}/місяць"
     },
     "subscribe": "Почати {{tier}} · {{price}}",
