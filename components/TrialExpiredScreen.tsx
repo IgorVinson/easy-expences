@@ -8,7 +8,6 @@ import {
   ScrollView,
   StatusBar,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -18,13 +17,9 @@ import { useTheme } from '../contexts/ThemeContext';
 export const TrialExpiredScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme, isDarkMode } = useTheme();
-  const { subscribe, restorePurchases, redeemPromoCode, offerings } = useSubscription();
+  const { subscribe, restorePurchases, offerings } = useSubscription();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [purchasing, setPurchasing] = useState(false);
-  const [showPromo, setShowPromo] = useState(false);
-  const [promoCode, setPromoCode] = useState('');
-  const [promoLoading, setPromoLoading] = useState(false);
-  const [promoError, setPromoError] = useState('');
 
   const premiumMonthlyPkg = offerings?.current?.availablePackages.find(
     (p) => p.identifier === 'premium_monthly'
@@ -112,19 +107,6 @@ export const TrialExpiredScreen: React.FC = () => {
       await restorePurchases();
     } catch {
       Alert.alert(t('common.error'), t('paywall.restoreError') || 'Could not restore purchases.');
-    }
-  };
-
-  const handleRedeemPromo = async () => {
-    if (!promoCode.trim()) return;
-    setPromoLoading(true);
-    setPromoError('');
-    try {
-      await redeemPromoCode(promoCode.trim().toUpperCase());
-    } catch {
-      setPromoError(t('paywall.promo.invalid'));
-    } finally {
-      setPromoLoading(false);
     }
   };
 
@@ -260,56 +242,6 @@ export const TrialExpiredScreen: React.FC = () => {
             </Text>
           )}
         </TouchableOpacity>
-
-        {/* Promo */}
-        <TouchableOpacity
-          onPress={() => setShowPromo(!showPromo)}
-          className="mt-4 flex-row items-center justify-center">
-          <Text className="text-xs" style={{ color: theme.textTertiary }}>
-            {t('paywall.promo.haveCode')}
-          </Text>
-          <Ionicons
-            name={showPromo ? 'chevron-up' : 'chevron-down'}
-            size={14}
-            color={theme.textTertiary}
-            style={{ marginLeft: 4 }}
-          />
-        </TouchableOpacity>
-
-        {showPromo && (
-          <View className="mt-2 flex-row items-center" style={{ gap: 8 }}>
-            <TextInput
-              placeholder={t('paywall.promo.placeholder')}
-              placeholderTextColor={theme.textTertiary}
-              value={promoCode}
-              onChangeText={(text) => { setPromoCode(text); setPromoError(''); }}
-              autoCapitalize="characters"
-              className="flex-1 rounded-xl px-4 py-3 text-sm"
-              style={{
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
-                color: theme.textPrimary,
-                borderWidth: promoError ? 1 : 0,
-                borderColor: theme.error,
-              }}
-            />
-            <TouchableOpacity
-              onPress={handleRedeemPromo}
-              disabled={promoLoading}
-              className="rounded-xl px-4 py-3"
-              style={{ backgroundColor: theme.purple }}>
-              {promoLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text className="text-sm font-bold text-white">{t('paywall.promo.redeem')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-        {promoError ? (
-          <Text className="mt-1 text-center text-xs" style={{ color: theme.error }}>
-            {promoError}
-          </Text>
-        ) : null}
 
         {/* Restore */}
         <View className="mt-4 items-center">

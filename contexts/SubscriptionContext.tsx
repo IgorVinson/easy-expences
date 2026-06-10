@@ -52,7 +52,6 @@ export interface SubscriptionContextType {
   subscribe: (pkg: PurchasesPackage) => Promise<void>;
   restorePurchases: () => Promise<void>;
   presentCustomerCenter: () => Promise<void>;
-  redeemPromoCode: (code: string) => Promise<void>;
 }
 
 interface VoiceUsage {
@@ -345,38 +344,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     await RevenueCatUI.presentCustomerCenter();
   }, []);
 
-  const redeemPromoCode = useCallback(
-    async (_code: string) => {
-      const beforeInfo = await Purchases.getCustomerInfo();
-      const beforeTier = determineTier(beforeInfo);
-
-      if (Platform.OS === 'android') {
-        // @ts-expect-error — redeemCode is available on Android
-        await Purchases.redeemCode(_code);
-      } else {
-        // iOS: Open system redemption sheet (iOS 14+). Always resolves —
-        // success/failure must be inferred from the resulting entitlement.
-        await Purchases.presentCodeRedemptionSheet();
-      }
-
-      const info = await Purchases.getCustomerInfo();
-      const newTier = determineTier(info);
-      setTier(newTier);
-      setCustomerInfo(info);
-      setTrialDaysLeft(getTrialDaysLeft(info));
-      if (user) {
-        syncTierToFirestore(user.uid, newTier).catch(console.error);
-      }
-
-      const isPaid = newTier === 'premium' || newTier === 'basic';
-      const tierAdvanced = newTier !== beforeTier;
-      if (!isPaid || !tierAdvanced) {
-        throw new Error('Redemption did not grant a paid entitlement');
-      }
-    },
-    [user]
-  );
-
   return (
     <SubscriptionContext.Provider
       value={{
@@ -393,7 +360,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         subscribe,
         restorePurchases,
         presentCustomerCenter,
-        redeemPromoCode,
       }}>
       {children}
     </SubscriptionContext.Provider>
