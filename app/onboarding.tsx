@@ -2307,6 +2307,30 @@ function Screen8({
         )
       : 50;
 
+  // Free-trial detection — derive the trial length from the actual StoreKit product
+  // (introPrice with price 0) so we only advertise a trial that the payment sheet will
+  // really offer. Avoids App Store rejection 2.1(b) when no intro offer is configured.
+  const computeTrialDays = (pkg: typeof annualPackage): number => {
+    const intro = pkg?.product.introPrice;
+    if (!intro || intro.price !== 0) return 0;
+    const n = intro.periodNumberOfUnits;
+    switch (intro.periodUnit) {
+      case 'DAY':
+        return n;
+      case 'WEEK':
+        return n * 7;
+      case 'MONTH':
+        return n * 30;
+      case 'YEAR':
+        return n * 365;
+      default:
+        return n;
+    }
+  };
+  const selectedPackage = selectedPlan === 'annual' ? annualPackage : monthlyPackage;
+  const trialDays = computeTrialDays(selectedPackage);
+  const hasTrial = trialDays > 0;
+
   useEffect(() => {
     if (subscriptionLoading || hadActiveTierOnOpen.current !== null) return;
     hadActiveTierOnOpen.current = tier === 'premium';
@@ -2498,24 +2522,26 @@ function Screen8({
             ]}>
             {t('onboarding.s8.subtitle')}
           </Text>
-          <Text
-            style={[
-              styles.bodyText,
-              {
-                color: theme.purple,
-                textAlign: 'center',
-                marginTop: ultraCompactHeight ? 6 : 10,
-                fontWeight: '700',
-                fontSize: ultraCompactHeight
-                  ? clampNumber(layout.bodySize - 1, 12, 14)
-                  : layout.bodySize,
-                lineHeight: ultraCompactHeight
-                  ? clampNumber(layout.bodyLineHeight - 4, 16, 20)
-                  : layout.bodyLineHeight,
-              },
-            ]}>
-            {t('onboarding.s8.trialBanner')}
-          </Text>
+          {hasTrial && (
+            <Text
+              style={[
+                styles.bodyText,
+                {
+                  color: theme.purple,
+                  textAlign: 'center',
+                  marginTop: ultraCompactHeight ? 6 : 10,
+                  fontWeight: '700',
+                  fontSize: ultraCompactHeight
+                    ? clampNumber(layout.bodySize - 1, 12, 14)
+                    : layout.bodySize,
+                  lineHeight: ultraCompactHeight
+                    ? clampNumber(layout.bodyLineHeight - 4, 16, 20)
+                    : layout.bodyLineHeight,
+                },
+              ]}>
+              {t('onboarding.s8.trialBanner', { days: trialDays })}
+            </Text>
+          )}
         </View>
 
         {/* Subscription options */}
@@ -2671,7 +2697,9 @@ function Screen8({
                   ? t('onboarding.s8.continue')
                   : !packagesLoaded
                     ? 'Loading plans...'
-                    : t('onboarding.s8.cta')
+                    : hasTrial
+                      ? t('onboarding.s8.cta', { days: trialDays })
+                      : t('onboarding.s8.subscribeCta')
             }
             onPress={handleGetStarted}
             theme={theme}
