@@ -16,7 +16,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+          "microphonePermission": "Keelio uses the microphone to record voice notes that are transcribed into expense entries. For example, say \"Coffee, four dollars\" and Keelio creates a $4 expense titled \"Coffee\". Recordings are used only to create your expense and for no other purpose."
         }
       ],
       "@react-native-google-signin/google-signin"
