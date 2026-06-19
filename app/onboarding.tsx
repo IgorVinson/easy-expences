@@ -37,7 +37,12 @@ const TOTAL_STEPS = 9;
 const PRIVACY_POLICY_URL =
   'https://vinsonleads.notion.site/Privacy-policy-32ad26d1ebf08080b40df68b0f899fba';
 
-const TERMS_OF_USE_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+// iOS keeps Apple's standard EULA (expected by App Store review for auto-renewing
+// subscriptions). Android/Play requires our own Terms of Use.
+const TERMS_OF_USE_URL = Platform.select({
+  ios: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+  default: 'https://vinsonleads.notion.site/Terms-of-use-384d26d1ebf080989a03db06c002dc67',
+});
 
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
