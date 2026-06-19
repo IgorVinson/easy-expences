@@ -357,6 +357,12 @@
       "title": "¿Listo para sentir una paz financiera total?",
       "subtitle": "Tu plan personalizado para claridad y crecimiento está listo.",
       "trialBanner": "Empieza con una prueba gratuita de {{days}} días y luego continúa con Premium mensual o anual.",
+      "features": [
+        "Registro ilimitado por voz y manual de gastos",
+        "Categorías personalizadas y presupuestos mensuales",
+        "Metas de ahorro e información de gastos",
+        "Copia de seguridad en la nube y sincronización"
+      ],
       "cta": "Iniciar prueba gratuita de {{days}} días",
       "subscribeCta": "Suscribirse",
       "continue": "Continuar",

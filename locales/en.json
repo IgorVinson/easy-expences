@@ -360,6 +360,12 @@
       "title": "Ready to experience total financial peace?",
       "subtitle": "Your personalized plan for clarity and growth is ready.",
       "trialBanner": "Start with a {{days}}-day free trial, then continue with Premium monthly or annual.",
+      "features": [
+        "Unlimited voice & manual expense logging",
+        "Custom categories & monthly budgets",
+        "Savings goals & spending insights",
+        "Cloud backup & sync across devices"
+      ],
       "cta": "Start {{days}}-Day Free Trial",
       "subscribeCta": "Subscribe",
       "continue": "Continue",

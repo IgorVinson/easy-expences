@@ -2270,12 +2270,7 @@ function Screen8({
   const [loading, setLoading] = useState(false);
   const [devBypassLoading, setDevBypassLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {
-    offerings,
-    subscribe,
-    tier,
-    loading: subscriptionLoading,
-  } = useSubscription();
+  const { offerings, subscribe, tier, loading: subscriptionLoading } = useSubscription();
   const hadActiveTierOnOpen = useRef<boolean | null>(null);
   const currentOffering = offerings?.current;
   const annualPackage =
@@ -2351,7 +2346,6 @@ function Screen8({
       setDevBypassLoading(false);
     }
   };
-
 
   const handleGetStarted = async () => {
     setError(null);
@@ -2541,6 +2535,24 @@ function Screen8({
               ]}>
               {t('onboarding.s8.trialBanner', { days: trialDays })}
             </Text>
+          )}
+        </View>
+
+        {/* What's included in the subscription */}
+        <View style={[styles.s8Features, ultraCompactHeight && styles.s8FeaturesUltraCompact]}>
+          {(t('onboarding.s8.features', { returnObjects: true }) as unknown as string[]).map(
+            (feature, index) => (
+              <View key={index} style={styles.s8FeatureRow}>
+                <View style={[styles.s8FeatureCheck, { backgroundColor: theme.purple + '20' }]}>
+                  <Ionicons name="checkmark" size={11} color={theme.purple} />
+                </View>
+                <Text
+                  style={[styles.s8FeatureText, { color: theme.textPrimary }]}
+                  numberOfLines={1}>
+                  {feature}
+                </Text>
+              </View>
+            )
           )}
         </View>
 
@@ -4098,6 +4110,17 @@ const styles = StyleSheet.create({
   s8TagRowUltraCompact: { marginBottom: 6 },
   s8TagDot: { width: 6, height: 6, borderRadius: 3 },
   s8TagText: { fontSize: 10, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
+  s8Features: { gap: 8, marginBottom: 16, alignSelf: 'stretch', paddingHorizontal: 4 },
+  s8FeaturesUltraCompact: { gap: 5, marginBottom: 10 },
+  s8FeatureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  s8FeatureCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  s8FeatureText: { flex: 1, fontSize: 13, fontWeight: '600' },
   s8PlansContainer: { gap: 8, marginBottom: 10 },
   s8PlansContainerUltraCompact: { gap: 6, marginBottom: 6 },
   s8PlanCard: {
