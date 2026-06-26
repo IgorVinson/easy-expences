@@ -189,7 +189,9 @@
     "back": "Back to Recording",
     "listening": "Voice recording...",
     "transcriptionFailed": "Transcription failed",
-    "couldNotTranscribe": "Could not transcribe your recording. Please try again."
+    "couldNotTranscribe": "Could not transcribe your recording. Please try again.",
+    "voiceFunnyError": "Oops — my brain stepped out for a coffee break ☕. Give it another go in a sec!",
+    "needsPermission": "I need microphone & speech permission to listen. Please enable it in Settings."
   },
   "paywall": {
     "title": "Unlock Keelio",

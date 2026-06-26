@@ -189,7 +189,9 @@
     "back": "Volver a grabar",
     "listening": "Grabando voz...",
     "transcriptionFailed": "Error de transcripción",
-    "couldNotTranscribe": "No se pudo transcribir la grabación. Inténtalo de nuevo."
+    "couldNotTranscribe": "No se pudo transcribir la grabación. Inténtalo de nuevo.",
+    "voiceFunnyError": "Uy — mi cerebro se fue por un café ☕. ¡Inténtalo de nuevo en un momento!",
+    "needsPermission": "Necesito permiso de micrófono y voz para escuchar. Actívalo en Ajustes."
   },
   "paywall": {
     "title": "Desbloquea Keelio",

@@ -21,7 +21,9 @@ import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTransactions } from '../hooks/useTransactions';
 import { useVoiceExpense } from '../hooks/useVoiceExpense';
+import { isLiveRecognitionAvailable, useVoiceExpenseLive } from '../hooks/useVoiceExpenseLive';
 import { BudgetCategory, GoalWithProgress } from '../types';
+import { parseSpokenExpense } from '../utils/parseSpokenExpense';
 import { findBestNameMatch } from '../utils/voiceMatch';
 import { ExpenseAmountInput, resolveCalculatedAmount } from './ExpenseAmountInput';
 import ListeningIndicator from './ListeningIndicator';
@@ -48,7 +50,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   goals = [],
   defaultTab = 'expense',
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
   const { currency } = useCurrency();
@@ -63,6 +65,17 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     stopRecordingAndProcess,
     cancelRecording,
   } = useVoiceExpense();
+  const {
+    isListening,
+    transcript: liveTranscript,
+    error: liveError,
+    startListening,
+    stopListening,
+    cancel: cancelLive,
+  } = useVoiceExpenseLive();
+
+  // Mic is "active" whether using live on-device recognition or the Gemini fallback.
+  const isMicActive = isListening || isRecording;
 
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [title, setTitle] = useState('');
@@ -112,6 +125,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   }
 
   async function handleClose() {
+    cancelLive();
     await cancelRecording();
     resetForm();
     onClose();
@@ -121,11 +135,43 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     setIsCalculatorVisible(false);
   }
 
-  async function handleStartRecording() {
+  // Fill the form from a (possibly partial) live transcript. Only overwrites a
+  // field once we're confident about it, so growing interim results never wipe
+  // out a value we already detected.
+  function applyLiveTranscript(text: string) {
+    const list: { name: string }[] = activeTab === 'expense' ? categories : goals;
+    const parsed = parseSpokenExpense(text, list);
+    if (parsed.title) setTitle(parsed.title);
+    if (parsed.amount > 0) {
+      const nextAmount = parsed.amount.toString();
+      setAmount(nextAmount);
+      setCalculatorExpression(nextAmount);
+    }
+    if (activeTab === 'expense') {
+      const match = findBestNameMatch(categories, text);
+      if (match) setSelectedCategory(match);
+    } else {
+      const match = findBestNameMatch(goals, text);
+      if (match) setSelectedGoal(match);
+    }
+  }
+
+  async function handleMicPress() {
+    if (isMicActive) {
+      if (isListening) stopListening();
+      else await handleStopAndTranscribe();
+      return;
+    }
     if (!canUseVoice) {
       setPaywallVisible(true);
       return;
     }
+    // Primary path: live on-device recognition that fills fields as you speak.
+    if (isLiveRecognitionAvailable()) {
+      await startListening(applyLiveTranscript, i18n.language);
+      return;
+    }
+    // Fallback: record + Gemini (for devices without on-device recognition).
     await startRecording(handleStopAndTranscribe);
   }
 
@@ -134,7 +180,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       activeTab === 'expense' ? categories.map((c) => c.name) : goals.map((g) => g.name);
     const result = await stopRecordingAndProcess(hints);
     if (!result) {
-      Alert.alert(t('recording.transcriptionFailed'), voiceError ?? t('recording.couldNotTranscribe'));
+      Alert.alert(t('recording.transcriptionFailed'), t('recording.voiceFunnyError'));
       return;
     }
     setTitle(result.title);
@@ -372,16 +418,23 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
                 {/* Footer */}
                 <View style={{ paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 + insets.bottom, paddingTop: 16, backgroundColor: theme.bg }}>
-                  {/* Listening indicator */}
-                  {isRecording && (
+                  {/* Listening indicator + live transcript */}
+                  {isMicActive && (
                     <View style={{ alignItems: 'center', marginBottom: 12 }}>
                       <ListeningIndicator />
+                      {Boolean(liveTranscript) && (
+                        <Text style={{ marginTop: 8, fontSize: 14, color: theme.textPrimary, textAlign: 'center' }}>
+                          {liveTranscript}
+                        </Text>
+                      )}
                     </View>
                   )}
                   {/* Error */}
-                  {Boolean(voiceError) && (
+                  {Boolean(voiceError || liveError) && (
                     <View style={{ marginBottom: 12, borderRadius: 12, borderWidth: 1, padding: 10, borderColor: theme.error, backgroundColor: theme.errorBg }}>
-                      <Text style={{ fontSize: 12, color: theme.textPrimary }}>{voiceError}</Text>
+                      <Text style={{ fontSize: 12, color: theme.textPrimary }}>
+                        {liveError ? t('recording.needsPermission') : t('recording.voiceFunnyError')}
+                      </Text>
                     </View>
                   )}
                   {/* Mic button */}
@@ -392,23 +445,23 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         style={{
                           position: 'absolute',
                           width: 72, height: 72, borderRadius: 36,
-                          backgroundColor: isRecording ? theme.error : (isDarkMode ? '#6B7280' : '#9CA3AF'),
+                          backgroundColor: isMicActive ? theme.error : (isDarkMode ? '#6B7280' : '#9CA3AF'),
                           opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: isDarkMode ? [0.22, 0] : [0.32, 0] }),
                           transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
                         }}
                       />
                       <TouchableOpacity
-                        onPress={isRecording ? handleStopAndTranscribe : handleStartRecording}
+                        onPress={handleMicPress}
                         disabled={isProcessing}
                         style={{
                           width: 72, height: 72, borderRadius: 36,
                           alignItems: 'center', justifyContent: 'center',
-                          backgroundColor: isRecording ? theme.error : theme.iconBg,
+                          backgroundColor: isMicActive ? theme.error : theme.iconBg,
                           opacity: isProcessing ? 0.7 : 1,
                         }}>
                         {isProcessing
                           ? <ActivityIndicator size="large" color={theme.textPrimary} />
-                          : <Ionicons name={isRecording ? 'stop' : 'mic'} size={30} color={isRecording ? '#fff' : theme.textPrimary} />}
+                          : <Ionicons name={isMicActive ? 'stop' : 'mic'} size={30} color={isMicActive ? '#fff' : theme.textPrimary} />}
                       </TouchableOpacity>
                       {tier === 'basic' && (
                         <View style={{ position: 'absolute', top: 0, right: 0, height: 20, minWidth: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 4, backgroundColor: voiceRecordingsLeft > 0 ? theme.purple : theme.error }}>
