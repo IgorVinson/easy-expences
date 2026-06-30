@@ -89,8 +89,17 @@
     "selectGoal": "Будь ласка, оберіть ціль для цього внеску.",
     "saveIncome": "Зберегти внесок"
   },
+  "notifications": {
+    "channelName": "Щоденні нагадування",
+    "dailyReminderTitle": "Keelio",
+    "dailyReminderBody": "Не забудьте записати сьогоднішні витрати 📝"
+  },
   "profile": {
     "title": "Мій профіль",
+    "notifications": "Щоденне нагадування",
+    "dailyReminderSubtitle": "Отримуйте нагадування записувати витрати",
+    "notificationsDeniedTitle": "Сповіщення вимкнено",
+    "notificationsDeniedBody": "Увімкніть сповіщення для Keelio в налаштуваннях пристрою, щоб отримувати щоденні нагадування.",
     "myPlan": "Мій тариф",
     "language": "Мова",
     "currency": "Валюта",

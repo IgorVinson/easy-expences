@@ -89,8 +89,17 @@
     "selectGoal": "Please select a goal for this contribution.",
     "saveIncome": "Save Contribution"
   },
+  "notifications": {
+    "channelName": "Daily reminders",
+    "dailyReminderTitle": "Keelio",
+    "dailyReminderBody": "Don't forget to log today's expenses 📝"
+  },
   "profile": {
     "title": "My Profile",
+    "notifications": "Daily reminder",
+    "dailyReminderSubtitle": "Get a nudge to log your expenses",
+    "notificationsDeniedTitle": "Notifications are off",
+    "notificationsDeniedBody": "Enable notifications for Keelio in your device Settings to get daily reminders.",
     "myPlan": "My Plan",
     "language": "Language",
     "currency": "Currency",

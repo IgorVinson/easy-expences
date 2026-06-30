@@ -89,8 +89,17 @@
     "selectGoal": "Por favor selecciona una meta para este aporte.",
     "saveIncome": "Guardar aporte"
   },
+  "notifications": {
+    "channelName": "Recordatorios diarios",
+    "dailyReminderTitle": "Keelio",
+    "dailyReminderBody": "No olvides registrar los gastos de hoy 📝"
+  },
   "profile": {
     "title": "Mi Perfil",
+    "notifications": "Recordatorio diario",
+    "dailyReminderSubtitle": "Recibe un aviso para registrar tus gastos",
+    "notificationsDeniedTitle": "Las notificaciones están desactivadas",
+    "notificationsDeniedBody": "Activa las notificaciones de Keelio en los Ajustes de tu dispositivo para recibir recordatorios diarios.",
     "myPlan": "Mi Plan",
     "language": "Idioma",
     "currency": "Moneda",
