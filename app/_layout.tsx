@@ -8,13 +8,20 @@ import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionC
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
 import '../i18n';
+import { configureNotificationHandler, syncDailyReminderOnLaunch } from '../lib/dailyReminder';
 import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../utils/onboarding';
+
+configureNotificationHandler();
 
 function RootLayoutNav() {
   const { user, loading, postSignupRedirectPending } = useAuth();
   const { loading: subLoading } = useSubscription();
   const segments = useSegments();
   const router = useRouter();
+
+  useEffect(() => {
+    syncDailyReminderOnLaunch();
+  }, []);
 
   useEffect(() => {
     if (loading || subLoading) return;
