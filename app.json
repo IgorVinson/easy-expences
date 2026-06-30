@@ -46,6 +46,12 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#8B5CF6"
+        }
       ]
     ],
     "orientation": "portrait",
@@ -67,6 +73,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleAllowMixedLocalizations": true,
+        "NSUserNotificationsUsageDescription": "Keelio sends you a daily reminder to log your expenses so you never forget.",
         "LSApplicationQueriesSchemes": [
           "mailto"
         ]
