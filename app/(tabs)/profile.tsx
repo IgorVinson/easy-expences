@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -21,6 +22,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { BASIC_VOICE_LIMIT, useSubscription } from '../../contexts/SubscriptionContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import {
+  cancelDailyReminder,
+  isReminderEnabled,
+  requestPermission,
+  scheduleDailyReminder,
+  setReminderEnabled,
+} from '../../lib/dailyReminder';
 import { styles } from '../../styles';
 import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../../utils/onboarding';
 
@@ -161,6 +169,11 @@ export default function ProfileScreen() {
   const [deleteAccountLoading, setDeleteAccountLoading] = React.useState(false);
   const supportEmail = process.env.EXPO_PUBLIC_SUPPORT_EMAIL;
   const isDeletePhraseValid = deleteConfirmationText === 'DELETE';
+  const [reminderOn, setReminderOn] = useState(true);
+
+  useEffect(() => {
+    isReminderEnabled().then(setReminderOn);
+  }, []);
 
   const handleLogout = () => {
     const doLogout = async () => {
@@ -180,6 +193,28 @@ export default function ProfileScreen() {
         { text: t('common.cancel'), style: 'cancel' },
         { text: t('profile.logout'), style: 'destructive', onPress: doLogout },
       ]);
+    }
+  };
+
+  const handleToggleReminder = async (next: boolean) => {
+    if (next) {
+      const granted = await requestPermission();
+      if (!granted) {
+        setReminderOn(false);
+        await setReminderEnabled(false);
+        Alert.alert(
+          t('profile.notificationsDeniedTitle'),
+          t('profile.notificationsDeniedBody')
+        );
+        return;
+      }
+      await scheduleDailyReminder();
+      await setReminderEnabled(true);
+      setReminderOn(true);
+    } else {
+      await cancelDailyReminder();
+      await setReminderEnabled(false);
+      setReminderOn(false);
     }
   };
 
@@ -464,6 +499,31 @@ export default function ProfileScreen() {
               { backgroundColor: theme.cardBg, borderWidth: 1, borderColor: theme.border },
               !isDarkMode && styles.cardShadow,
             ]}>
+            {/* Daily Reminder */}
+            <View
+              className="flex-row items-center justify-between border-b py-4"
+              style={{ borderBottomColor: theme.border }}>
+              <View className="flex-1 flex-row items-center">
+                <View
+                  className="h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: isDarkMode ? 'rgba(245,158,11,0.15)' : '#FEF3C7' }}>
+                  <Ionicons name="notifications-outline" size={20} color="#F59E0B" />
+                </View>
+                <View className="ml-4 flex-1 pr-3">
+                  <Text className="text-base font-medium" style={{ color: theme.textPrimary }}>
+                    {t('profile.notifications')}
+                  </Text>
+                  <Text className="mt-0.5 text-xs" style={{ color: theme.textSecondary }}>
+                    {t('profile.dailyReminderSubtitle')}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={reminderOn}
+                onValueChange={handleToggleReminder}
+                trackColor={{ false: '#767577', true: theme.purple }}
+              />
+            </View>
             {/* Theme Preference */}
             <View
               className="flex-row items-center justify-between border-b py-4"
