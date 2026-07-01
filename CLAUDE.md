@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-```bash
+````bash
+# Build and submit App Store
+eas build --platform ios --profile production --auto-submit
+
+# Build Play Store
+eas build --platform android --profile production
+# Submit Play Store
+```manually```
+
 # Development
 npm start                    # Expo dev server (default — choose ios/android/web from menu)
 npm run ios                  # expo run:ios — builds + opens iOS simulator
@@ -22,7 +30,7 @@ npx tsc --noEmit             # TypeScript type check (no test runner is configur
 cd functions && npm run build    # tsc compile to functions/lib
 cd functions && npm run deploy   # firebase deploy --only functions
 # Local emulator: set FUNCTIONS_EMULATOR=true to bypass voice subscription gating
-```
+````
 
 There is **no test runner** in this project — no jest, no vitest, no e2e harness. Manual verification on simulator/device is the only path; do not invent test commands.
 
@@ -32,10 +40,11 @@ There is **no test runner** in this project — no jest, no vitest, no e2e harne
 
 ### Routing — Expo Router (file-based)
 
-[app/_layout.tsx](app/_layout.tsx) is the auth/onboarding gate. It composes providers in this order (top-down):
+[app/\_layout.tsx](app/_layout.tsx) is the auth/onboarding gate. It composes providers in this order (top-down):
 `GestureHandlerRootView → AuthProvider → ThemeProvider → CurrencyProvider → SubscriptionProvider → RootLayoutNav`.
 
 Route groups:
+
 - `app/(auth)/` — `login`, `signup`, `forgot-password`. Shown when `user == null`.
 - `app/(tabs)/` — `overview`, `goals`, `profile`. The post-auth surface. **There is no separate `budget` tab** — budget categories live inside `goals`/`overview`.
 - `app/onboarding.tsx` — shown after first signup; completion is tracked per-user in AsyncStorage under `getOnboardingStorageKey(uid)`, with `LEGACY_ONBOARDING_KEY` migration.
@@ -45,6 +54,7 @@ Route groups:
 ### Auth — Firebase Auth, platform-split
 
 Two entry points share the same Firebase config but differ in persistence:
+
 - [firebaseConfig.js](firebaseConfig.js) — web fallback, plain `getAuth`
 - [firebaseConfig.native.js](firebaseConfig.native.js) — native, `initializeAuth` with AsyncStorage persistence so sessions survive app restarts
 
@@ -55,7 +65,8 @@ There are also two AuthContext variants: [contexts/AuthContext.tsx](contexts/Aut
 ### Data layer — Firestore + real-time hooks
 
 All data access is via `onSnapshot` subscriptions in custom hooks under [hooks/](hooks/):
-- `useTransactions(userId)` — single source for both expenses *and* income (unified `transactions` collection, discriminated by `type` field). Exposes derived `expenses`, `income`, `todayExpenses`, `yesterdayExpenses`, `olderExpenses`, `monthlyTotal`, `monthlyIncome`, plus CRUD. **Use `useTransactions`, not a non-existent `useExpenses`.**
+
+- `useTransactions(userId)` — single source for both expenses _and_ income (unified `transactions` collection, discriminated by `type` field). Exposes derived `expenses`, `income`, `todayExpenses`, `yesterdayExpenses`, `olderExpenses`, `monthlyTotal`, `monthlyIncome`, plus CRUD. **Use `useTransactions`, not a non-existent `useExpenses`.**
 - `useBudget(userId)` — budget categories. `spent` is computed client-side by joining transactions against `categoryId` (with a name-based fallback for legacy rows without `categoryId`), respecting each category's `periodStart`.
 - `useGoals`, `useUserProfile` — analogous patterns.
 
@@ -82,6 +93,7 @@ The "hard paywall" `TrialExpiredScreen` block in `app/_layout.tsx:62-68` is curr
 ### Voice expenses — Gemini via Cloud Function
 
 End-to-end flow:
+
 1. [hooks/useVoiceExpense.ts](hooks/useVoiceExpense.ts) records via `expo-audio` (`MPEG4AAC`, 24kHz mono, 32kbps, 30s hard cap), reads file as base64.
 2. Sends to the `processVoiceExpense` callable function with `categories` and `devMode: __DEV__`.
 3. [functions/src/index.ts](functions/src/index.ts) enforces three limits in parallel: per-user rate limit (5/min, 50/hour), daily hard limit (200/day), and subscription gate. Audio over 1MB base64 (~45s HIGH_QUALITY) is rejected.
