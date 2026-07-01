@@ -40,7 +40,7 @@ Route groups:
 - `app/(tabs)/` — `overview`, `goals`, `profile`. The post-auth surface. **There is no separate `budget` tab** — budget categories live inside `goals`/`overview`.
 - `app/onboarding.tsx` — shown after first signup; completion is tracked per-user in AsyncStorage under `getOnboardingStorageKey(uid)`, with `LEGACY_ONBOARDING_KEY` migration.
 
-`RootLayoutNav` reads onboarding state fresh from AsyncStorage in each redirect cycle (see comment in `_layout.tsx:36-48`) — do not cache this in component state or you'll re-introduce the stale-state bug it was written to avoid.
+`RootLayoutNav` reads onboarding state fresh from AsyncStorage in each redirect cycle (see the comment above the `Promise.all` block in `_layout.tsx`) — do not cache this in component state or you'll re-introduce the stale-state bug it was written to avoid.
 
 ### Auth — Firebase Auth, platform-split
 
@@ -95,6 +95,10 @@ When `devMode === true` AND `FUNCTIONS_EMULATOR === 'true'`, the subscription ch
 NativeWind 4 (Tailwind for RN). Use `className` for layout/spacing and `theme.*` from [contexts/ThemeContext.tsx](contexts/ThemeContext.tsx) for colors so dark/light/auto preference flows through. The app launches in dark mode by default (`themePreference: 'dark'` initial state; `userInterfaceStyle: 'dark'` in `app.json`).
 
 `prettier-plugin-tailwindcss` auto-sorts class names — don't fight it.
+
+### Notifications — daily reminder
+
+[lib/dailyReminder.ts](lib/dailyReminder.ts) schedules a local `expo-notifications` daily reminder (default 20:00, default ON). `configureNotificationHandler()` runs once at module load in `app/_layout.tsx`; `syncDailyReminderOnLaunch()` runs on every app launch inside `RootLayoutNav` to re-request permission and re-assert the schedule (or flip the stored toggle off if permission was denied, keeping the UI honest). The enabled flag lives in AsyncStorage under `settings.dailyReminder`; the profile screen's toggle (`app/(tabs)/profile.tsx`) calls `setReminderEnabled`/`scheduleDailyReminder`/`cancelDailyReminder` directly. Requires the `expo-notifications` config plugin in `app.json` and a native rebuild (`npm run prebuild`) after adding it — it will not work in Expo Go.
 
 ### i18n
 
