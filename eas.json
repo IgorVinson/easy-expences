@@ -21,6 +21,10 @@
   },
   "submit": {
     "production": {
+      "ios": {
+        "ascAppId": "6764172505",
+        "appleTeamId": "LZJZ82FNFQ"
+      },
       "android": {
         "serviceAccountKeyPath": "./play-service-account.json",
         "track": "production",
