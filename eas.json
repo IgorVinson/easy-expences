@@ -15,7 +15,9 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_SUPPORT_EMAIL": "igorvinson@gmail.com"
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "igorvinson@gmail.com",
+        "EXPO_PUBLIC_POSTHOG_KEY": "phc_your_project_api_key_here",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com"
       }
     }
   },
