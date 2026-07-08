@@ -13,7 +13,10 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "igorvinson@gmail.com"
+      }
     }
   },
   "submit": {
