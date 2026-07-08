@@ -29,3 +29,6 @@ android
 # Firebase Cloud Functions build output
 functions/lib/
 functions/node_modules/
+
+# Google Play service account key (secret — never commit)
+play-service-account.json
