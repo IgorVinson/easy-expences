@@ -1,13 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PostHogProvider } from 'posthog-react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { CurrencyProvider } from '../contexts/CurrencyContext';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import '../global.css';
 import '../i18n';
+import {
+  posthog,
+  track,
+  identifyUser,
+  resetAnalytics,
+  markInstalledOnce,
+  EVENTS,
+} from '../lib/analytics';
 import { configureNotificationHandler, syncDailyReminderOnLaunch } from '../lib/dailyReminder';
 import { LEGACY_ONBOARDING_KEY, getOnboardingStorageKey } from '../utils/onboarding';
 
@@ -22,6 +32,24 @@ function RootLayoutNav() {
   useEffect(() => {
     syncDailyReminderOnLaunch();
   }, []);
+
+  useEffect(() => {
+    // Install fires once ever; open fires on this launch.
+    markInstalledOnce().finally(() => track(EVENTS.opened));
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') track(EVENTS.opened);
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      identifyUser(user.uid);
+    } else {
+      resetAnalytics();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (loading || subLoading) return;
@@ -84,7 +112,7 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  return (
+  const tree = (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <ThemeProvider>
@@ -97,4 +125,6 @@ export default function RootLayout() {
       </AuthProvider>
     </GestureHandlerRootView>
   );
+
+  return posthog ? <PostHogProvider client={posthog}>{tree}</PostHogProvider> : tree;
 }
