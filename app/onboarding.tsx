@@ -1958,7 +1958,9 @@ function Screen7({
         customExpenseBudget: budgetMap.customCategory ?? customExpenseInitial,
         goalTargetAmount: goalAmount ?? goalPreset.budget,
       });
-      // Aha moment: personalized plan committed. Fire once per install.
+      // Aha moment: personalized plan committed. Fired once per install (a
+      // global AsyncStorage guard, not scoped per uid) — acceptable under the
+      // single-user-per-device, premium-only model.
       const alreadyFired = await AsyncStorage.getItem(AHA_FIRED_KEY);
       if (alreadyFired !== 'true') {
         await AsyncStorage.setItem(AHA_FIRED_KEY, 'true');
