@@ -30,9 +30,11 @@ import { useCurrency } from '../contexts/CurrencyContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { db } from '../firebaseConfig';
+import { track, EVENTS } from '../lib/analytics';
 import { getOnboardingStorageKey } from '../utils/onboarding';
 
 const TOTAL_STEPS = 9;
+const AHA_FIRED_KEY = 'analytics.ahaFired';
 
 const PRIVACY_POLICY_URL =
   'https://vinsonleads.notion.site/Privacy-policy-32ad26d1ebf08080b40df68b0f899fba';
@@ -1956,6 +1958,12 @@ function Screen7({
         customExpenseBudget: budgetMap.customCategory ?? customExpenseInitial,
         goalTargetAmount: goalAmount ?? goalPreset.budget,
       });
+      // Aha moment: personalized plan committed. Fire once per install.
+      const alreadyFired = await AsyncStorage.getItem(AHA_FIRED_KEY);
+      if (alreadyFired !== 'true') {
+        await AsyncStorage.setItem(AHA_FIRED_KEY, 'true');
+        track(EVENTS.aha);
+      }
     } finally {
       setSaving(false);
     }
@@ -2276,6 +2284,11 @@ function Screen8({
   const [devBypassLoading, setDevBypassLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { offerings, subscribe, tier, loading: subscriptionLoading } = useSubscription();
+
+  useEffect(() => {
+    track(EVENTS.paywallView);
+  }, []);
+
   const hadActiveTierOnOpen = useRef<boolean | null>(null);
   const currentOffering = offerings?.current;
   const annualPackage =
