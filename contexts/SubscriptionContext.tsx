@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import { Platform } from 'react-native';
@@ -18,6 +19,7 @@ import RevenueCatUI from 'react-native-purchases-ui';
 import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from './AuthContext';
+import { track, EVENTS } from '../lib/analytics';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -135,6 +137,9 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     voiceRecordingsThisMonth: 0,
     voiceRecordingsResetMonth: getCurrentMonth(),
   });
+  // Tracks the last raw tier we emitted an event for, to avoid duplicate
+  // events when the RevenueCat listener re-fires on renewal/refresh.
+  const prevTierRef = useRef<SubscriptionTier | null>(null);
 
   const effectiveTier: SubscriptionTier = __DEV__ ? 'premium' : tier;
   const isPro = effectiveTier === 'premium' || effectiveTier === 'trial';
@@ -255,6 +260,28 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       Purchases.removeCustomerInfoUpdateListener(listener);
     };
   }, [user]);
+
+  useEffect(() => {
+    // Use RAW `tier`, never `effectiveTier` (which is 'premium' in __DEV__).
+    const prev = prevTierRef.current;
+
+    // Skip the very first observed value (initial load, not a transition).
+    if (prev === null) {
+      prevTierRef.current = tier;
+      return;
+    }
+
+    if (prev === tier) return;
+
+    if (tier === 'trial' && prev !== 'trial') {
+      track(EVENTS.trialStarted);
+    }
+    if (tier === 'premium' && prev !== 'premium') {
+      track(EVENTS.subscriptionPaid);
+    }
+
+    prevTierRef.current = tier;
+  }, [tier]);
 
   const voiceRecordingsLeft =
     effectiveTier === 'premium' || effectiveTier === 'trial'
