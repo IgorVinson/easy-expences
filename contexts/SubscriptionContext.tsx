@@ -262,10 +262,17 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
+    // Re-initializing (cold launch or user switch): drop the baseline so we
+    // re-establish it from the freshly detected tier instead of the 'none' default.
+    if (loading) {
+      prevTierRef.current = null;
+      return;
+    }
+
     // Use RAW `tier`, never `effectiveTier` (which is 'premium' in __DEV__).
     const prev = prevTierRef.current;
 
-    // Skip the very first observed value (initial load, not a transition).
+    // First detected tier after load is the baseline, not a transition.
     if (prev === null) {
       prevTierRef.current = tier;
       return;
@@ -281,7 +288,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     }
 
     prevTierRef.current = tier;
-  }, [tier]);
+  }, [tier, loading]);
 
   const voiceRecordingsLeft =
     effectiveTier === 'premium' || effectiveTier === 'trial'

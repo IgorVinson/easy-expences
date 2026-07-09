@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PostHogProvider } from 'posthog-react-native';
@@ -43,11 +43,15 @@ function RootLayoutNav() {
     return () => sub.remove();
   }, []);
 
+  const wasIdentifiedRef = useRef(false);
+
   useEffect(() => {
     if (user) {
       identifyUser(user.uid);
-    } else {
+      wasIdentifiedRef.current = true;
+    } else if (wasIdentifiedRef.current) {
       resetAnalytics();
+      wasIdentifiedRef.current = false;
     }
   }, [user]);
 
